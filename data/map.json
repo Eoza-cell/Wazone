@@ -1,0 +1,20 @@
+{
+  "grid": [
+    [
+      { "type": "building", "description": "Un entrepôt abandonné. De nombreuses fenêtres brisées offrent des points de vue sur la rue." },
+      { "type": "street", "description": "Une rue jonchée de débris. Il y a peu d'endroits où se cacher." },
+      { "type": "building", "description": "Une petite boutique délabrée. La porte est entrouverte." }
+    ],
+    [
+      { "type": "cover", "description": "Une ruelle étroite remplie de bennes à ordures. Idéal pour une embuscade." },
+      { "type": "street", "description": "Un carrefour exposé. Le feu de circulation clignote encore étrangement." },
+      { "type": "cover", "description": "Une voiture calcinée. Elle peut offrir une protection temporaire." }
+    ],
+    [
+      { "type": "building", "description": "Le hall d'un immeuble de bureaux. Le verre brisé crisse sous les pieds." },
+      { "type": "cover", "description": "Une barricade de sacs de sable, probablement laissée par d'anciens survivants." },
+      { "type": "building", "description": "L'entrée d'une station de métro. L'obscurité y est totale." }
+    ]
+  ],
+  "start_position": { "x": 1, "y": 1 }
+}

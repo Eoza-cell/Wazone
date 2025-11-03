@@ -3,6 +3,7 @@ const { Boom } = require('@hapi/boom');
 const pino = require('pino');
 const fs = require('fs');
 const path = require('path');
+const sharp = require('sharp');
 
 // Chemin pour sauvegarder les données d'authentification
 const AUTH_DIR = './auth_info_baileys/';
@@ -87,13 +88,16 @@ async function connectToWhatsApp() {
     // Fonction pour récupérer ou créer un joueur
     function getPlayer(jid) {
         const db = getPlayersDatabase();
+        const map = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'map.json'), 'utf8'));
+
         if (!db[jid]) {
             console.log(`Nouveau joueur détecté : ${jid}. Création de l'entrée.`);
             db[jid] = {
                 health: 100,
                 energy: 100,
                 weapon: 'Pistolet',
-                location: 'Point de départ', // Localisation de base
+                x: map.start_position.x,
+                y: map.start_position.y,
                 isDead: false,
                 deathTimestamp: null
             };
@@ -102,6 +106,96 @@ async function connectToWhatsApp() {
         return db[jid];
     }
     // --- FIN DE LA LOGIQUE DE LA BASE DE DONNÉES ---
+
+    // --- LOGIQUE DE GÉNÉRATION D'IMAGES ---
+    async function generateStatusImage(player) {
+        const imagePath = path.join(__dirname, 'generated_images', `status_${player.jid}.png`);
+
+        // Dimensions de l'image
+        const width = 800;
+        const height = 400;
+
+        // Couleurs
+        const backgroundColor = '#1a1a1a'; // Fond sombre
+        const barBackgroundColor = '#444';
+        const healthColor = '#e74c3c'; // Rouge
+        const energyColor = '#3498db'; // Bleu
+        const textColor = '#ecf0f1';   // Blanc cassé
+
+        // Calcul des longueurs des barres
+        const barWidth = 400;
+        const barHeight = 40;
+        const healthBarWidth = (player.health / 100) * barWidth;
+        const energyBarWidth = (player.energy / 100) * barWidth;
+
+        // Création de l'image avec Sharp
+        const svgImage = `
+        <svg width="${width}" height="${height}">
+            <rect x="0" y="0" width="${width}" height="${height}" fill="${backgroundColor}" />
+
+            <text x="50%" y="60" font-family="Arial, sans-serif" font-size="40" fill="${textColor}" text-anchor="middle">STATUT DU JOUEUR</text>
+
+            <!-- Barre de Vie -->
+            <text x="100" y="150" font-family="Arial, sans-serif" font-size="30" fill="${textColor}">❤️ Vie</text>
+            <rect x="300" y="125" width="${barWidth}" height="${barHeight}" fill="${barBackgroundColor}" rx="10" />
+            <rect x="300" y="125" width="${healthBarWidth}" height="${barHeight}" fill="${healthColor}" rx="10" />
+            <text x="500" y="155" font-family="Arial, sans-serif" font-size="25" fill="${textColor}" text-anchor="middle">${player.health}%</text>
+
+            <!-- Barre d'Énergie -->
+            <text x="100" y="250" font-family="Arial, sans-serif" font-size="30" fill="${textColor}">⚡ Énergie</text>
+            <rect x="300" y="225" width="${barWidth}" height="${barHeight}" fill="${barBackgroundColor}" rx="10" />
+            <rect x="300" y="225" width="${energyBarWidth}" height="${barHeight}" fill="${energyColor}" rx="10" />
+            <text x="500" y="255" font-family="Arial, sans-serif" font-size="25" fill="${textColor}" text-anchor="middle">${player.energy}%</text>
+
+            <!-- Arme -->
+            <text x="50%" y="350" font-family="Arial, sans-serif" font-size="30" fill="${textColor}" text-anchor="middle">🔫 Arme : ${player.weapon}</text>
+        </svg>
+        `;
+
+        await sharp(Buffer.from(svgImage)).png().toFile(imagePath);
+        return imagePath;
+    }
+
+    async function generateTireImage(shooterName, targetName) {
+        const imagePath = path.join(__dirname, 'generated_images', `tire_${Date.now()}.png`);
+        const width = 800;
+        const height = 400;
+
+        const svgImage = `
+        <svg width="${width}" height="${height}">
+            <rect x="0" y="0" width="${width}" height="${height}" fill="#a00" />
+            <text x="50%" y="50%" font-family="Impact, sans-serif" font-size="150" fill="#fff" text-anchor="middle" dominant-baseline="middle" transform="rotate(-10 400,200)">IMPACT!</text>
+            <text x="50%" y="80%" font-family="Arial, sans-serif" font-size="30" fill="#fff" text-anchor="middle">${shooterName} a touché ${targetName}</text>
+        </svg>
+        `;
+
+        await sharp(Buffer.from(svgImage)).png().toFile(imagePath);
+        return imagePath;
+    }
+
+    async function generateMapImage(player) {
+        const backgroundPath = path.join(__dirname, 'generated_images', 'map_background.png');
+        const outputPath = path.join(__dirname, 'generated_images', `map_${player.jid}.png`);
+        const TILE_SIZE = 100;
+
+        // Coordonnées du centre du cercle
+        const circleX = player.x * TILE_SIZE + TILE_SIZE / 2;
+        const circleY = player.y * TILE_SIZE + TILE_SIZE / 2;
+
+        const playerMarker = `
+        <svg>
+            <circle cx="${circleX}" cy="${circleY}" r="20" fill="red" stroke="white" stroke-width="3" />
+        </svg>
+        `;
+
+        await sharp(backgroundPath)
+            .composite([{ input: Buffer.from(playerMarker) }])
+            .toFile(outputPath);
+
+        return outputPath;
+    }
+    // --- FIN DE LA LOGIQUE DE GÉNÉRATION D'IMAGES ---
+
 
     // Gestion des messages entrants
     sock.ev.on('messages.upsert', async m => {
@@ -159,13 +253,37 @@ async function connectToWhatsApp() {
         const command = messageContent.split(' ')[0].toLowerCase();
 
         if (command === '/status') {
-            const statusMessage = `*📊 Vos Statistiques 📊*\n\n❤️ Vie : ${player.health}%\n⚡ Énergie : ${player.energy}%\n🔫 Arme équipée : ${player.weapon}`;
-            await sock.sendMessage(sender, { text: statusMessage });
+            // Ajoute le jid au player object pour la génération d'image
+            player.jid = sender;
+            const imagePath = await generateStatusImage(player);
+            await sock.sendMessage(sender, {
+                image: { url: imagePath },
+                caption: `Voici un aperçu de votre situation actuelle.`
+            });
+            // Supprime l'image générée après l'envoi pour économiser de l'espace
+            fs.unlinkSync(imagePath);
         }
 
         if (command === '/localisation') {
-            const locationMessage = `*📍 Votre Localisation 📍*\n\nVous êtes actuellement à : *${player.location}*.\n\nDescription : Une zone ouverte avec quelques débris. Vous entendez le vent siffler.`;
-            await sock.sendMessage(sender, { text: locationMessage });
+            const db = getPlayersDatabase();
+            const currentPlayer = db[sender];
+            const map = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'map.json'), 'utf8'));
+
+            const { x, y } = currentPlayer;
+            let response = `*📍 ANALYSE DE LA ZONE 📍*\n\n`;
+            response += `*Vous êtes ici :* ${map.grid[y][x].description}\n\n`;
+            response += `*Alentours :*\n`;
+
+            // Nord
+            response += `  - *Nord :* ${(y > 0) ? map.grid[y - 1][x].type : 'Impasse'}\n`;
+            // Sud
+            response += `  - *Sud :* ${(y < map.grid.length - 1) ? map.grid[y + 1][x].type : 'Impasse'}\n`;
+            // Ouest
+            response += `  - *Ouest :* ${(x > 0) ? map.grid[y][x - 1].type : 'Impasse'}\n`;
+            // Est
+            response += `  - *Est :* ${(x < map.grid[0].length - 1) ? map.grid[y][x + 1].type : 'Impasse'}\n`;
+
+            await sock.sendMessage(sender, { text: response });
         }
 
         if (command === '/tire') {
@@ -192,11 +310,29 @@ async function connectToWhatsApp() {
 
             savePlayersDatabase(db);
 
+            const shooterName = msg.pushName || sender.split('@')[0];
+            const targetName = targetJid.split('@')[0]; // Simplifié pour l'instant
+            const tireImagePath = await generateTireImage(shooterName, targetName);
+            const phrases = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'phrases.json'), 'utf8'));
+            const shootPhrases = phrases.shoot_hit;
+
             // Message pour le tireur
-            await sock.sendMessage(sender, { text: `💥 Vous avez touché votre cible ! Elle perd ${damage}% de vie.` });
+            let shooterCaption = shootPhrases.shooter[Math.floor(Math.random() * shootPhrases.shooter.length)];
+            shooterCaption = shooterCaption.replace('{damage}', damage);
+            await sock.sendMessage(sender, {
+                image: { url: tireImagePath },
+                caption: shooterCaption
+            });
 
             // Message pour la cible
-            await sock.sendMessage(targetJid, { text: `🤕 Vous avez été touché par un tir ! Vous perdez ${damage}% de vie. Votre vie est maintenant à ${db[targetJid].health}%.` });
+            let targetCaption = shootPhrases.target[Math.floor(Math.random() * shootPhrases.target.length)];
+            targetCaption = targetCaption.replace('{damage}', damage).replace('{health}', db[targetJid].health);
+            await sock.sendMessage(targetJid, {
+                image: { url: tireImagePath },
+                caption: targetCaption
+            });
+
+            fs.unlinkSync(tireImagePath); // Supprime l'image après utilisation
 
             // Vérifie si la cible est morte
             if (db[targetJid].health <= 0) {
@@ -208,6 +344,64 @@ async function connectToWhatsApp() {
                 await sock.sendMessage(sender, { text: `🎉 Félicitations, vous avez éliminé votre adversaire !` });
                 await sock.sendMessage(targetJid, { text: `💀 Vous avez été éliminé. Vous ne pourrez plus envoyer de commandes pendant 1 heure.` });
             }
+        }
+
+        // --- COMMANDE DE DÉPLACEMENT ---
+        if (command === '/move') {
+            const direction = messageContent.split(' ')[1]?.toLowerCase();
+            if (!direction || !['nord', 'sud', 'est', 'ouest'].includes(direction)) {
+                await sock.sendMessage(sender, { text: "❌ Direction invalide. Utilisez /move <nord|sud|est|ouest>." });
+                return;
+            }
+
+            const db = getPlayersDatabase();
+            const currentPlayer = db[sender];
+            const map = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'map.json'), 'utf8'));
+
+            let newX = currentPlayer.x;
+            let newY = currentPlayer.y;
+
+            if (direction === 'nord') newY--;
+            if (direction === 'sud') newY++;
+            if (direction === 'ouest') newX--;
+            if (direction === 'est') newX++;
+
+            // Vérifie les limites de la carte
+            if (newY < 0 || newY >= map.grid.length || newX < 0 || newX >= map.grid[0].length) {
+                await sock.sendMessage(sender, { text: "🚫 Vous ne pouvez pas aller par là. C'est une impasse." });
+                return;
+            }
+
+            // Met à jour la position et l'énergie
+            currentPlayer.x = newX;
+            currentPlayer.y = newY;
+            currentPlayer.energy = Math.max(0, currentPlayer.energy - 5); // Coût du déplacement
+            savePlayersDatabase(db);
+
+            // --- Logique de message immersif ---
+            const phrases = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'phrases.json'), 'utf8'));
+            const movePhrases = phrases.move;
+            const newLocation = map.grid[newY][newX];
+
+            let moveMessage = movePhrases.default[Math.floor(Math.random() * movePhrases.default.length)];
+            moveMessage = moveMessage.replace('{direction}', direction);
+
+            if (movePhrases[newLocation.type]) {
+                const specificPhrase = movePhrases[newLocation.type][Math.floor(Math.random() * movePhrases[newLocation.type].length)];
+                moveMessage += `\n\n${specificPhrase}`;
+            }
+
+            await sock.sendMessage(sender, { text: `${moveMessage}\n\n📍 ${newLocation.description}` });
+        }
+
+        if (command === '/map') {
+            player.jid = sender;
+            const mapImagePath = await generateMapImage(player);
+            await sock.sendMessage(sender, {
+                image: { url: mapImagePath },
+                caption: "Voici votre position actuelle sur la carte."
+            });
+            fs.unlinkSync(mapImagePath);
         }
         // --- FIN DE LA GESTION DES COMMANDES ---
     });
