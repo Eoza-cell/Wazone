@@ -20,6 +20,8 @@
   "homepage": "https://github.com/Eoza-cell/Wazone#readme",
   "dependencies": {
     "@whiskeysockets/baileys": "^7.0.0-rc.6",
-    "sharp": "^0.34.4"
+    "express": "^5.1.0",
+    "sharp": "^0.34.4",
+    "socket.io": "^4.8.1"
   }
 }

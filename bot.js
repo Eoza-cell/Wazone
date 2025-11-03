@@ -4,6 +4,9 @@ const pino = require('pino');
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
+const express = require('express');
+const http = require('http');
+const { Server } = require("socket.io");
 
 // Chemin pour sauvegarder les données d'authentification
 const AUTH_DIR = './auth_info_baileys/';
@@ -12,6 +15,90 @@ const AUTH_DIR = './auth_info_baileys/';
 if (!fs.existsSync(AUTH_DIR)) {
     fs.mkdirSync(AUTH_DIR);
 }
+
+// --- CONFIGURATION DU SERVEUR WEB ---
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+const PORT = process.env.PORT || 3000;
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+io.on('connection', (socket) => {
+    console.log('Un utilisateur s\'est connecté au site web.');
+    // Envoyer l'état actuel du jeu lors de la connexion initiale
+    const db = getPlayersDatabase();
+    socket.emit('gameStateUpdate', { players: db });
+
+    socket.on('disconnect', () => {
+        console.log('Un utilisateur s\'est déconnecté.');
+    });
+});
+
+server.listen(PORT, () => {
+    console.log(`Le serveur web est en écoute sur http://localhost:${PORT}`);
+});
+// --- FIN DE LA CONFIGURATION DU SERVEUR WEB ---
+
+// --- LOGIQUE DE LA BASE DE DONNÉES DES JOUEURS (NIVEAU SUPÉRIEUR) ---
+const DB_FILE = path.join(__dirname, 'data', 'players.json');
+
+// Fonction pour lire la base de données des joueurs
+function getPlayersDatabase() {
+    try {
+        const data = fs.readFileSync(DB_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        // Si le fichier n'existe pas, retournez une base de données vide.
+        if (error.code === 'ENOENT') {
+            return {};
+        }
+        console.error("Erreur lors de la lecture de la base de données.", error);
+        return {};
+    }
+}
+
+// Fonction pour sauvegarder la base de données des joueurs
+function savePlayersDatabase(db) {
+    const dbDir = path.dirname(DB_FILE);
+    if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+    }
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf8');
+}
+
+// Fonction pour récupérer ou créer un joueur
+function getPlayer(jid) {
+    const db = getPlayersDatabase();
+    const map = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'map.json'), 'utf8'));
+
+    if (!db[jid]) {
+        console.log(`Nouveau joueur détecté : ${jid}. Création de l'entrée.`);
+        db[jid] = {
+            health: 100,
+            energy: 100,
+            weapon: 'Pistolet',
+            x: map.start_position.x,
+            y: map.start_position.y,
+            isDead: false,
+            deathTimestamp: null
+        };
+        savePlayersDatabase(db);
+        broadcastGameState(); // Diffuse l'état après la création d'un joueur
+    }
+    return db[jid];
+}
+// --- FIN DE LA LOGIQUE DE LA BASE DE DONNÉES ---
+
+
+// --- LOGIQUE DE SYNCHRONISATION ---
+function broadcastGameState() {
+    const db = getPlayersDatabase();
+    io.emit('gameStateUpdate', { players: db });
+    console.log('État du jeu mis à jour et diffusé aux clients web.');
+}
+// --- FIN DE LA LOGIQUE DE SYNCHRONISATION ---
+
 
 async function connectToWhatsApp() {
     // Récupère l'état d'authentification sauvegardé
@@ -62,54 +149,13 @@ async function connectToWhatsApp() {
     // Sauvegarde des identifiants de session
     sock.ev.on('creds.update', saveCreds);
 
-    // --- LOGIQUE DE LA BASE DE DONNÉES DES JOUEURS ---
-    const DB_FILE = path.join(__dirname, 'data', 'players.json');
-
-    // Fonction pour lire la base de données des joueurs
-    function getPlayersDatabase() {
-        try {
-            const data = fs.readFileSync(DB_FILE, 'utf8');
-            return JSON.parse(data);
-        } catch (error) {
-            console.error("Erreur lors de la lecture de la base de données, création d'une nouvelle.", error);
-            return {}; // Retourne un objet vide si le fichier n'existe pas ou est corrompu
-        }
-    }
-
-    // Fonction pour sauvegarder la base de données des joueurs
-    function savePlayersDatabase(db) {
-        const dbDir = path.dirname(DB_FILE);
-        if (!fs.existsSync(dbDir)) {
-            fs.mkdirSync(dbDir, { recursive: true });
-        }
-        fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf8');
-    }
-
-    // Fonction pour récupérer ou créer un joueur
-    function getPlayer(jid) {
-        const db = getPlayersDatabase();
-        const map = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'map.json'), 'utf8'));
-
-        if (!db[jid]) {
-            console.log(`Nouveau joueur détecté : ${jid}. Création de l'entrée.`);
-            db[jid] = {
-                health: 100,
-                energy: 100,
-                weapon: 'Pistolet',
-                x: map.start_position.x,
-                y: map.start_position.y,
-                isDead: false,
-                deathTimestamp: null
-            };
-            savePlayersDatabase(db);
-        }
-        return db[jid];
-    }
-    // --- FIN DE LA LOGIQUE DE LA BASE DE DONNÉES ---
-
     // --- LOGIQUE DE GÉNÉRATION D'IMAGES ---
     async function generateStatusImage(player) {
         const imagePath = path.join(__dirname, 'generated_images', `status_${player.jid}.png`);
+        const outputDir = path.dirname(imagePath);
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+        }
 
         // Dimensions de l'image
         const width = 800;
@@ -158,6 +204,10 @@ async function connectToWhatsApp() {
 
     async function generateTireImage(shooterName, targetName) {
         const imagePath = path.join(__dirname, 'generated_images', `tire_${Date.now()}.png`);
+        const outputDir = path.dirname(imagePath);
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+        }
         const width = 800;
         const height = 400;
 
@@ -176,6 +226,10 @@ async function connectToWhatsApp() {
     async function generateMapImage(player) {
         const backgroundPath = path.join(__dirname, 'generated_images', 'map_background.png');
         const outputPath = path.join(__dirname, 'generated_images', `map_${player.jid}.png`);
+        const outputDir = path.dirname(outputPath);
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+        }
         const TILE_SIZE = 100;
 
         // Coordonnées du centre du cercle
@@ -220,6 +274,7 @@ async function connectToWhatsApp() {
                 db[sender].health = 100;
                 db[sender].deathTimestamp = null;
                 savePlayersDatabase(db);
+                broadcastGameState();
                 await sock.sendMessage(sender, { text: "🎉 Vous êtes de retour ! Vous pouvez à nouveau jouer." });
             } else {
                 // Supprime le message du joueur mort
@@ -309,6 +364,7 @@ async function connectToWhatsApp() {
             db[targetJid].health -= damage;
 
             savePlayersDatabase(db);
+            broadcastGameState();
 
             const shooterName = msg.pushName || sender.split('@')[0];
             const targetName = targetJid.split('@')[0]; // Simplifié pour l'instant
@@ -339,6 +395,7 @@ async function connectToWhatsApp() {
                 db[targetJid].isDead = true;
                 db[targetJid].deathTimestamp = Date.now();
                 savePlayersDatabase(db);
+                broadcastGameState();
 
                 // Annonce de la mort
                 await sock.sendMessage(sender, { text: `🎉 Félicitations, vous avez éliminé votre adversaire !` });
@@ -377,6 +434,7 @@ async function connectToWhatsApp() {
             currentPlayer.y = newY;
             currentPlayer.energy = Math.max(0, currentPlayer.energy - 5); // Coût du déplacement
             savePlayersDatabase(db);
+            broadcastGameState();
 
             // --- Logique de message immersif ---
             const phrases = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'phrases.json'), 'utf8'));

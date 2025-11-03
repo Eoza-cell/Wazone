@@ -1,0 +1,54 @@
+body {
+    background-color: #1a1a1a;
+    color: #ecf0f1;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#map-container {
+    display: grid;
+    border: 2px solid #34495e;
+}
+
+.tile {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    border: 1px solid #2c3e50;
+    box-sizing: border-box; /* Assure que la bordure est incluse dans la taille */
+}
+
+/* Couleurs des types de terrain */
+.tile-building { background-color: #8e44ad; }
+.tile-street { background-color: #7f8c8d; }
+.tile-cover { background-color: #27ae60; }
+
+.player {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-color: #e74c3c; /* Rouge pour les joueurs */
+    border-radius: 50%;
+    border: 2px solid white;
+    transform: translate(30px, 30px); /* Centre le joueur sur la case */
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    line-height: 40px;
+    z-index: 10;
+    opacity: 0.8;
+}
+
+.player.dead {
+    background-color: #34495e; /* Gris pour les joueurs morts */
+    opacity: 0.5;
+}
