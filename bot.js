@@ -125,6 +125,12 @@ async function connectToWhatsApp() {
     sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update;
 
+        // Si un QR code est généré, l'envoyer au frontend
+        if(qr) {
+            console.log('QR code généré, envoi au site web.');
+            io.emit('qrCode', { qr: qr });
+        }
+
         if (connection === 'close') {
             const shouldReconnect = (lastDisconnect.error instanceof Boom) &&
                                     lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;
@@ -135,29 +141,8 @@ async function connectToWhatsApp() {
             }
         } else if (connection === 'open') {
             console.log('✅ Connexion ouverte !');
-        }
-
-        // Logique pour le code de pairage
-        if (!sock.authState.creds.registered) {
-            const phoneNumber = process.env.PHONE_NUMBER;
-            if (!phoneNumber) {
-                console.error("ERREUR : La variable d'environnement PHONE_NUMBER n'est pas définie.");
-                console.error("Veuillez définir cette variable avec votre numéro de téléphone au format international (ex: 33XXXXXXXXX).");
-                // Optionnel : arrêter le processus si le numéro est manquant
-                // process.exit(1);
-            } else {
-                setTimeout(async () => {
-                    try {
-                        const code = await sock.requestPairingCode(phoneNumber);
-                        console.log(`Votre code de pairage est : ${code}`);
-                        // Transmettre le code au site web
-                        io.emit('pairingCode', { code: code });
-                    } catch (error) {
-                        console.error("Erreur lors de la demande du code de pairage :", error);
-                        io.emit('pairingCode', { error: "Impossible de générer le code. Le numéro de téléphone est-il valide ?" });
-                    }
-                }, 3000);
-            }
+            // Informer le frontend que la connexion est réussie
+            io.emit('connectionSuccess');
         }
     });
 

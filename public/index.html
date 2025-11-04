@@ -7,11 +7,10 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="pairing-code-container" class="hidden">
+    <div id="connection-container" class="hidden">
         <h2>Connexion du Bot Requise</h2>
-        <p>Pour connecter le bot, allez dans les paramètres WhatsApp > Appareils connectés > Connecter un appareil, puis entrez le code suivant :</p>
-        <div id="pairing-code-display"></div>
-        <p class="error" id="pairing-error"></p>
+        <p>Pour connecter le bot, scannez le QR code ci-dessous avec l'application WhatsApp (Paramètres > Appareils connectés > Connecter un appareil).</p>
+        <canvas id="qr-code-canvas"></canvas>
     </div>
 
     <h1>Carte Tactique en Direct</h1>
@@ -20,6 +19,7 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
     <script src="client.js"></script>
 </body>
 </html>
