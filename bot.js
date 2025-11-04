@@ -26,9 +26,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 io.on('connection', (socket) => {
     console.log('Un utilisateur s\'est connecté au site web.');
-    // Envoyer l'état actuel du jeu lors de la connexion initiale
+    // Envoyer l'état actuel du jeu et la carte lors de la connexion initiale
     const db = getPlayersDatabase();
-    socket.emit('gameStateUpdate', { players: db });
+    const map = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'map.json'), 'utf8'));
+    socket.emit('initialState', { players: db, map: map });
 
     socket.on('disconnect', () => {
         console.log('Un utilisateur s\'est déconnecté.');

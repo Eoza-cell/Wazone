@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+
 body {
-    background-color: #1a1a1a;
-    color: #ecf0f1;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0a0a0a;
+    color: #e0e0e0;
+    font-family: 'Roboto Mono', monospace;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -11,44 +13,51 @@ body {
 
 h1 {
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    border-bottom: 2px solid #c0392b;
+    padding-bottom: 5px;
 }
 
 #map-container {
     display: grid;
-    border: 2px solid #34495e;
+    border: 3px solid #555;
+    background-image: url('map_background_textured.png');
+    background-size: cover;
 }
 
 .tile {
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     position: relative;
-    border: 1px solid #2c3e50;
-    box-sizing: border-box; /* Assure que la bordure est incluse dans la taille */
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
 }
-
-/* Couleurs des types de terrain */
-.tile-building { background-color: #8e44ad; }
-.tile-street { background-color: #7f8c8d; }
-.tile-cover { background-color: #27ae60; }
 
 .player {
     position: absolute;
-    width: 40px;
-    height: 40px;
-    background-color: #e74c3c; /* Rouge pour les joueurs */
-    border-radius: 50%;
-    border: 2px solid white;
-    transform: translate(30px, 30px); /* Centre le joueur sur la case */
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 30px solid #e74c3c; /* Ceci est notre chevron */
+    transform: translate(55px, 50px); /* Ajusté pour le chevron */
+    z-index: 10;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+}
+
+.player-name {
+    position: absolute;
+    top: 35px; /* Positionné sous le chevron */
+    left: -25px;
+    width: 100px;
     text-align: center;
     color: white;
     font-weight: bold;
-    line-height: 40px;
-    z-index: 10;
-    opacity: 0.8;
+    font-size: 14px;
+    text-shadow: 1px 1px 2px black;
 }
 
 .player.dead {
-    background-color: #34495e; /* Gris pour les joueurs morts */
-    opacity: 0.5;
+    border-bottom-color: #34495e;
+    filter: none;
 }

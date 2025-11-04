@@ -2,8 +2,9 @@
   "name": "app",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "bot.js",
   "scripts": {
+    "start": "node bot.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,9 +20,9 @@
   },
   "homepage": "https://github.com/Eoza-cell/Wazone#readme",
   "dependencies": {
-    "@whiskeysockets/baileys": "^7.0.0-rc.6",
-    "express": "^5.1.0",
-    "sharp": "^0.34.4",
-    "socket.io": "^4.8.1"
+    "@whiskeysockets/baileys": "^6.7.2",
+    "express": "^4.19.2",
+    "sharp": "^0.33.4",
+    "socket.io": "^4.7.5"
   }
 }
