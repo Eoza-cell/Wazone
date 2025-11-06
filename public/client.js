@@ -1,5 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const socket = io();
+    // Configure Socket.IO pour tenter de se reconnecter automatiquement
+    const socket = io({
+        reconnection: true, // Active la reconnexion (activé par défaut)
+        reconnectionAttempts: Infinity, // Nombre infini de tentatives
+        reconnectionDelay: 1000, // Délai de 1s entre les tentatives
+        reconnectionDelayMax: 5000, // Délai maximal de 5s
+        randomizationFactor: 0.5 // Facteur aléatoire pour éviter que tous les clients se reconnectent en même temps
+    });
+
     const pairingForm = document.getElementById('pairing-form');
     const phoneNumberInput = document.getElementById('phone-number');
     const getCodeButton = document.getElementById('get-code-button');
@@ -7,8 +15,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const pairingCodeElement = document.getElementById('pairing-code');
     const statusText = document.querySelector('.status-text');
 
+    statusText.textContent = 'Connexion au serveur...';
+
     socket.on('connect', () => {
-        statusText.textContent = 'Prêt à générer un code.';
+        console.log('Connecté au serveur !');
+        statusText.textContent = '✅ Connecté. Prêt à générer un code.';
+    });
+
+    socket.on('disconnect', (reason) => {
+        console.log(`Déconnecté : ${reason}`);
+        statusText.textContent = '❌ Déconnecté. Tentative de reconnexion...';
+    });
+
+    socket.on('reconnecting', (attemptNumber) => {
+        console.log(`Tentative de reconnexion n°${attemptNumber}...`);
+        statusText.textContent = `⏳ Tentative de reconnexion (${attemptNumber})...`;
+    });
+
+    socket.on('reconnect_failed', () => {
+        console.error('La reconnexion a échoué définitivement.');
+        statusText.textContent = '❌ Impossible de se reconnecter. Veuillez vérifier votre connexion et rafraîchir la page.';
     });
 
     getCodeButton.addEventListener('click', () => {
@@ -39,9 +65,5 @@ document.addEventListener('DOMContentLoaded', () => {
         pairingCodeDisplay.classList.add('hidden');
         pairingForm.classList.add('hidden');
         statusText.textContent = '✅ Bot connecté avec succès !';
-    });
-
-    socket.on('disconnect', () => {
-        statusText.textContent = '❌ Déconnecté. Veuillez rafraîchir la page.';
     });
 });

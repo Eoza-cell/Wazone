@@ -205,7 +205,7 @@ io.on('connection', (socket) => {
 
     socket.on('requestPairingCode', async ({ phoneNumber }) => {
         if (fs.existsSync(AUTH_DIR)) {
-            fs.rmSync(AUTH_dir, { recursive: true, force: true });
+            fs.rmSync(AUTH_DIR, { recursive: true, force: true });
             fs.mkdirSync(AUTH_DIR);
         }
         await connectToWhatsApp(socket, phoneNumber).catch(err => {
