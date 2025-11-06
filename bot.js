@@ -3,18 +3,10 @@ const { Boom } = require('@hapi/boom');
 const pino = require('pino');
 const fs = require('fs');
 const path = require('path');
-const sharp = require('sharp');
 const express = require('express');
 const http = require('http');
 const { Server } = require("socket.io");
-
-// Chemin pour sauvegarder les données d'authentification
-const AUTH_DIR = './auth_info_baileys/';
-
-// Crée le dossier d'authentification s'il n'existe pas
-if (!fs.existsSync(AUTH_DIR)) {
-    fs.mkdirSync(AUTH_DIR);
-}
+const sharp = require('sharp');
 
 // --- CONFIGURATION DU SERVEUR WEB ---
 const app = express();
@@ -24,446 +16,218 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+server.listen(PORT, () => {
+    console.log(`Le serveur web est en écoute sur http://localhost:${PORT}`);
+});
+// --- FIN DE LA CONFIGURATION ---
+
+const AUTH_DIR = './auth_info_baileys/';
+const PLAYERS_FILE = './data/players.json';
+const GENERATED_IMAGES_DIR = './generated_images/';
+
+if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR);
+if (!fs.existsSync(GENERATED_IMAGES_DIR)) fs.mkdirSync(GENERATED_IMAGES_DIR);
+
+let players = {};
+try {
+    const data = fs.readFileSync(PLAYERS_FILE, 'utf8');
+    players = JSON.parse(data);
+} catch (error) {
+    console.log('Fichier des joueurs non trouvé, création d\'un nouveau.');
+    fs.writeFileSync(PLAYERS_FILE, JSON.stringify({}));
+}
+
+function savePlayers() {
+    fs.writeFileSync(PLAYERS_FILE, JSON.stringify(players, null, 2));
+}
+
+function getPlayer(id) {
+    if (!players[id]) {
+        players[id] = {
+            id: id,
+            name: '',
+            health: 100,
+            energy: 100,
+            weapon: 'Pistolet simple',
+            lastDeath: null,
+            messageCount: 0
+        };
+        savePlayers();
+    }
+    return players[id];
+}
+
+async function generateStatusImage(player) {
+    const imagePath = path.join(GENERATED_IMAGES_DIR, `${player.id}.png`);
+    const svg = `
+    <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="#333"/>
+      <text x="20" y="40" font-family="Arial" font-size="24" fill="white">Statut de ${player.name}</text>
+      <text x="20" y="80" font-family="Arial" font-size="16" fill="white">Vie:</text>
+      <rect x="80" y="65" width="300" height="20" fill="#555"/>
+      <rect x="80" y="65" width="${player.health * 3}" height="20" fill="green"/>
+      <text x="385" y="82" text-anchor="end" font-family="Arial" font-size="16" fill="white">${player.health}%</text>
+      <text x="20" y="120" font-family="Arial" font-size="16" fill="white">Énergie:</text>
+      <rect x="80" y="105" width="300" height="20" fill="#555"/>
+      <rect x="80" y="105" width="${player.energy * 3}" height="20" fill="blue"/>
+      <text x="385" y="122" text-anchor="end" font-family="Arial" font-size="16" fill="white">${player.energy}%</text>
+      <text x="20" y="160" font-family="Arial" font-size="16" fill="white">Arme: ${player.weapon}</text>
+    </svg>
+    `;
+    await sharp(Buffer.from(svg)).png().toFile(imagePath);
+    return imagePath;
+}
+
+let sock; // Instance du bot
+let botIsRunning = false;
+
+async function connectToWhatsApp(socket, phoneNumber) {
+    if (botIsRunning) {
+        console.log("Tentative de connexion alors que le bot est déjà en cours d'exécution.");
+        socket.emit('pairingCode', { error: "Un bot est déjà en cours d'exécution." });
+        return;
+    }
+    botIsRunning = true;
+
+    const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+    const { version, isLatest } = await fetchLatestBaileysVersion();
+    console.log(`Utilisation de Baileys v${version.join('.')}, dernière version: ${isLatest}`);
+
+    sock = makeWASocket({
+        version,
+        auth: state,
+        printQRInTerminal: false,
+        browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
+        logger: pino({ level: 'info' }),
+        getMessage: async key => ({ conversation: '🔄 Réessaye d\'envoyer ton message' })
+    });
+
+    if (!sock.authState.creds.registered) {
+        if (!phoneNumber) {
+             console.error("Le bot n'est pas enregistré et aucun numéro de téléphone n'a été fourni.");
+             socket.emit('pairingCode', { error: "Numéro de téléphone requis pour le premier appairage." });
+             botIsRunning = false;
+             return;
+        }
+        try {
+            console.log(`Demande du code d'appairage pour le numéro ${phoneNumber}...`);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Petit délai pour la stabilité
+            const code = await sock.requestPairingCode(phoneNumber);
+            console.log(`Code d'appairage généré : ${code}`);
+            socket.emit('pairingCode', { code: code });
+        } catch (error) {
+            console.error("Erreur lors de la demande du code d'appairage :", error);
+            socket.emit('pairingCode', { error: "Impossible de générer le code. Le numéro est-il valide ? Avez-vous un compte WhatsApp actif ?" });
+            botIsRunning = false;
+            return;
+        }
+    }
+
+    sock.ev.on('connection.update', (update) => {
+        const { connection, lastDisconnect } = update;
+        if (connection === 'close') {
+            const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;
+            console.log('Connexion fermée:', lastDisconnect.error, ', reconnexion:', shouldReconnect);
+            botIsRunning = false;
+            if (shouldReconnect) {
+                // Pour une reconnexion automatique, il faudrait relancer sans numéro
+                // Pour l'instant, l'utilisateur devra rafraîchir la page pour se reconnecter
+                console.log("Le bot s'est déconnecté. Rafraîchissez la page web pour tenter de vous reconnecter.");
+            } else {
+                 console.log("Déconnexion permanente. Les identifiants ont été effacés.");
+            }
+        } else if (connection === 'open') {
+            console.log('✅ Connexion ouverte !');
+            io.emit('connectionSuccess'); // Émettre à tous les clients
+        }
+    });
+
+    sock.ev.on('creds.update', saveCreds);
+
+    sock.ev.on('messages.upsert', async ({ messages }) => {
+        const msg = messages[0];
+        if (!msg.message) return;
+
+        const senderId = msg.key.remoteJid;
+        const player = getPlayer(senderId);
+        if (!player.name) player.name = msg.pushName || 'Inconnu';
+
+        const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+
+        if (player.lastDeath) {
+            const timeSinceDeath = Date.now() - player.lastDeath;
+            if (timeSinceDeath < 3600000) {
+                return;
+            } else {
+                player.lastDeath = null;
+                player.health = 100;
+                player.energy = 100;
+                savePlayers();
+                await sock.sendMessage(senderId, { text: `🧟‍♂️ Vous êtes de retour parmi les vivants !` });
+            }
+        }
+
+        const args = messageContent.slice(1).trim().split(/ +/);
+        const command = args.shift().toLowerCase();
+
+        if (messageContent.startsWith('/')) {
+            switch(command) {
+                case 'statut':
+                    const statusImagePath = await generateStatusImage(player);
+                    await sock.sendMessage(senderId, { image: { url: statusImagePath }, caption: `Voici votre statut actuel, ${player.name}.`});
+                    break;
+                case 'tire':
+                    const targetId = msg.message.extendedTextMessage?.contextInfo?.participant;
+                    if (!targetId) return await sock.sendMessage(senderId, { text: '❌ Pour tirer, vous devez répondre au message d\'un adversaire.' });
+                    if (targetId === senderId) return await sock.sendMessage(senderId, { text: '❌ Vous ne pouvez pas vous tirer dessus !' });
+
+                    const target = getPlayer(targetId);
+                    target.health -= 15;
+                    player.energy -= 5;
+
+                    if (target.health <= 0) {
+                        target.health = 0;
+                        target.lastDeath = Date.now();
+                        await sock.sendMessage(senderId, { text: `💥 Vous avez abattu ${target.name} !` });
+                        await sock.sendMessage(targetId, { text: `☠️ ${player.name} vous a tué. Vous ne pourrez plus parler pendant 1 heure.` });
+                    } else {
+                        await sock.sendMessage(senderId, { text: `💥 Vous avez touché ${target.name} ! Il lui reste ${target.health}% de vie.` });
+                        await sock.sendMessage(targetId, { text: `🤕 ${player.name} vous a tiré dessus ! Il vous reste ${target.health}% de vie.` });
+                    }
+                    savePlayers();
+                    break;
+                case 'regles': await sock.sendMessage(senderId, { text: '📜 Règles du jeu : ... (à définir)' }); break;
+                case 'missions': await sock.sendMessage(senderId, { text: '📋 Missions disponibles : ... (à définir)' }); break;
+                case 'lieux': await sock.sendMessage(senderId, { text: '🗺️ Lieux explorables : ... (à définir)' }); break;
+                case 'events': await sock.sendMessage(senderId, { text: '🎉 Événements en cours : ... (à définir)' }); break;
+                case 'armes': await sock.sendMessage(senderId, { text: '🔫 Catalogue d\'armes : Pistolet simple (dégâts: 15)' }); break;
+            }
+        }
+    });
+}
+
 io.on('connection', (socket) => {
     console.log('Un utilisateur s\'est connecté au site web.');
-    // Envoyer l'état actuel du jeu et la carte lors de la connexion initiale
-    const db = getPlayersDatabase();
-    const map = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'map.json'), 'utf8'));
-    socket.emit('initialState', { players: db, map: map });
+
+    // Si le bot est déjà connecté quand un utilisateur arrive sur la page
+    if (botIsRunning && sock && sock.user) {
+        socket.emit('connectionSuccess');
+    }
+
+    socket.on('requestPairingCode', async ({ phoneNumber }) => {
+        // Nettoyer les anciens identifiants pour forcer un nouvel appairage
+        if (fs.existsSync(AUTH_DIR)) {
+            fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+            fs.mkdirSync(AUTH_DIR);
+            console.log("Anciens identifiants supprimés pour le nouvel appairage.");
+        }
+        await connectToWhatsApp(socket, phoneNumber).catch(err => {
+            console.error("Erreur critique lors de la connexion :", err);
+            botIsRunning = false;
+        });
+    });
 
     socket.on('disconnect', () => {
         console.log('Un utilisateur s\'est déconnecté.');
     });
 });
-
-server.listen(PORT, () => {
-    console.log(`Le serveur web est en écoute sur http://localhost:${PORT}`);
-});
-// --- FIN DE LA CONFIGURATION DU SERVEUR WEB ---
-
-// --- LOGIQUE DE LA BASE DE DONNÉES DES JOUEURS (NIVEAU SUPÉRIEUR) ---
-const DB_FILE = path.join(__dirname, 'data', 'players.json');
-
-// Fonction pour lire la base de données des joueurs
-function getPlayersDatabase() {
-    try {
-        const data = fs.readFileSync(DB_FILE, 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        // Si le fichier n'existe pas, retournez une base de données vide.
-        if (error.code === 'ENOENT') {
-            return {};
-        }
-        console.error("Erreur lors de la lecture de la base de données.", error);
-        return {};
-    }
-}
-
-// Fonction pour sauvegarder la base de données des joueurs
-function savePlayersDatabase(db) {
-    const dbDir = path.dirname(DB_FILE);
-    if (!fs.existsSync(dbDir)) {
-        fs.mkdirSync(dbDir, { recursive: true });
-    }
-    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf8');
-}
-
-// Fonction pour récupérer ou créer un joueur
-function getPlayer(jid) {
-    const db = getPlayersDatabase();
-    const map = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'map.json'), 'utf8'));
-
-    if (!db[jid]) {
-        console.log(`Nouveau joueur détecté : ${jid}. Création de l'entrée.`);
-        db[jid] = {
-            health: 100,
-            energy: 100,
-            weapon: 'Pistolet',
-            x: map.start_position.x,
-            y: map.start_position.y,
-            isDead: false,
-            deathTimestamp: null
-        };
-        savePlayersDatabase(db);
-        broadcastGameState(); // Diffuse l'état après la création d'un joueur
-    }
-    return db[jid];
-}
-// --- FIN DE LA LOGIQUE DE LA BASE DE DONNÉES ---
-
-
-// --- LOGIQUE DE SYNCHRONISATION ---
-function broadcastGameState() {
-    const db = getPlayersDatabase();
-    io.emit('gameStateUpdate', { players: db });
-    console.log('État du jeu mis à jour et diffusé aux clients web.');
-}
-// --- FIN DE LA LOGIQUE DE SYNCHRONISATION ---
-
-
-async function connectToWhatsApp() {
-    // Récupère l'état d'authentification sauvegardé
-    const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-
-    // Récupère la dernière version de Baileys
-    const { version, isLatest } = await fetchLatestBaileysVersion();
-    console.log(`Utilisation de la version de Baileys: ${version.join('.')}, Est-ce la dernière version ? ${isLatest}`);
-
-    const sock = makeWASocket({
-        version,
-        auth: state,
-        printQRInTerminal: false, // Nous utiliserons le code de pairage
-        browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
-        logger: pino({ level: 'silent' }), // Pour un affichage plus propre
-        getMessage: async key => {
-            console.log('⚠️ Message non déchiffré, retry demandé:', key);
-            return { conversation: '🔄 Réessaye d\'envoyer ton message' };
-        }
-    });
-
-    // Gestion de la connexion
-    sock.ev.on('connection.update', async (update) => {
-        const { connection, lastDisconnect, qr } = update;
-
-        // Si un QR code est généré, l'envoyer au frontend
-        if(qr) {
-            console.log('QR code généré, envoi au site web.');
-            io.emit('qrCode', { qr: qr });
-        }
-
-        if (connection === 'close') {
-            const shouldReconnect = (lastDisconnect.error instanceof Boom) &&
-                                    lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;
-            console.log('Connexion fermée à cause de:', lastDisconnect.error, ', reconnexion:', shouldReconnect);
-
-            if (shouldReconnect) {
-                connectToWhatsApp();
-            }
-        } else if (connection === 'open') {
-            console.log('✅ Connexion ouverte !');
-            // Informer le frontend que la connexion est réussie
-            io.emit('connectionSuccess');
-        }
-    });
-
-    // Sauvegarde des identifiants de session
-    sock.ev.on('creds.update', saveCreds);
-
-    // --- LOGIQUE DE GÉNÉRATION D'IMAGES ---
-    async function generateStatusImage(player) {
-        const imagePath = path.join(__dirname, 'generated_images', `status_${player.jid}.png`);
-        const outputDir = path.dirname(imagePath);
-        if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir, { recursive: true });
-        }
-
-        // Dimensions de l'image
-        const width = 800;
-        const height = 400;
-
-        // Couleurs
-        const backgroundColor = '#1a1a1a'; // Fond sombre
-        const barBackgroundColor = '#444';
-        const healthColor = '#e74c3c'; // Rouge
-        const energyColor = '#3498db'; // Bleu
-        const textColor = '#ecf0f1';   // Blanc cassé
-
-        // Calcul des longueurs des barres
-        const barWidth = 400;
-        const barHeight = 40;
-        const healthBarWidth = (player.health / 100) * barWidth;
-        const energyBarWidth = (player.energy / 100) * barWidth;
-
-        // Création de l'image avec Sharp
-        const svgImage = `
-        <svg width="${width}" height="${height}">
-            <rect x="0" y="0" width="${width}" height="${height}" fill="${backgroundColor}" />
-
-            <text x="50%" y="60" font-family="Arial, sans-serif" font-size="40" fill="${textColor}" text-anchor="middle">STATUT DU JOUEUR</text>
-
-            <!-- Barre de Vie -->
-            <text x="100" y="150" font-family="Arial, sans-serif" font-size="30" fill="${textColor}">❤️ Vie</text>
-            <rect x="300" y="125" width="${barWidth}" height="${barHeight}" fill="${barBackgroundColor}" rx="10" />
-            <rect x="300" y="125" width="${healthBarWidth}" height="${barHeight}" fill="${healthColor}" rx="10" />
-            <text x="500" y="155" font-family="Arial, sans-serif" font-size="25" fill="${textColor}" text-anchor="middle">${player.health}%</text>
-
-            <!-- Barre d'Énergie -->
-            <text x="100" y="250" font-family="Arial, sans-serif" font-size="30" fill="${textColor}">⚡ Énergie</text>
-            <rect x="300" y="225" width="${barWidth}" height="${barHeight}" fill="${barBackgroundColor}" rx="10" />
-            <rect x="300" y="225" width="${energyBarWidth}" height="${barHeight}" fill="${energyColor}" rx="10" />
-            <text x="500" y="255" font-family="Arial, sans-serif" font-size="25" fill="${textColor}" text-anchor="middle">${player.energy}%</text>
-
-            <!-- Arme -->
-            <text x="50%" y="350" font-family="Arial, sans-serif" font-size="30" fill="${textColor}" text-anchor="middle">🔫 Arme : ${player.weapon}</text>
-        </svg>
-        `;
-
-        await sharp(Buffer.from(svgImage)).png().toFile(imagePath);
-        return imagePath;
-    }
-
-    async function generateTireImage(shooterName, targetName) {
-        const imagePath = path.join(__dirname, 'generated_images', `tire_${Date.now()}.png`);
-        const outputDir = path.dirname(imagePath);
-        if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir, { recursive: true });
-        }
-        const width = 800;
-        const height = 400;
-
-        const svgImage = `
-        <svg width="${width}" height="${height}">
-            <rect x="0" y="0" width="${width}" height="${height}" fill="#a00" />
-            <text x="50%" y="50%" font-family="Impact, sans-serif" font-size="150" fill="#fff" text-anchor="middle" dominant-baseline="middle" transform="rotate(-10 400,200)">IMPACT!</text>
-            <text x="50%" y="80%" font-family="Arial, sans-serif" font-size="30" fill="#fff" text-anchor="middle">${shooterName} a touché ${targetName}</text>
-        </svg>
-        `;
-
-        await sharp(Buffer.from(svgImage)).png().toFile(imagePath);
-        return imagePath;
-    }
-
-    async function generateMapImage(player) {
-        const backgroundPath = path.join(__dirname, 'public', 'map_background_textured.png');
-        const outputPath = path.join(__dirname, 'generated_images', `map_${player.jid}.png`);
-        const outputDir = path.dirname(outputPath);
-        if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir, { recursive: true });
-        }
-        const TILE_SIZE = 100;
-
-        // Coordonnées du centre du cercle
-        const circleX = player.x * TILE_SIZE + TILE_SIZE / 2;
-        const circleY = player.y * TILE_SIZE + TILE_SIZE / 2;
-
-        const playerMarker = `
-        <svg>
-            <circle cx="${circleX}" cy="${circleY}" r="20" fill="red" stroke="white" stroke-width="3" />
-        </svg>
-        `;
-
-        await sharp(backgroundPath)
-            .composite([{ input: Buffer.from(playerMarker) }])
-            .toFile(outputPath);
-
-        return outputPath;
-    }
-    // --- FIN DE LA LOGIQUE DE GÉNÉRATION D'IMAGES ---
-
-
-    // Gestion des messages entrants
-    sock.ev.on('messages.upsert', async m => {
-        const msg = m.messages[0];
-        if (!msg.message) return; // Ignore les messages vides
-
-        // Identifie l'expéditeur du message
-        const sender = msg.key.fromMe ? sock.user.id : (msg.key.participant || msg.key.remoteJid);
-
-        // S'assure que le joueur existe dans la base de données
-        const player = getPlayer(sender);
-
-        // --- GESTION DE LA MORT ET DE LA RÉAPPARITION ---
-        if (player.isDead) {
-            const timeSinceDeath = Date.now() - player.deathTimestamp;
-            const respawnTime = 60 * 60 * 1000; // 1 heure
-
-            if (timeSinceDeath >= respawnTime) {
-                // Réapparition
-                const db = getPlayersDatabase();
-                db[sender].isDead = false;
-                db[sender].health = 100;
-                db[sender].deathTimestamp = null;
-                savePlayersDatabase(db);
-                broadcastGameState();
-                await sock.sendMessage(sender, { text: "🎉 Vous êtes de retour ! Vous pouvez à nouveau jouer." });
-            } else {
-                // Supprime le message du joueur mort
-                // NOTE : Le bot doit être administrateur pour que cela fonctionne !
-                try {
-                    const groupJid = msg.key.remoteJid;
-                    const messageId = msg.key.id;
-                    const senderJid = sender;
-
-                    await sock.sendMessage(groupJid, {
-                        delete: {
-                            remoteJid: groupJid,
-                            fromMe: false,
-                            id: messageId,
-                            participant: senderJid
-                        }
-                    });
-                     console.log(`Message de l'utilisateur mort ${sender} supprimé.`);
-                } catch (error) {
-                    console.error("Erreur lors de la suppression du message. Le bot est-il administrateur ?", error);
-                }
-                return; // Bloque toute autre interaction
-            }
-        }
-        // --- FIN DE LA GESTION DE LA MORT ---
-
-        // --- GESTION DES COMMANDES ---
-        const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text;
-        if (!messageContent) return;
-
-        const command = messageContent.split(' ')[0].toLowerCase();
-
-        if (command === '/status') {
-            // Ajoute le jid au player object pour la génération d'image
-            player.jid = sender;
-            const imagePath = await generateStatusImage(player);
-            await sock.sendMessage(sender, {
-                image: { url: imagePath },
-                caption: `Voici un aperçu de votre situation actuelle.`
-            });
-            // Supprime l'image générée après l'envoi pour économiser de l'espace
-            fs.unlinkSync(imagePath);
-        }
-
-        if (command === '/localisation') {
-            const db = getPlayersDatabase();
-            const currentPlayer = db[sender];
-            const map = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'map.json'), 'utf8'));
-
-            const { x, y } = currentPlayer;
-            let response = `*📍 ANALYSE DE LA ZONE 📍*\n\n`;
-            response += `*Vous êtes ici :* ${map.grid[y][x].description}\n\n`;
-            response += `*Alentours :*\n`;
-
-            // Nord
-            response += `  - *Nord :* ${(y > 0) ? map.grid[y - 1][x].type : 'Impasse'}\n`;
-            // Sud
-            response += `  - *Sud :* ${(y < map.grid.length - 1) ? map.grid[y + 1][x].type : 'Impasse'}\n`;
-            // Ouest
-            response += `  - *Ouest :* ${(x > 0) ? map.grid[y][x - 1].type : 'Impasse'}\n`;
-            // Est
-            response += `  - *Est :* ${(x < map.grid[0].length - 1) ? map.grid[y][x + 1].type : 'Impasse'}\n`;
-
-            await sock.sendMessage(sender, { text: response });
-        }
-
-        if (command === '/tire') {
-            // Vérifie si le message est une réponse
-            const quotedMsg = msg.message.extendedTextMessage?.contextInfo?.quotedMessage;
-            const targetJid = msg.message.extendedTextMessage?.contextInfo?.participant;
-
-            if (!quotedMsg || !targetJid) {
-                await sock.sendMessage(sender, { text: "❌ Pour tirer sur quelqu'un, vous devez répondre à l'un de ses messages avec la commande /tire." });
-                return;
-            }
-
-            // Empêche de se tirer dessus
-            if (targetJid === sender) {
-                await sock.sendMessage(sender, { text: "😵 Vous ne pouvez pas vous tirer dessus !" });
-                return;
-            }
-
-            const db = getPlayersDatabase();
-            const targetPlayer = getPlayer(targetJid); // S'assure que la cible existe aussi
-
-            const damage = 15; // Dégâts du pistolet de base
-            db[targetJid].health -= damage;
-
-            savePlayersDatabase(db);
-            broadcastGameState();
-
-            const shooterName = msg.pushName || sender.split('@')[0];
-            const targetName = targetJid.split('@')[0]; // Simplifié pour l'instant
-            const tireImagePath = await generateTireImage(shooterName, targetName);
-            const phrases = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'phrases.json'), 'utf8'));
-            const shootPhrases = phrases.shoot_hit;
-
-            // Message pour le tireur
-            let shooterCaption = shootPhrases.shooter[Math.floor(Math.random() * shootPhrases.shooter.length)];
-            shooterCaption = shooterCaption.replace('{damage}', damage);
-            await sock.sendMessage(sender, {
-                image: { url: tireImagePath },
-                caption: shooterCaption
-            });
-
-            // Message pour la cible
-            let targetCaption = shootPhrases.target[Math.floor(Math.random() * shootPhrases.target.length)];
-            targetCaption = targetCaption.replace('{damage}', damage).replace('{health}', db[targetJid].health);
-            await sock.sendMessage(targetJid, {
-                image: { url: tireImagePath },
-                caption: targetCaption
-            });
-
-            fs.unlinkSync(tireImagePath); // Supprime l'image après utilisation
-
-            // Vérifie si la cible est morte
-            if (db[targetJid].health <= 0) {
-                db[targetJid].isDead = true;
-                db[targetJid].deathTimestamp = Date.now();
-                savePlayersDatabase(db);
-                broadcastGameState();
-
-                // Annonce de la mort
-                await sock.sendMessage(sender, { text: `🎉 Félicitations, vous avez éliminé votre adversaire !` });
-                await sock.sendMessage(targetJid, { text: `💀 Vous avez été éliminé. Vous ne pourrez plus envoyer de commandes pendant 1 heure.` });
-            }
-        }
-
-        // --- COMMANDE DE DÉPLACEMENT ---
-        if (command === '/move') {
-            const direction = messageContent.split(' ')[1]?.toLowerCase();
-            if (!direction || !['nord', 'sud', 'est', 'ouest'].includes(direction)) {
-                await sock.sendMessage(sender, { text: "❌ Direction invalide. Utilisez /move <nord|sud|est|ouest>." });
-                return;
-            }
-
-            const db = getPlayersDatabase();
-            const currentPlayer = db[sender];
-            const map = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'map.json'), 'utf8'));
-
-            let newX = currentPlayer.x;
-            let newY = currentPlayer.y;
-
-            if (direction === 'nord') newY--;
-            if (direction === 'sud') newY++;
-            if (direction === 'ouest') newX--;
-            if (direction === 'est') newX++;
-
-            // Vérifie les limites de la carte
-            if (newY < 0 || newY >= map.grid.length || newX < 0 || newX >= map.grid[0].length) {
-                await sock.sendMessage(sender, { text: "🚫 Vous ne pouvez pas aller par là. C'est une impasse." });
-                return;
-            }
-
-            // Met à jour la position et l'énergie
-            currentPlayer.x = newX;
-            currentPlayer.y = newY;
-            currentPlayer.energy = Math.max(0, currentPlayer.energy - 5); // Coût du déplacement
-            savePlayersDatabase(db);
-            broadcastGameState();
-
-            // --- Logique de message immersif ---
-            const phrases = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'phrases.json'), 'utf8'));
-            const movePhrases = phrases.move;
-            const newLocation = map.grid[newY][newX];
-
-            let moveMessage = movePhrases.default[Math.floor(Math.random() * movePhrases.default.length)];
-            moveMessage = moveMessage.replace('{direction}', direction);
-
-            if (movePhrases[newLocation.type]) {
-                const specificPhrase = movePhrases[newLocation.type][Math.floor(Math.random() * movePhrases[newLocation.type].length)];
-                moveMessage += `\n\n${specificPhrase}`;
-            }
-
-            await sock.sendMessage(sender, { text: `${moveMessage}\n\n📍 ${newLocation.description}` });
-        }
-
-        if (command === '/map') {
-            player.jid = sender;
-            const mapImagePath = await generateMapImage(player);
-            await sock.sendMessage(sender, {
-                image: { url: mapImagePath },
-                caption: "Voici votre position actuelle sur la carte."
-            });
-            fs.unlinkSync(mapImagePath);
-        }
-        // --- FIN DE LA GESTION DES COMMANDES ---
-    });
-}
-
-// Lancer le bot
-connectToWhatsApp().catch(err => console.log("Erreur inattendue : " + err));

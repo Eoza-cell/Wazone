@@ -3,23 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carte Tactique - Wazone</title>
+    <title>Connexion Wazone Bot</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="connection-container" class="hidden">
-        <h2>Connexion du Bot Requise</h2>
-        <p>Pour connecter le bot, scannez le QR code ci-dessous avec l'application WhatsApp (Paramètres > Appareils connectés > Connecter un appareil).</p>
-        <canvas id="qr-code-canvas"></canvas>
-    </div>
-
-    <h1>Carte Tactique en Direct</h1>
-    <div id="map-container">
-        <!-- La carte du jeu sera dessinée ici par JavaScript -->
+    <div id="connection-container">
+        <h1>Wazone Bot</h1>
+        <div id="pairing-form">
+            <p>Entrez votre numéro de téléphone (avec l'indicatif pays, sans le '+') pour recevoir un code d'appairage.</p>
+            <input type="text" id="phone-number" placeholder="Ex: 33612345678">
+            <button id="get-code-button">Obtenir le code</button>
+        </div>
+        <div id="pairing-code-display" class="hidden">
+            <p>Ouvrez WhatsApp sur votre téléphone, allez dans `Appareils connectés > Connecter un appareil` et entrez le code suivant :</p>
+            <div id="pairing-code"></div>
+        </div>
+        <p class="status-text">En attente de connexion...</p>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
     <script src="client.js"></script>
 </body>
 </html>

@@ -1,76 +1,54 @@
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
-    const mapContainer = document.getElementById('map-container');
     const connectionContainer = document.getElementById('connection-container');
-    const qrCanvas = document.getElementById('qr-code-canvas');
-
-    let currentMapLayout = null;
-
-    function drawMap(gameState, mapLayout) {
-        if (!mapLayout) return;
-
-        mapContainer.innerHTML = '';
-        const gridWidth = mapLayout.grid[0].length;
-        const gridHeight = mapLayout.grid.length;
-        mapContainer.style.gridTemplateColumns = `repeat(${gridWidth}, 150px)`;
-
-        for (let y = 0; y < gridHeight; y++) {
-            for (let x = 0; x < gridWidth; x++) {
-                const tileDiv = document.createElement('div');
-                tileDiv.classList.add('tile');
-                mapContainer.appendChild(tileDiv);
-            }
-        }
-
-        for (const playerId in gameState.players) {
-            const player = gameState.players[playerId];
-            const playerChevron = document.createElement('div');
-            playerChevron.classList.add('player');
-            if (player.isDead) playerChevron.classList.add('dead');
-            playerChevron.title = playerId;
-
-            const playerName = document.createElement('div');
-            playerName.classList.add('player-name');
-            playerName.textContent = (playerId.split('@')[0]).substring(0, 5);
-            playerChevron.appendChild(playerName);
-
-            const tileIndex = player.y * gridWidth + player.x;
-            const targetTile = mapContainer.children[tileIndex];
-            if (targetTile) targetTile.appendChild(playerChevron);
-        }
-    }
+    const pairingForm = document.getElementById('pairing-form');
+    const phoneNumberInput = document.getElementById('phone-number');
+    const getCodeButton = document.getElementById('get-code-button');
+    const pairingCodeDisplay = document.getElementById('pairing-code-display');
+    const pairingCodeElement = document.getElementById('pairing-code');
+    const statusText = document.querySelector('.status-text');
 
     socket.on('connect', () => {
         console.log('Connecté au serveur !');
+        statusText.textContent = 'Prêt à générer un code.';
     });
 
-    socket.on('qrCode', (data) => {
-        console.log('QR code reçu.');
-        connectionContainer.classList.remove('hidden');
-        QRCode.toCanvas(qrCanvas, data.qr, function (error) {
-            if (error) console.error(error);
-            console.log('QR code dessiné avec succès !');
-        });
+    getCodeButton.addEventListener('click', () => {
+        const phoneNumber = phoneNumberInput.value.trim();
+        if (!phoneNumber || !/^\d+$/.test(phoneNumber)) {
+            alert('Veuillez entrer un numéro de téléphone valide (chiffres uniquement).');
+            return;
+        }
+        console.log(`Demande de code d'appairage pour le numéro : ${phoneNumber}`);
+        socket.emit('requestPairingCode', { phoneNumber });
+
+        pairingForm.classList.add('hidden');
+        pairingCodeDisplay.classList.remove('hidden');
+        statusText.textContent = 'Génération du code en cours...';
+    });
+
+    socket.on('pairingCode', (data) => {
+        if (data.code) {
+            console.log(`Code d'appairage reçu : ${data.code}`);
+            pairingCodeElement.textContent = data.code;
+            statusText.textContent = 'Veuillez entrer ce code dans WhatsApp.';
+        } else {
+            console.error('Erreur de réception du code d'appairage.');
+            statusText.textContent = `❌ Erreur : ${data.error || 'Impossible de générer le code.'}`;
+            pairingForm.classList.remove('hidden');
+            pairingCodeDisplay.classList.add('hidden');
+        }
     });
 
     socket.on('connectionSuccess', () => {
         console.log('Connexion du bot réussie !');
-        connectionContainer.classList.add('hidden');
-    });
-
-    socket.on('initialState', (initialState) => {
-        console.log('État initial reçu :', initialState);
-        connectionContainer.classList.add('hidden');
-        currentMapLayout = initialState.map;
-        drawMap(initialState, currentMapLayout);
-    });
-
-    socket.on('gameStateUpdate', (gameState) => {
-        console.log('Mise à jour de l\'état du jeu reçue :', gameState);
-        drawMap(gameState, currentMapLayout);
+        pairingCodeDisplay.classList.add('hidden');
+        pairingForm.classList.add('hidden');
+        statusText.textContent = '✅ Bot connecté avec succès !';
     });
 
     socket.on('disconnect', () => {
         console.log('Déconnecté du serveur.');
+        statusText.textContent = '❌ Déconnecté. Veuillez rafraîchir la page.';
     });
 });
