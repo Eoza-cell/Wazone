@@ -93,16 +93,17 @@ async function connectToWhatsApp(socket, phoneNumber) {
     botIsRunning = true;
 
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-    const { version, isLatest } = await fetchLatestBaileysVersion();
-    console.log(`Utilisation de Baileys v${version.join('.')}, dernière version: ${isLatest}`);
 
     sock = makeWASocket({
-        version,
         auth: state,
         printQRInTerminal: false,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
+        version: [2, 3000, 1025190524],
         logger: pino({ level: 'silent' }),
-        getMessage: async key => ({ conversation: '🔄 Réessaye d\'envoyer ton message' })
+        getMessage: async key => {
+            console.log('⚠️ Message non déchiffré, retry demandé:', key);
+            return { conversation: '🔄 Réessaye d\'envoyer ton message' };
+        }
     });
 
     if (!sock.authState.creds.registered) {
