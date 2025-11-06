@@ -34,6 +34,10 @@ try {
     players = JSON.parse(data);
 } catch (error) {
     console.log('Fichier des joueurs non trouvé, création d\'un nouveau.');
+    const dataDir = path.dirname(PLAYERS_FILE);
+    if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+    }
     fs.writeFileSync(PLAYERS_FILE, JSON.stringify({}));
 }
 
@@ -78,12 +82,11 @@ async function generateStatusImage(player) {
     return imagePath;
 }
 
-let sock; // Instance du bot
+let sock;
 let botIsRunning = false;
 
 async function connectToWhatsApp(socket, phoneNumber) {
     if (botIsRunning) {
-        console.log("Tentative de connexion alors que le bot est déjà en cours d'exécution.");
         socket.emit('pairingCode', { error: "Un bot est déjà en cours d'exécution." });
         return;
     }
@@ -98,47 +101,35 @@ async function connectToWhatsApp(socket, phoneNumber) {
         auth: state,
         printQRInTerminal: false,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
-        logger: pino({ level: 'info' }),
+        logger: pino({ level: 'silent' }),
         getMessage: async key => ({ conversation: '🔄 Réessaye d\'envoyer ton message' })
     });
 
     if (!sock.authState.creds.registered) {
         if (!phoneNumber) {
-             console.error("Le bot n'est pas enregistré et aucun numéro de téléphone n'a été fourni.");
              socket.emit('pairingCode', { error: "Numéro de téléphone requis pour le premier appairage." });
              botIsRunning = false;
              return;
         }
         try {
-            console.log(`Demande du code d'appairage pour le numéro ${phoneNumber}...`);
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Petit délai pour la stabilité
             const code = await sock.requestPairingCode(phoneNumber);
-            console.log(`Code d'appairage généré : ${code}`);
             socket.emit('pairingCode', { code: code });
         } catch (error) {
             console.error("Erreur lors de la demande du code d'appairage :", error);
             socket.emit('pairingCode', { error: "Impossible de générer le code. Le numéro est-il valide ? Avez-vous un compte WhatsApp actif ?" });
             botIsRunning = false;
-            return;
         }
     }
 
     sock.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
+            botIsRunning = false;
             const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;
             console.log('Connexion fermée:', lastDisconnect.error, ', reconnexion:', shouldReconnect);
-            botIsRunning = false;
-            if (shouldReconnect) {
-                // Pour une reconnexion automatique, il faudrait relancer sans numéro
-                // Pour l'instant, l'utilisateur devra rafraîchir la page pour se reconnecter
-                console.log("Le bot s'est déconnecté. Rafraîchissez la page web pour tenter de vous reconnecter.");
-            } else {
-                 console.log("Déconnexion permanente. Les identifiants ont été effacés.");
-            }
         } else if (connection === 'open') {
             console.log('✅ Connexion ouverte !');
-            io.emit('connectionSuccess'); // Émettre à tous les clients
+            io.emit('connectionSuccess');
         }
     });
 
@@ -156,7 +147,7 @@ async function connectToWhatsApp(socket, phoneNumber) {
 
         if (player.lastDeath) {
             const timeSinceDeath = Date.now() - player.lastDeath;
-            if (timeSinceDeath < 3600000) {
+            if (timeSinceDeath < 3600000) { // 1 heure
                 return;
             } else {
                 player.lastDeath = null;
@@ -207,27 +198,18 @@ async function connectToWhatsApp(socket, phoneNumber) {
 }
 
 io.on('connection', (socket) => {
-    console.log('Un utilisateur s\'est connecté au site web.');
-
-    // Si le bot est déjà connecté quand un utilisateur arrive sur la page
     if (botIsRunning && sock && sock.user) {
         socket.emit('connectionSuccess');
     }
 
     socket.on('requestPairingCode', async ({ phoneNumber }) => {
-        // Nettoyer les anciens identifiants pour forcer un nouvel appairage
         if (fs.existsSync(AUTH_DIR)) {
-            fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+            fs.rmSync(AUTH_dir, { recursive: true, force: true });
             fs.mkdirSync(AUTH_DIR);
-            console.log("Anciens identifiants supprimés pour le nouvel appairage.");
         }
         await connectToWhatsApp(socket, phoneNumber).catch(err => {
-            console.error("Erreur critique lors de la connexion :", err);
+            console.error("Erreur non gérée dans connectToWhatsApp :", err);
             botIsRunning = false;
         });
-    });
-
-    socket.on('disconnect', () => {
-        console.log('Un utilisateur s\'est déconnecté.');
     });
 });
