@@ -1,11 +1,11 @@
 # Wazone - Bot de Jeu WhatsApp
 
-Ce projet est un bot de jeu pour WhatsApp, inspiré de Call of Duty, avec un système de connexion web basé sur le code d'appairage.
+Ce projet est un bot de jeu pour WhatsApp, inspiré de Call of Duty, avec un système de connexion web basé sur un QR code.
 
 ## Prérequis
 
 - Node.js (version 16 ou supérieure)
-- Un numéro de téléphone avec un compte WhatsApp actif
+- Un compte WhatsApp actif
 
 ## Installation
 
@@ -17,7 +17,7 @@ Ce projet est un bot de jeu pour WhatsApp, inspiré de Call of Duty, avec un sys
 
 2.  **Installez les dépendances :**
     ```bash
-    npm install
+    yarn install
     ```
 
 ## Lancement
@@ -25,21 +25,20 @@ Ce projet est un bot de jeu pour WhatsApp, inspiré de Call of Duty, avec un sys
 Pour démarrer le serveur et le bot, exécutez la commande :
 
 ```bash
-npm start
+yarn start
 ```
 *Note : Assurez-vous d'avoir défini le script `start` dans votre `package.json` comme suit : `"start": "node bot.js"`.*
 
 ## Comment se connecter
 
-1.  **Démarrez le serveur** avec `npm start`.
+1.  **Démarrez le serveur** avec `yarn start`.
 2.  **Ouvrez votre navigateur** à l'adresse `http://localhost:3000` (ou l'URL de votre service de déploiement).
-3.  **Entrez votre numéro de téléphone** (avec l'indicatif de pays, sans le `+`, par exemple `33612345678`) et cliquez sur "Obtenir le code".
-4.  La page affichera un **code d'appairage** à 8 caractères.
-5.  **Ouvrez WhatsApp** sur votre téléphone, allez dans `Paramètres > Appareils connectés > Connecter un appareil > Connecter avec le numéro de téléphone`.
-6.  **Entrez le code** affiché sur le site web.
-7.  Une fois la connexion établie, la page web affichera un message de succès.
+3.  La page affichera un **QR code**.
+4.  **Ouvrez WhatsApp** sur votre téléphone, allez dans `Paramètres > Appareils connectés > Connecter un appareil`.
+5.  **Scannez le QR code** affiché sur la page web avec votre téléphone.
+6.  Une fois la connexion établie, la page web affichera un message de succès.
 
-La session sera sauvegardée dans le répertoire `auth_info_baileys/`. Lors des prochains redémarrages, le bot tentera de se reconnecter automatiquement. Si vous souhaitez connecter un nouveau numéro, vous devrez peut-être supprimer ce dossier.
+La session sera sauvegardée dans le répertoire `auth_info_baileys/`. Lors des prochains redémarrages, le bot tentera de se reconnecter automatiquement. Si vous souhaitez connecter un nouveau numéro, vous devrez supprimer ce dossier.
 
 ## Commandes de jeu
 
