@@ -7,6 +7,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require("socket.io");
 const sharp = require('sharp');
+const qrcode = require('qrcode');
 
 // --- CONFIGURATION DU SERVEUR WEB ---
 const app = express();
@@ -27,19 +28,11 @@ const GENERATED_IMAGES_DIR = './generated_images/';
 
 if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR);
 if (!fs.existsSync(GENERATED_IMAGES_DIR)) fs.mkdirSync(GENERATED_IMAGES_DIR);
+if (!fs.existsSync(path.dirname(PLAYERS_FILE))) fs.mkdirSync(path.dirname(PLAYERS_FILE), { recursive: true });
+if (!fs.existsSync(PLAYERS_FILE)) fs.writeFileSync(PLAYERS_FILE, JSON.stringify({}));
 
-let players = {};
-try {
-    const data = fs.readFileSync(PLAYERS_FILE, 'utf8');
-    players = JSON.parse(data);
-} catch (error) {
-    console.log('Fichier des joueurs non trouvé, création d\'un nouveau.');
-    const dataDir = path.dirname(PLAYERS_FILE);
-    if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(PLAYERS_FILE, JSON.stringify({}));
-}
+
+let players = JSON.parse(fs.readFileSync(PLAYERS_FILE, 'utf8'));
 
 function savePlayers() {
     fs.writeFileSync(PLAYERS_FILE, JSON.stringify(players, null, 2));
@@ -48,13 +41,8 @@ function savePlayers() {
 function getPlayer(id) {
     if (!players[id]) {
         players[id] = {
-            id: id,
-            name: '',
-            health: 100,
-            energy: 100,
-            weapon: 'Pistolet simple',
-            lastDeath: null,
-            messageCount: 0
+            id: id, name: '', health: 100, energy: 100,
+            weapon: 'Pistolet simple', lastDeath: null, messageCount: 0
         };
         savePlayers();
     }
@@ -82,52 +70,32 @@ async function generateStatusImage(player) {
     return imagePath;
 }
 
-let sock;
-let botIsRunning = false;
-
-async function connectToWhatsApp(socket, phoneNumber) {
-    if (botIsRunning) {
-        socket.emit('pairingCode', { error: "Un bot est déjà en cours d'exécution." });
-        return;
-    }
-    botIsRunning = true;
-
+async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+    const { version, isLatest } = await fetchLatestBaileysVersion();
+    console.log(`Utilisation de Baileys v${version.join('.')}, dernière version: ${isLatest}`);
 
-    sock = makeWASocket({
+    const sock = makeWASocket({
+        version,
         auth: state,
-        printQRInTerminal: false,
+        printQRInTerminal: true,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
-        version: [2, 3000, 1025190524],
         logger: pino({ level: 'silent' }),
-        getMessage: async key => {
-            console.log('⚠️ Message non déchiffré, retry demandé:', key);
-            return { conversation: '🔄 Réessaye d\'envoyer ton message' };
-        }
+        getMessage: async key => ({ conversation: '🔄 Réessaye d\'envoyer ton message' })
     });
 
-    if (!sock.authState.creds.registered) {
-        if (!phoneNumber) {
-             socket.emit('pairingCode', { error: "Numéro de téléphone requis pour le premier appairage." });
-             botIsRunning = false;
-             return;
-        }
-        try {
-            const code = await sock.requestPairingCode(phoneNumber);
-            socket.emit('pairingCode', { code: code });
-        } catch (error) {
-            console.error("Erreur lors de la demande du code d'appairage :", error);
-            socket.emit('pairingCode', { error: "Impossible de générer le code. Le numéro est-il valide ? Avez-vous un compte WhatsApp actif ?" });
-            botIsRunning = false;
-        }
-    }
+    sock.ev.on('connection.update', async (update) => {
+        const { connection, lastDisconnect, qr } = update;
 
-    sock.ev.on('connection.update', (update) => {
-        const { connection, lastDisconnect } = update;
+        if(qr) {
+            console.log('QR code généré, envoi au site web.');
+            io.emit('qrCode', { qr: qr });
+        }
+
         if (connection === 'close') {
-            botIsRunning = false;
             const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;
             console.log('Connexion fermée:', lastDisconnect.error, ', reconnexion:', shouldReconnect);
+            if (shouldReconnect) connectToWhatsApp();
         } else if (connection === 'open') {
             console.log('✅ Connexion ouverte !');
             io.emit('connectionSuccess');
@@ -198,19 +166,4 @@ async function connectToWhatsApp(socket, phoneNumber) {
     });
 }
 
-io.on('connection', (socket) => {
-    if (botIsRunning && sock && sock.user) {
-        socket.emit('connectionSuccess');
-    }
-
-    socket.on('requestPairingCode', async ({ phoneNumber }) => {
-        if (fs.existsSync(AUTH_DIR)) {
-            fs.rmSync(AUTH_DIR, { recursive: true, force: true });
-            fs.mkdirSync(AUTH_DIR);
-        }
-        await connectToWhatsApp(socket, phoneNumber).catch(err => {
-            console.error("Erreur non gérée dans connectToWhatsApp :", err);
-            botIsRunning = false;
-        });
-    });
-});
+connectToWhatsApp().catch(err => console.error("Erreur inattendue : ", err));
