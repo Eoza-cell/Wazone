@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const socket = io({
+    const socket = io(window.location.origin, {
         reconnection: true,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 1000,
