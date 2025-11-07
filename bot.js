@@ -81,12 +81,14 @@ async function connectToWhatsApp() {
     console.log(`Utilisation de Baileys v${version.join('.')}, dernière version: ${isLatest}`);
 
     const sock = makeWASocket({
-        version,
         auth: state,
-        printQRInTerminal: true,
+        printQRInTerminal: false,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
-        logger: pino({ level: 'silent' }),
-        getMessage: async key => ({ conversation: '🔄 Réessaye d\'envoyer ton message' })
+        version: [2, 3000, 1025190524],
+        getMessage: async key => {
+            console.log('⚠️ Message non déchiffré, retry demandé:', key);
+            return { conversation: '🔄 Réessaye d\'envoyer ton message' };
+        }
     });
 
     sock.ev.on('connection.update', async (update) => {
