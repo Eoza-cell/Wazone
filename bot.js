@@ -20,6 +20,7 @@ const io = new Server(server, {
 });
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1); // Indispensable pour les environnements avec proxy comme Render
 app.use(express.static(path.join(__dirname, 'public')));
 
 server.listen(PORT, () => {
