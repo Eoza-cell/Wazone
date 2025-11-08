@@ -9,13 +9,14 @@
 <body>
     <div id="connection-container">
         <h1>Wazone Bot</h1>
-        <p>Scannez ce QR code avec WhatsApp pour connecter le bot.</p>
-        <canvas id="qr-code-canvas"></canvas>
-        <p class="status-text">En attente du QR code...</p>
+        <p>Entrez ce code de jumelage sur votre téléphone :</p>
+        <div id="pairing-code-container">
+            <p id="pairing-code">En attente du code...</p>
+        </div>
+        <p class="status-text">Demande d'un code de jumelage au serveur...</p>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
     <script src="client.js"></script>
 </body>
 </html>

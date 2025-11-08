@@ -92,20 +92,46 @@ async function connectToWhatsApp() {
         }
     });
 
-    sock.ev.on('connection.update', async (update) => {
-        const { connection, lastDisconnect, qr } = update;
+    // Logique de Jumelage (Pairing Code)
+    // Si nous ne sommes pas déjà authentifiés, nous demandons un code de jumelage.
+    if (!sock.authState.creds.registered) {
+        setTimeout(async () => {
+            // IMPORTANT: Vous devez fournir le numéro de téléphone auquel le bot sera lié.
+            // Remplacez "null" par votre numéro au format international, sans le "+".
+            // Exemple: '33612345678' pour un numéro français.
+            const phoneNumber = null;
 
-        if(qr) {
-            console.log('QR code généré, envoi au site web.');
-            io.emit('qrCode', { qr: qr });
-        }
+            if (!phoneNumber) {
+                const message = 'ERREUR: Le numéro de téléphone n\'est pas configuré dans bot.js pour le jumelage.';
+                console.error(message);
+                io.emit('error', message);
+                return;
+            }
+
+            try {
+                const code = await sock.requestPairingCode(phoneNumber);
+                console.log(`Votre code de jumelage est: ${code}`);
+                // Nous envoyons le code au frontend pour qu'il puisse l'afficher.
+                io.emit('pairingCode', { code });
+            } catch (error) {
+                console.error('Erreur lors de la demande du code de jumelage:', error);
+                io.emit('error', 'Impossible de générer le code de jumelage. Vérifiez le numéro de téléphone dans bot.js.');
+            }
+        }, 3000); // Petit délai pour s'assurer que tout est initialisé.
+    }
+
+    sock.ev.on('connection.update', async (update) => {
+        const { connection, lastDisconnect } = update;
 
         if (connection === 'close') {
             const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;
             console.log('Connexion fermée:', lastDisconnect.error, ', reconnexion:', shouldReconnect);
-            if (shouldReconnect) connectToWhatsApp();
+            if (shouldReconnect) {
+                connectToWhatsApp();
+            }
         } else if (connection === 'open') {
-            console.log('✅ Connexion ouverte !');
+            console.log('✅ Connexion ouverte et réussie !');
+            // Informer le client que la connexion est un succès.
             io.emit('connectionSuccess');
         }
     });

@@ -7,14 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
         randomizationFactor: 0.5
     });
 
-    const qrCanvas = document.getElementById('qr-code-canvas');
+    const pairingCodeContainer = document.getElementById('pairing-code-container');
+    const pairingCodeElement = document.getElementById('pairing-code');
     const statusText = document.querySelector('.status-text');
 
     statusText.textContent = 'Connexion au serveur...';
 
     socket.on('connect', () => {
         console.log('Connecté au serveur !');
-        statusText.textContent = 'En attente du QR code...';
+        statusText.textContent = 'En attente du code de jumelage...';
     });
 
     socket.on('disconnect', (reason) => {
@@ -32,38 +33,26 @@ document.addEventListener('DOMContentLoaded', () => {
         statusText.textContent = '❌ Impossible de se reconnecter. Veuillez vérifier votre connexion et rafraîchir la page.';
     });
 
-    socket.on('qrCode', (rawData) => {
-        let qrDataString;
-        try {
-            // THE FIX: Parse the incoming data, which might be a string
-            const parsedData = (typeof rawData === 'string') ? JSON.parse(rawData) : rawData;
-            qrDataString = parsedData.qr;
-        } catch (e) {
-            console.error(`JSON parsing error: ${e.message}`);
-            statusText.textContent = 'Erreur: Format de données invalide.';
-            return; // Stop execution if parsing fails
-        }
-
-        statusText.textContent = 'Scannez ce code avec WhatsApp...';
-
-        // Check if qr data string is valid before trying to draw
-        if (qrDataString && typeof qrDataString === 'string') {
-            QRCode.toCanvas(qrCanvas, qrDataString, function (error) {
-                if (error) {
-                    console.error(error);
-                } else {
-                    console.log('QR code drawn successfully!');
-                }
-            });
+    socket.on('pairingCode', (data) => {
+        if (data && data.code) {
+            console.log(`Code de jumelage reçu: ${data.code}`);
+            pairingCodeElement.textContent = data.code;
+            statusText.textContent = 'Utilisez ce code sur WhatsApp pour vous connecter.';
         } else {
-            console.error("Invalid QR data after parsing.");
-            statusText.textContent = "Erreur: Données du QR code invalides."
+             console.error("Données du code de jumelage invalides reçues.");
+             statusText.textContent = "Erreur: Données du code invalides."
         }
     });
 
     socket.on('connectionSuccess', () => {
         console.log('Connexion du bot réussie !');
-        qrCanvas.style.display = 'none';
+        pairingCodeContainer.style.display = 'none';
         statusText.textContent = '✅ Bot connecté avec succès !';
+    });
+
+    socket.on('error', (errorMessage) => {
+        console.error(`Erreur du serveur: ${errorMessage}`);
+        pairingCodeElement.textContent = "ERREUR";
+        statusText.textContent = errorMessage;
     });
 });

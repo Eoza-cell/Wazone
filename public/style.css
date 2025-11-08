@@ -30,11 +30,20 @@ h1 {
     margin-bottom: 20px;
 }
 
-#qr-code-canvas {
-    background-color: white;
-    padding: 10px;
-    border-radius: 5px;
+#pairing-code-container {
+    background-color: #0a0a0a;
+    border: 1px dashed #f1c40f;
+    padding: 20px;
     margin-top: 20px;
+    border-radius: 5px;
+}
+
+#pairing-code {
+    font-size: 2em;
+    font-weight: bold;
+    letter-spacing: 5px;
+    color: #ffffff;
+    margin: 0;
 }
 
 .status-text {
