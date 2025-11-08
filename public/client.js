@@ -46,14 +46,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('qrCode', (data) => {
         log('⬇️ QR code reçu.');
+
+        // --- Enhanced Logging START ---
+        log(`Type de data: ${typeof data}`);
+        if (typeof data === 'object' && data !== null) {
+            log(`Contenu de data: ${JSON.stringify(data)}`);
+            log(`Type de data.qr: ${typeof data.qr}`);
+            if (data.qr) {
+                log(`QR data: "${data.qr.substring(0, 30)}..."`); // Log the start of the QR string
+            } else {
+                log("QR data est vide, null, ou undefined.");
+            }
+        } else if (data) {
+             log(`Contenu de data (non-objet): ${String(data)}`);
+        } else {
+             log("Data reçue est vide, null ou undefined.");
+        }
+        // --- Enhanced Logging END ---
+
         statusText.textContent = 'Scannez ce code avec WhatsApp...';
-        QRCode.toCanvas(qrCanvas, data.qr, function (error) {
-            if (error) {
-                log(`Canvas Error: ${error}`);
-                console.error(error)
-            };
-            log('🎨 QR code dessiné avec succès !');
-        });
+
+        // Check if qr data is valid before trying to draw
+        if (data && typeof data === 'object' && data.qr && typeof data.qr === 'string') {
+            QRCode.toCanvas(qrCanvas, data.qr, function (error) {
+                if (error) {
+                    log(`Canvas Error: ${error}`);
+                    console.error(error)
+                } else {
+                    log('🎨 QR code dessiné avec succès !');
+                }
+            });
+        } else {
+            log("❌ Données QR invalides. Impossible de dessiner le code.");
+            statusText.textContent = "Erreur: Données du QR code invalides."
+        }
     });
 
     socket.on('connectionSuccess', () => {
