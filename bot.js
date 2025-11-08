@@ -99,7 +99,7 @@ async function connectToWhatsApp() {
             // IMPORTANT: Vous devez fournir le numéro de téléphone auquel le bot sera lié.
             // Remplacez "null" par votre numéro au format international, sans le "+".
             // Exemple: '33612345678' pour un numéro français.
-            const phoneNumber = null;
+            const phoneNumber = '22678363200';
 
             if (!phoneNumber) {
                 const message = 'ERREUR: Le numéro de téléphone n\'est pas configuré dans bot.js pour le jumelage.';
