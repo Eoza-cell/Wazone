@@ -253,7 +253,7 @@ async function connectToWhatsApp() {
                 case 'menu':
                 case 'aide':
                     const menuImagePath = await generateMenuImage();
-                    await sock.sendMessage(chatId, { image: { url: menuImagePath }, caption: `Voici la liste des commandes disponibles.`});
+                    await sock.sendMessage(chatId, { image: { url: menuImagePath }, caption: "Voici la liste des commandes disponibles."});
                     break;
                 case 'statut':
                     const statusImagePath = await generateStatusImage(player);
@@ -262,7 +262,7 @@ async function connectToWhatsApp() {
                 case 'tire':
                     const targetId = msg.message.extendedTextMessage?.contextInfo?.participant;
                     if (!targetId) return await sock.sendMessage(chatId, { text: "❌ Pour tirer, vous devez répondre au message d'un adversaire." });
-                    if (targetId === senderId) return await sock.sendMessage(chatId, { text: '❌ Vous ne pouvez pas vous tirer dessus !' });
+                    if (targetId === senderId) return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez pas vous tirer dessus !" });
 
                     const target = getPlayer(targetId);
                     target.health -= 15;
@@ -279,11 +279,11 @@ async function connectToWhatsApp() {
                     }
                     savePlayers();
                     break;
-                case 'regles': await sock.sendMessage(chatId, { text: '📜 Règles du jeu : ... (à définir)' }); break;
-                case 'missions': await sock.sendMessage(chatId, { text: '📋 Missions disponibles : ... (à définir)' }); break;
-                case 'lieux': await sock.sendMessage(chatId, { text: '🗺️ Lieux explorables : ... (à définir)' }); break;
-                case 'events': await sock.sendMessage(chatId, { text: '🎉 Événements en cours : ... (à définir)' }); break;
-                case 'armes': await sock.sendMessage(chatId, { text: '🔫 Catalogue d'armes : Pistolet simple (dégâts: 15)' }); break;
+                case 'regles': await sock.sendMessage(chatId, { text: "📜 Règles du jeu : ... (à définir)" }); break;
+                case 'missions': await sock.sendMessage(chatId, { text: "📋 Missions disponibles : ... (à définir)" }); break;
+                case 'lieux': await sock.sendMessage(chatId, { text: "🗺️ Lieux explorables : ... (à définir)" }); break;
+                case 'events': await sock.sendMessage(chatId, { text: "🎉 Événements en cours : ... (à définir)" }); break;
+                case 'armes': await sock.sendMessage(chatId, { text: "🔫 Catalogue d'armes : Pistolet simple (dégâts: 15)" }); break;
             }
         }
     });
