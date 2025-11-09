@@ -174,13 +174,11 @@ async function connectToWhatsApp() {
     // Si nous ne sommes pas déjà authentifiés, nous demandons un code de jumelage.
     if (!sock.authState.creds.registered) {
         setTimeout(async () => {
-            // IMPORTANT: Vous devez fournir le numéro de téléphone auquel le bot sera lié.
-            // Remplacez "null" par votre numéro au format international, sans le "+".
-            // Exemple: '33612345678' pour un numéro français.
-            const phoneNumber = '22678363200';
+            // Le numéro de téléphone est récupéré depuis les variables d'environnement pour des raisons de sécurité.
+            const phoneNumber = process.env.PHONE_NUMBER;
 
             if (!phoneNumber) {
-                const message = 'ERREUR: Le numéro de téléphone n\'est pas configuré dans bot.js pour le jumelage.';
+                const message = 'ERREUR CRITIQUE: La variable d\'environnement PHONE_NUMBER n\'est pas définie. Le bot ne peut pas demander de code de jumelage.';
                 console.error(message);
                 io.emit('error', message);
                 return;
@@ -263,7 +261,7 @@ async function connectToWhatsApp() {
                     break;
                 case 'tire':
                     const targetId = msg.message.extendedTextMessage?.contextInfo?.participant;
-                    if (!targetId) return await sock.sendMessage(chatId, { text: '❌ Pour tirer, vous devez répondre au message d'un adversaire.' });
+                    if (!targetId) return await sock.sendMessage(chatId, { text: "❌ Pour tirer, vous devez répondre au message d'un adversaire." });
                     if (targetId === senderId) return await sock.sendMessage(chatId, { text: '❌ Vous ne pouvez pas vous tirer dessus !' });
 
                     const target = getPlayer(targetId);
