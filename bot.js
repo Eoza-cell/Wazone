@@ -57,19 +57,97 @@ function getPlayer(id) {
 
 async function generateStatusImage(player) {
     const imagePath = path.join(GENERATED_IMAGES_DIR, `${player.id}.png`);
+    const healthColor = player.health > 50 ? '#2ecc71' : (player.health > 20 ? '#f1c40f' : '#c0392b');
+    const energyColor = '#3498db';
+
     const svg = `
-    <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" fill="#333"/>
-      <text x="20" y="40" font-family="Arial" font-size="24" fill="white">Statut de ${player.name}</text>
-      <text x="20" y="80" font-family="Arial" font-size="16" fill="white">Vie:</text>
-      <rect x="80" y="65" width="300" height="20" fill="#555"/>
-      <rect x="80" y="65" width="${player.health * 3}" height="20" fill="green"/>
-      <text x="385" y="82" text-anchor="end" font-family="Arial" font-size="16" fill="white">${player.health}%</text>
-      <text x="20" y="120" font-family="Arial" font-size="16" fill="white">Énergie:</text>
-      <rect x="80" y="105" width="300" height="20" fill="#555"/>
-      <rect x="80" y="105" width="${player.energy * 3}" height="20" fill="blue"/>
-      <text x="385" y="122" text-anchor="end" font-family="Arial" font-size="16" fill="white">${player.energy}%</text>
-      <text x="20" y="160" font-family="Arial" font-size="16" fill="white">Arme: ${player.weapon}</text>
+    <svg width="500" height="250" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <style>
+                .background { fill: #1C1C1C; }
+                .name { font-family: monospace; font-size: 28px; fill: #EAEAEA; text-transform: uppercase; }
+                .label { font-family: monospace; font-size: 18px; fill: #f1c40f; text-transform: uppercase; }
+                .value { font-family: monospace; font-size: 16px; fill: #EAEAEA; }
+                .bar-bg { fill: #333; }
+            </style>
+        </defs>
+
+        <rect width="100%" height="100%" class="background" />
+
+        <!-- Cadre et lignes de style -->
+        <rect x="5" y="5" width="490" height="240" fill="none" stroke="#7f8c8d" stroke-width="1" stroke-opacity="0.5"/>
+        <path d="M15 30 V15 H30" stroke="#f1c40f" stroke-width="2" fill="none"/>
+        <path d="M485 30 V15 H470" stroke="#f1c40f" stroke-width="2" fill="none"/>
+        <path d="M15 220 V235 H30" stroke="#f1c40f" stroke-width="2" fill="none"/>
+        <path d="M485 220 V235 H470" stroke="#f1c40f" stroke-width="2" fill="none"/>
+
+        <text x="30" y="45" class="name">${player.name}</text>
+
+        <!-- Barre de vie -->
+        <text x="30" y="90" class="label">Santé</text>
+        <rect x="30" y="100" width="440" height="25" class="bar-bg" />
+        <rect x="30" y="100" width="${player.health * 4.4}" height="25" fill="${healthColor}" />
+        <text x="465" y="118" text-anchor="end" class="value">${player.health}%</text>
+
+        <!-- Barre d'énergie -->
+        <text x="30" y="155" class="label">Énergie</text>
+        <rect x="30" y="165" width="440" height="25" class="bar-bg" />
+        <rect x="30" y="165" width="${player.energy * 4.4}" height="25" fill="${energyColor}" />
+        <text x="465" y="183" text-anchor="end" class="value">${player.energy}%</text>
+
+        <!-- Arme équipée -->
+        <text x="30" y="220" class="label">Arme: <tspan class="value">${player.weapon}</tspan></text>
+    </svg>
+    `;
+    await sharp(Buffer.from(svg)).png().toFile(imagePath);
+    return imagePath;
+}
+
+async function generateMenuImage() {
+    const imagePath = path.join(GENERATED_IMAGES_DIR, `menu.png`);
+    const svg = `
+    <svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <style>
+          .title { font-family: monospace; font-size: 32px; fill: #f1c40f; text-transform: uppercase; }
+          .command { font-family: monospace; font-size: 20px; fill: #e0e0e0; }
+          .desc { font-family: monospace; font-size: 14px; fill: #7f8c8d; }
+        </style>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#1a1a1a"/>
+
+      <!-- Cadre stylisé -->
+      <path d="M10 20 V10 H20" stroke="#c0392b" stroke-width="2" fill="none"/>
+      <path d="M590 20 V10 H580" stroke="#c0392b" stroke-width="2" fill="none"/>
+      <path d="M10 380 V390 H20" stroke="#c0392b" stroke-width="2" fill="none"/>
+      <path d="M590 380 V390 H580" stroke="#c0392b" stroke-width="2" fill="none"/>
+
+      <text x="300" y="50" text-anchor="middle" class="title">WAZONE BOT // COMMANDES</text>
+
+      <!-- Colonne 1 -->
+      <text x="50" y="110" class="command">/statut</text>
+      <text x="50" y="130" class="desc">Affiche votre état actuel (vie, énergie).</text>
+
+      <text x="50" y="180" class="command">/tire</text>
+      <text x="50" y="200" class="desc">Tire sur un adversaire (en réponse).</text>
+
+      <text x="50" y="250" class="command">/armes</text>
+      <text x="50" y="270" class="desc">Affiche le catalogue des armes.</text>
+
+      <text x="50" y="320" class="command">/regles</text>
+      <text x="50" y="340" class="desc">Voir les règles du jeu.</text>
+
+      <!-- Colonne 2 -->
+      <text x="320" y="110" class="command">/missions</text>
+      <text x="320" y="130" class="desc">Liste des missions disponibles.</text>
+
+      <text x="320" y="180" class="command">/lieux</text>
+      <text x="320" y="200" class="desc">Explorez les lieux connus.</text>
+
+      <text x="320" y="250" class="command">/events</text>
+      <text x="320" y="270" class="desc">Consultez les événements en cours.</text>
+
     </svg>
     `;
     await sharp(Buffer.from(svg)).png().toFile(imagePath);
@@ -142,7 +220,15 @@ async function connectToWhatsApp() {
         const msg = messages[0];
         if (!msg.message) return;
 
-        const senderId = msg.key.remoteJid;
+        // --- Gestion des groupes ---
+        const isGroup = msg.key.remoteJid.endsWith('@g.us');
+        const senderId = isGroup ? (msg.key.participant || msg.participant) : msg.key.remoteJid;
+        const chatId = msg.key.remoteJid;
+        // --- Fin de la gestion ---
+
+        // On ignore les messages de statut et les messages qui ne viennent pas d'un utilisateur
+        if (!senderId) return;
+
         const player = getPlayer(senderId);
         if (!player.name) player.name = msg.pushName || 'Inconnu';
 
@@ -157,7 +243,7 @@ async function connectToWhatsApp() {
                 player.health = 100;
                 player.energy = 100;
                 savePlayers();
-                await sock.sendMessage(senderId, { text: `🧟‍♂️ Vous êtes de retour parmi les vivants !` });
+                await sock.sendMessage(chatId, { text: `🧟‍♂️ Vous êtes de retour parmi les vivants !` });
             }
         }
 
@@ -166,14 +252,19 @@ async function connectToWhatsApp() {
 
         if (messageContent.startsWith('/')) {
             switch(command) {
+                case 'menu':
+                case 'aide':
+                    const menuImagePath = await generateMenuImage();
+                    await sock.sendMessage(chatId, { image: { url: menuImagePath }, caption: `Voici la liste des commandes disponibles.`});
+                    break;
                 case 'statut':
                     const statusImagePath = await generateStatusImage(player);
-                    await sock.sendMessage(senderId, { image: { url: statusImagePath }, caption: `Voici votre statut actuel, ${player.name}.`});
+                    await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption: `Voici votre statut actuel, ${player.name}.`});
                     break;
                 case 'tire':
                     const targetId = msg.message.extendedTextMessage?.contextInfo?.participant;
-                    if (!targetId) return await sock.sendMessage(senderId, { text: '❌ Pour tirer, vous devez répondre au message d\'un adversaire.' });
-                    if (targetId === senderId) return await sock.sendMessage(senderId, { text: '❌ Vous ne pouvez pas vous tirer dessus !' });
+                    if (!targetId) return await sock.sendMessage(chatId, { text: '❌ Pour tirer, vous devez répondre au message d'un adversaire.' });
+                    if (targetId === senderId) return await sock.sendMessage(chatId, { text: '❌ Vous ne pouvez pas vous tirer dessus !' });
 
                     const target = getPlayer(targetId);
                     target.health -= 15;
@@ -182,19 +273,19 @@ async function connectToWhatsApp() {
                     if (target.health <= 0) {
                         target.health = 0;
                         target.lastDeath = Date.now();
-                        await sock.sendMessage(senderId, { text: `💥 Vous avez abattu ${target.name} !` });
+                        await sock.sendMessage(chatId, { text: `💥 Vous avez abattu ${target.name} !` });
                         await sock.sendMessage(targetId, { text: `☠️ ${player.name} vous a tué. Vous ne pourrez plus parler pendant 1 heure.` });
                     } else {
-                        await sock.sendMessage(senderId, { text: `💥 Vous avez touché ${target.name} ! Il lui reste ${target.health}% de vie.` });
+                        await sock.sendMessage(chatId, { text: `💥 Vous avez touché ${target.name} ! Il lui reste ${target.health}% de vie.` });
                         await sock.sendMessage(targetId, { text: `🤕 ${player.name} vous a tiré dessus ! Il vous reste ${target.health}% de vie.` });
                     }
                     savePlayers();
                     break;
-                case 'regles': await sock.sendMessage(senderId, { text: '📜 Règles du jeu : ... (à définir)' }); break;
-                case 'missions': await sock.sendMessage(senderId, { text: '📋 Missions disponibles : ... (à définir)' }); break;
-                case 'lieux': await sock.sendMessage(senderId, { text: '🗺️ Lieux explorables : ... (à définir)' }); break;
-                case 'events': await sock.sendMessage(senderId, { text: '🎉 Événements en cours : ... (à définir)' }); break;
-                case 'armes': await sock.sendMessage(senderId, { text: '🔫 Catalogue d\'armes : Pistolet simple (dégâts: 15)' }); break;
+                case 'regles': await sock.sendMessage(chatId, { text: '📜 Règles du jeu : ... (à définir)' }); break;
+                case 'missions': await sock.sendMessage(chatId, { text: '📋 Missions disponibles : ... (à définir)' }); break;
+                case 'lieux': await sock.sendMessage(chatId, { text: '🗺️ Lieux explorables : ... (à définir)' }); break;
+                case 'events': await sock.sendMessage(chatId, { text: '🎉 Événements en cours : ... (à définir)' }); break;
+                case 'armes': await sock.sendMessage(chatId, { text: '🔫 Catalogue d'armes : Pistolet simple (dégâts: 15)' }); break;
             }
         }
     });
