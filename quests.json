@@ -1,0 +1,41 @@
+[
+    {
+      "id": 1,
+      "title": "Premiers pas",
+      "description": "Tirez sur un autre joueur.",
+      "reward": {
+        "xp": 10,
+        "item": "Pistolet amélioré"
+      },
+      "completion": {
+        "type": "shotsFired",
+        "count": 1
+      }
+    },
+    {
+      "id": 2,
+      "title": "Entraînement au tir",
+      "description": "Tirez sur 5 joueurs différents.",
+      "reward": {
+        "xp": 50,
+        "item": "Fusil d'assaut"
+      },
+      "completion": {
+        "type": "shotsFired",
+        "count": 5
+      }
+    },
+    {
+        "id": 3,
+        "title": "Tireur d'élite",
+        "description": "Tirez sur 10 joueurs avec un fusil de précision.",
+        "reward": {
+            "xp": 100,
+            "item": "Fusil de précision lourd"
+        },
+        "completion": {
+            "type": "shotsFired",
+            "count": 10
+        }
+    }
+]

@@ -1,0 +1,13 @@
+{
+    "introduction": "Bienvenue dans Wazone, une terre déchirée par la guerre. Vous êtes un nouveau soldat, et votre première mission est de vous équiper. Utilisez la commande /classes pour choisir votre spécialisation.",
+    "quests": [
+        {
+            "id": 1,
+            "story": "Maintenant que vous êtes équipé, il est temps de faire vos preuves. Acceptez la quête 'Premiers pas' avec la commande /quete 1."
+        },
+        {
+            "id": 2,
+            "story": "Excellent travail. Vous avez montré que vous n'êtes pas une recrue ordinaire. Continuez à vous entraîner avec la quête 'Entraînement au tir'. (/quete 2)"
+        }
+    ]
+}

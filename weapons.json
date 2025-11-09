@@ -1,0 +1,44 @@
+[
+    {
+      "name": "Pistolet simple",
+      "class": "simple",
+      "rank": 1,
+      "damage": 15
+    },
+    {
+      "name": "Fusil d'assaut",
+      "class": "simple",
+      "rank": 2,
+      "damage": 25
+    },
+    {
+        "name": "Fusil à pompe",
+        "class": "simple",
+        "rank": 3,
+        "damage": 35
+    },
+    {
+      "name": "Fusil de précision",
+      "class": "sniper",
+      "rank": 1,
+      "damage": 50
+    },
+    {
+        "name": "Fusil de précision lourd",
+        "class": "sniper",
+        "rank": 2,
+        "damage": 75
+    },
+    {
+      "name": "Bazooka",
+      "class": "lourd",
+      "rank": 1,
+      "damage": 100
+    },
+    {
+        "name": "Lance-grenades",
+        "class": "lourd",
+        "rank": 2,
+        "damage": 120
+    }
+]
