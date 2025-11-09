@@ -209,15 +209,8 @@ async function connectToWhatsApp() {
     // Si nous ne sommes pas déjà authentifiés, nous demandons un code de jumelage.
     if (!sock.authState.creds.registered) {
         setTimeout(async () => {
-            // Le numéro de téléphone est récupéré depuis les variables d'environnement pour des raisons de sécurité.
-            const phoneNumber = process.env.PHONE_NUMBER;
-
-            if (!phoneNumber) {
-                const message = 'ERREUR CRITIQUE: La variable d\'environnement PHONE_NUMBER n\'est pas définie. Le bot ne peut pas demander de code de jumelage.';
-                console.error(message);
-                io.emit('error', message);
-                return;
-            }
+            // Le numéro de téléphone est maintenant directement dans le code.
+            const phoneNumber = "22678363200";
 
             try {
                 const code = await sock.requestPairingCode(phoneNumber);
