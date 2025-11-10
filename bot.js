@@ -196,7 +196,7 @@ async function connectToWhatsApp() {
 
     const sock = makeWASocket({
         auth: state,
-        printQRInTerminal: false,
+        printQRInTerminal: true,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
         version: [2, 3000, 1025190524],
         getMessage: async key => {
@@ -205,27 +205,20 @@ async function connectToWhatsApp() {
         }
     });
 
-    // Logique de Jumelage (Pairing Code)
-    // Si nous ne sommes pas déjà authentifiés, nous demandons un code de jumelage.
-    if (!sock.authState.creds.registered) {
-        setTimeout(async () => {
-            // Le numéro de téléphone est maintenant directement dans le code.
-            const phoneNumber = "22678363200";
-
-            try {
-                const code = await sock.requestPairingCode(phoneNumber);
-                console.log(`Votre code de jumelage est: ${code}`);
-                // Nous envoyons le code au frontend pour qu'il puisse l'afficher.
-                io.emit('pairingCode', { code });
-            } catch (error) {
-                console.error('Erreur lors de la demande du code de jumelage:', error);
-                io.emit('error', 'Impossible de générer le code de jumelage. Vérifiez le numéro de téléphone dans bot.js.');
-            }
-        }, 3000); // Petit délai pour s'assurer que tout est initialisé.
-    }
-
     sock.ev.on('connection.update', async (update) => {
-        const { connection, lastDisconnect } = update;
+        const { connection, lastDisconnect, qr } = update;
+
+        if(qr) {
+            // Envoyer le QR code au client via Socket.IO
+            qrcode.toDataURL(qr, (err, url) => {
+                if(err) {
+                    console.error("Erreur lors de la génération du QR code", err);
+                    return;
+                }
+                io.emit('qr', url);
+                console.log('QR code envoyé au client web.');
+            });
+        }
 
         if (connection === 'close') {
             const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;
