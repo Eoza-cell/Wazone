@@ -29,6 +29,12 @@ server.listen(PORT, () => {
 // --- FIN DE LA CONFIGURATION ---
 
 const AUTH_DIR = './auth_info_baileys/';
+// --- Nettoyage de la session au démarrage ---
+if (fs.existsSync(AUTH_DIR)) {
+    fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+    console.log('Ancienne session supprimée pour garantir un démarrage propre.');
+}
+// --- Fin du nettoyage ---
 const PLAYERS_FILE = './data/players.json';
 const GENERATED_IMAGES_DIR = './generated_images/';
 
