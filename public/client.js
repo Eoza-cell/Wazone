@@ -7,58 +7,61 @@ document.addEventListener('DOMContentLoaded', () => {
         randomizationFactor: 0.5
     });
 
-    const qrContainer = document.getElementById('qr-container');
-    const qrPlaceholder = document.getElementById('qr-placeholder');
-    const qrImage = document.getElementById('qr-image');
+    const formContainer = document.getElementById('form-container');
+    const codeContainer = document.getElementById('code-container');
+    const phoneNumberInput = document.getElementById('phone-number');
+    const connectButton = document.getElementById('connect-button');
+    const pairingCodeDisplay = document.getElementById('pairing-code');
     const statusText = document.querySelector('.status-text');
 
     statusText.textContent = 'Connexion au serveur...';
 
     socket.on('connect', () => {
         console.log('Connecté au serveur !');
-        statusText.textContent = 'En attente du QR code...';
+        statusText.textContent = 'Prêt. Entrez votre numéro de téléphone.';
     });
 
     socket.on('disconnect', (reason) => {
         console.log(`Déconnecté : ${reason}`);
         statusText.textContent = '❌ Déconnecté. Tentative de reconnexion...';
-        qrImage.style.display = 'none';
-        qrPlaceholder.textContent = 'Déconnecté. En attente de reconnexion...';
-        qrPlaceholder.style.display = 'block';
+        formContainer.style.display = 'block';
+        codeContainer.style.display = 'none';
     });
 
-    socket.on('reconnecting', (attemptNumber) => {
-        console.log(`Tentative de reconnexion n°${attemptNumber}...`);
-        statusText.textContent = `⏳ Tentative de reconnexion (${attemptNumber})...`;
-    });
-
-    socket.on('reconnect_failed', () => {
-        console.error('La reconnexion a échoué définitivement.');
-        statusText.textContent = '❌ Impossible de se reconnecter. Veuillez vérifier votre connexion et rafraîchir la page.';
-    });
-
-    socket.on('qr', (url) => {
-        if (url) {
-            console.log('QR code reçu.');
-            qrImage.src = url;
-            qrImage.style.display = 'block';
-            qrPlaceholder.style.display = 'none';
-            statusText.textContent = 'Scannez le code avec WhatsApp.';
+    connectButton.addEventListener('click', () => {
+        const phoneNumber = phoneNumberInput.value.trim();
+        if (phoneNumber) {
+            console.log(`Envoi du numéro ${phoneNumber} au serveur.`);
+            socket.emit('start-connection', phoneNumber);
+            statusText.textContent = '⏳ Demande du code d\'appairage...';
+            connectButton.disabled = true;
+            phoneNumberInput.disabled = true;
         } else {
-             console.error("URL du QR code non valide reçue.");
-             statusText.textContent = "Erreur: URL du QR code invalide."
+            alert('Veuillez entrer un numéro de téléphone valide.');
         }
     });
 
-    socket.on('connectionSuccess', () => {
-        console.log('Connexion du bot réussie !');
-        qrContainer.style.display = 'none';
-        statusText.innerHTML = '✅ Bot connecté avec succès ! <br> Vous pouvez fermer cette page.';
+    socket.on('pairingCode', (code) => {
+        console.log(`Code reçu : ${code}`);
+        formContainer.style.display = 'none';
+        codeContainer.style.display = 'block';
+        pairingCodeDisplay.textContent = code;
+        statusText.textContent = 'Code reçu. Entrez-le dans WhatsApp.';
     });
 
-    socket.on('error', (errorMessage) => {
+    socket.on('connectionSuccess', (message) => {
+        console.log('Connexion du bot réussie !');
+        codeContainer.style.display = 'none';
+        formContainer.style.display = 'none';
+        statusText.innerHTML = `✅ ${message} <br> Vous pouvez fermer cette page.`;
+    });
+
+    socket.on('connectionError', (errorMessage) => {
         console.error(`Erreur du serveur: ${errorMessage}`);
-        qrContainer.innerHTML = `<p class="error">ERREUR</p>`;
-        statusText.textContent = errorMessage;
+        statusText.textContent = `❌ Erreur : ${errorMessage}`;
+        connectButton.disabled = false;
+        phoneNumberInput.disabled = false;
+        formContainer.style.display = 'block';
+        codeContainer.style.display = 'none';
     });
 });

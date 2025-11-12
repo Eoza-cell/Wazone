@@ -7,7 +7,6 @@ const express = require('express');
 const http = require('http');
 const { Server } = require("socket.io");
 const sharp = require('sharp');
-const qrcode = require('qrcode');
 
 // --- CONFIGURATION DU SERVEUR WEB ---
 const app = express();
@@ -189,73 +188,81 @@ async function generateMenuImage() {
     return imagePath;
 }
 
-async function connectToWhatsApp() {
+let sock; // Déclarer la variable sock à une portée plus large
+
+async function connectToWhatsApp(phoneNumber) {
+    if (sock) {
+        console.log('Une connexion existante est en cours de fermeture...');
+        await sock.logout();
+        sock = null;
+    }
+
+    if (fs.existsSync(AUTH_DIR)) {
+        fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+        console.log('Ancienne session supprimée pour une nouvelle connexion par code.');
+    }
+
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
     const { version, isLatest } = await fetchLatestBaileysVersion();
-    console.log(`Utilisation de Baileys v${version.join('.')}, dernière version: ${isLatest}`);
+    console.log(`Utilisation de Baileys v${version.join('.')}, isLatest: ${isLatest}`);
 
-    const sock = makeWASocket({
+    sock = makeWASocket({
         auth: state,
-        printQRInTerminal: true,
+        printQRInTerminal: false, // On n'utilise pas le QR code
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
         version: [2, 3000, 1025190524],
         getMessage: async key => {
-            console.log('⚠️ Message non déchiffré, retry demandé:', key);
-            return { conversation: '🔄 Réessaye d\'envoyer ton message' };
+            return { conversation: 'Message non déchiffré' };
         }
     });
 
-    sock.ev.on('connection.update', async (update) => {
-        const { connection, lastDisconnect, qr } = update;
+    // Demander le code d'appairage
+    if (!sock.authState.creds.registered) {
+        console.log(`Demande de code d'appairage pour le numéro : ${phoneNumber}`);
+        setTimeout(async () => {
+            try {
+                const code = await sock.requestPairingCode(phoneNumber);
+                console.log(`Votre code d'appairage : ${code}`);
+                io.emit('pairingCode', code); // Envoyer le code au frontend
+            } catch (error) {
+                console.error('Erreur lors de la demande du code d\'appairage:', error);
+                io.emit('connectionError', 'Impossible de générer le code. Avez-vous entré un numéro de téléphone WhatsApp valide ?');
+            }
+        }, 3000); // Un petit délai pour s'assurer que le socket est prêt
+    }
 
-        if(qr) {
-            // Envoyer le QR code au client via Socket.IO
-            qrcode.toDataURL(qr, (err, url) => {
-                if(err) {
-                    console.error("Erreur lors de la génération du QR code", err);
-                    return;
-                }
-                io.emit('qr', url);
-                console.log('QR code envoyé au client web.');
-            });
-        }
+    sock.ev.on('connection.update', async (update) => {
+        const { connection, lastDisconnect } = update;
 
         if (connection === 'close') {
             const statusCode = lastDisconnect.error?.output?.statusCode;
+            const shouldReconnect = (lastDisconnect.error instanceof Boom) && statusCode !== DisconnectReason.loggedOut;
 
             if (statusCode === DisconnectReason.loggedOut) {
-                console.log('❌ Conflit de session : déconnecté car le compte a été ouvert ailleurs.');
-                io.emit('sessionConflict', 'Votre session a été invalidée. Veuillez scanner un nouveau QR code.');
-
-                if (fs.existsSync(AUTH_DIR)) {
-                    fs.rmSync(AUTH_DIR, { recursive: true, force: true });
-                    console.log('Session locale supprimée.');
-                }
-
-                console.log('Redémarrage du processus de connexion...');
-                connectToWhatsApp();
-
+                 console.log('❌ Conflit de session : déconnecté. Le compte a été ouvert ailleurs.');
+                 io.emit('connectionError', 'Déconnecté. Le compte est actif sur un autre appareil.');
+                 // On ne reconnecte pas automatiquement pour éviter les boucles
             } else {
-                const shouldReconnect = (lastDisconnect.error instanceof Boom);
-                console.log('Connexion fermée en raison de:', lastDisconnect.error, ', reconnexion:', shouldReconnect);
-                if (shouldReconnect) {
-                    connectToWhatsApp();
-                }
+                 console.log('Connexion fermée en raison de :', lastDisconnect.error, ', reconnexion:', shouldReconnect);
+                 if (shouldReconnect) {
+                    // La reconnexion est gérée automatiquement par Baileys maintenant
+                 }
             }
         } else if (connection === 'open') {
             console.log('✅ Connexion ouverte et réussie !');
-            // Informer le client que la connexion est un succès.
-            io.emit('connectionSuccess');
+            io.emit('connectionSuccess', 'Bot connecté avec succès !');
         }
     });
 
     sock.ev.on('creds.update', saveCreds);
 
-    sock.ev.on('messages.upsert', async ({ messages }) => {
-        const msg = messages[0];
-        if (!msg.message) return;
+    // S'assurer que les messages sont gérés uniquement si la connexion est ouverte
+    if (sock) {
+        sock.ev.on('messages.upsert', async ({ messages }) => {
+            const msg = messages[0];
+            if (!msg.message || !sock) return;
 
-        // --- Gestion des groupes ---
+            // --- Gestion des groupes ---
         const isGroup = msg.key.remoteJid.endsWith('@g.us');
         const senderId = isGroup ? (msg.key.participant || msg.participant) : msg.key.remoteJid;
         const chatId = msg.key.remoteJid;
@@ -469,5 +476,17 @@ async function connectToWhatsApp() {
         }
     });
 }
+}
 
-connectToWhatsApp().catch(err => console.error("Erreur inattendue : ", err));
+// Démarrer la connexion lorsque le client envoie un numéro de téléphone
+io.on('connection', (socket) => {
+    console.log('Un client est connecté au serveur WebSocket.');
+
+    socket.on('start-connection', (phoneNumber) => {
+        console.log(`Demande de connexion reçue pour le numéro : ${phoneNumber}`);
+        connectToWhatsApp(phoneNumber).catch(err => {
+            console.error("Erreur inattendue lors de la connexion :", err);
+            io.emit('connectionError', 'Une erreur interne est survenue.');
+        });
+    });
+});
