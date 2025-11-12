@@ -29,12 +29,6 @@ server.listen(PORT, () => {
 // --- FIN DE LA CONFIGURATION ---
 
 const AUTH_DIR = './auth_info_baileys/';
-// --- Nettoyage de la session au démarrage ---
-if (fs.existsSync(AUTH_DIR)) {
-    fs.rmSync(AUTH_DIR, { recursive: true, force: true });
-    console.log('Ancienne session supprimée pour garantir un démarrage propre.');
-}
-// --- Fin du nettoyage ---
 const PLAYERS_FILE = './data/players.json';
 const GENERATED_IMAGES_DIR = './generated_images/';
 
@@ -227,10 +221,26 @@ async function connectToWhatsApp() {
         }
 
         if (connection === 'close') {
-            const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;
-            console.log('Connexion fermée:', lastDisconnect.error, ', reconnexion:', shouldReconnect);
-            if (shouldReconnect) {
+            const statusCode = lastDisconnect.error?.output?.statusCode;
+
+            if (statusCode === DisconnectReason.loggedOut) {
+                console.log('❌ Conflit de session : déconnecté car le compte a été ouvert ailleurs.');
+                io.emit('sessionConflict', 'Votre session a été invalidée. Veuillez scanner un nouveau QR code.');
+
+                if (fs.existsSync(AUTH_DIR)) {
+                    fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+                    console.log('Session locale supprimée.');
+                }
+
+                console.log('Redémarrage du processus de connexion...');
                 connectToWhatsApp();
+
+            } else {
+                const shouldReconnect = (lastDisconnect.error instanceof Boom);
+                console.log('Connexion fermée en raison de:', lastDisconnect.error, ', reconnexion:', shouldReconnect);
+                if (shouldReconnect) {
+                    connectToWhatsApp();
+                }
             }
         } else if (connection === 'open') {
             console.log('✅ Connexion ouverte et réussie !');
