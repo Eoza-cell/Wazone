@@ -59,11 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('connectionError', (errorMessage) => {
         console.error(`Erreur du serveur: ${errorMessage}`);
         statusText.textContent = `❌ Erreur : ${errorMessage}`;
-        // Réactiver les champs uniquement si l'erreur n'est pas "déjà connecté"
-        if (!errorMessage.includes('déjà en cours')) {
-            connectButton.disabled = false;
-            phoneNumberInput.disabled = false;
-        }
+        connectButton.disabled = false;
+        phoneNumberInput.disabled = false;
         formContainer.style.display = 'block';
         codeContainer.style.display = 'none';
     });
