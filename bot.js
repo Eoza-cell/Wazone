@@ -188,305 +188,318 @@ async function generateMenuImage() {
     return imagePath;
 }
 
-let sock; // Déclarer la variable sock à une portée plus large
+let sock;
+let isConnecting = false;
 
 async function connectToWhatsApp(phoneNumber) {
-    if (sock) {
-        console.log('Une connexion existante est en cours de fermeture...');
-        await sock.logout();
-        sock = null;
+    // Empêcher les tentatives de connexion multiples
+    if (isConnecting) {
+        io.emit('connectionError', 'Une connexion est déjà en cours. Veuillez patienter.');
+        return;
     }
+    isConnecting = true;
 
+    // Nettoyer l'ancienne session pour s'assurer que le code d'appairage est demandé
     if (fs.existsSync(AUTH_DIR)) {
         fs.rmSync(AUTH_DIR, { recursive: true, force: true });
-        console.log('Ancienne session supprimée pour une nouvelle connexion par code.');
     }
 
-    const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-    const { version, isLatest } = await fetchLatestBaileysVersion();
-    console.log(`Utilisation de Baileys v${version.join('.')}, isLatest: ${isLatest}`);
+    try {
+        const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+        const { version, isLatest } = await fetchLatestBaileysVersion();
+        console.log(`Utilisation de Baileys v${version.join('.')}, isLatest: ${isLatest}`);
 
-    sock = makeWASocket({
-        auth: state,
-        printQRInTerminal: false, // On n'utilise pas le QR code
-        browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
-        version: [2, 3000, 1025190524],
-        getMessage: async key => {
-            return { conversation: 'Message non déchiffré' };
-        }
-    });
+        sock = makeWASocket({
+            auth: state,
+            printQRInTerminal: false,
+            browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
+            version: [2, 3000, 1025190524],
+            getMessage: async key => ({ conversation: 'Message non déchiffré' })
+        });
 
-    // Demander le code d'appairage
-    if (!sock.authState.creds.registered) {
-        console.log(`Demande de code d'appairage pour le numéro : ${phoneNumber}`);
-        setTimeout(async () => {
-            try {
-                const code = await sock.requestPairingCode(phoneNumber);
-                console.log(`Votre code d'appairage : ${code}`);
-                io.emit('pairingCode', code); // Envoyer le code au frontend
-            } catch (error) {
-                console.error('Erreur lors de la demande du code d\'appairage:', error);
-                io.emit('connectionError', 'Impossible de générer le code. Avez-vous entré un numéro de téléphone WhatsApp valide ?');
+        sock.ev.on('creds.update', saveCreds);
+
+        sock.ev.on('connection.update', async (update) => {
+            const { connection, lastDisconnect } = update;
+
+            // Demander le code d'appairage une fois que la connexion est prête (état 'connecting')
+            if (connection === 'connecting' && !sock.authState.creds.registered) {
+                 setTimeout(async () => {
+                    try {
+                        const code = await sock.requestPairingCode(phoneNumber);
+                        console.log(`Votre code d'appairage : ${code}`);
+                        io.emit('pairingCode', code);
+                    } catch (error) {
+                        console.error('Erreur lors de la demande du code d\'appairage:', error);
+                        io.emit('connectionError', 'Impossible de générer le code. Avez-vous entré un numéro de téléphone WhatsApp valide ?');
+                    }
+                }, 3000); // Un délai pour la stabilité
             }
-        }, 3000); // Un petit délai pour s'assurer que le socket est prêt
+
+
+            if (connection === 'open') {
+                isConnecting = false;
+                console.log('✅ Connexion ouverte et réussie !');
+                io.emit('connectionSuccess', 'Bot connecté avec succès !');
+
+                // Attacher le gestionnaire de messages seulement lorsque la connexion est établie
+                sock.ev.on('messages.upsert', handleMessages);
+
+            } else if (connection === 'close') {
+                isConnecting = false;
+                sock = null; // Important de réinitialiser le socket
+                const statusCode = lastDisconnect.error?.output?.statusCode;
+
+                if (statusCode === DisconnectReason.loggedOut) {
+                    console.log('❌ Conflit de session : déconnecté. Le compte a été ouvert ailleurs.');
+                    io.emit('connectionError', 'Déconnecté. Le compte est actif sur un autre appareil. Veuillez redémarrer la connexion.');
+                } else {
+                    console.log('Connexion fermée, reconnexion automatique gérée par Baileys si nécessaire.');
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Erreur lors de l\'initialisation de la connexion:', error);
+        io.emit('connectionError', 'Impossible d\'initialiser la connexion. Vérifiez la console du serveur.');
+        isConnecting = false;
+        sock = null;
+    }
+}
+
+async function handleMessages({ messages }) {
+    const msg = messages[0];
+    if (!msg.message || !sock) return;
+
+    // --- Gestion des groupes ---
+    const isGroup = msg.key.remoteJid.endsWith('@g.us');
+    const senderId = isGroup ? (msg.key.participant || msg.participant) : msg.key.remoteJid;
+    const chatId = msg.key.remoteJid;
+    // --- Fin de la gestion ---
+
+    if (!senderId) return;
+
+    const player = getPlayer(senderId);
+    if (!player.name) player.name = msg.pushName || 'Inconnu';
+
+    const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+
+    if (player.lastDeath) {
+        const timeSinceDeath = Date.now() - player.lastDeath;
+        if (timeSinceDeath < 3600000) { // 1 heure
+            return;
+        } else {
+            player.lastDeath = null;
+            player.health = 100;
+            player.energy = 100;
+            savePlayers();
+            await sock.sendMessage(chatId, { text: `🧟‍♂️ Vous êtes de retour parmi les vivants !` });
+        }
     }
 
-    sock.ev.on('connection.update', async (update) => {
-        const { connection, lastDisconnect } = update;
+    const args = messageContent.slice(1).trim().split(/ +/);
+    const command = args.shift().toLowerCase();
 
-        if (connection === 'close') {
-            const statusCode = lastDisconnect.error?.output?.statusCode;
-            const shouldReconnect = (lastDisconnect.error instanceof Boom) && statusCode !== DisconnectReason.loggedOut;
+    if (messageContent.startsWith('/')) {
+        switch(command) {
+            case 'menu':
+            case 'aide':
+                const menuImagePath = await generateMenuImage();
+                await sock.sendMessage(chatId, { image: { url: menuImagePath }, caption: "Voici la liste des commandes disponibles."});
+                break;
+            case 'statut':
+                const statusImagePath = await generateStatusImage(player);
+                await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption: `Voici votre statut actuel, ${player.name}.`});
+                break;
+            case 'classes':
+                const availableClasses = ['simple', 'sniper', 'lourd', 'bomber', 'assassin'];
+                const selectedClass = args[0];
 
-            if (statusCode === DisconnectReason.loggedOut) {
-                 console.log('❌ Conflit de session : déconnecté. Le compte a été ouvert ailleurs.');
-                 io.emit('connectionError', 'Déconnecté. Le compte est actif sur un autre appareil.');
-                 // On ne reconnecte pas automatiquement pour éviter les boucles
-            } else {
-                 console.log('Connexion fermée en raison de :', lastDisconnect.error, ', reconnexion:', shouldReconnect);
-                 if (shouldReconnect) {
-                    // La reconnexion est gérée automatiquement par Baileys maintenant
-                 }
-            }
-        } else if (connection === 'open') {
-            console.log('✅ Connexion ouverte et réussie !');
-            io.emit('connectionSuccess', 'Bot connecté avec succès !');
-        }
-    });
+                if (!selectedClass) {
+                    let classList = "CHOISISSEZ VOTRE CLASSE:\n\n";
+                    availableClasses.forEach(c => {
+                        classList += `➡️ /classes ${c}\n`;
+                    });
+                    return await sock.sendMessage(chatId, { text: classList });
+                }
 
-    sock.ev.on('creds.update', saveCreds);
+                if (!availableClasses.includes(selectedClass)) {
+                    return await sock.sendMessage(chatId, { text: "❌ Classe non valide. Veuillez choisir parmi les classes disponibles." });
+                }
 
-    // S'assurer que les messages sont gérés uniquement si la connexion est ouverte
-    if (sock) {
-        sock.ev.on('messages.upsert', async ({ messages }) => {
-            const msg = messages[0];
-            if (!msg.message || !sock) return;
-
-            // --- Gestion des groupes ---
-        const isGroup = msg.key.remoteJid.endsWith('@g.us');
-        const senderId = isGroup ? (msg.key.participant || msg.participant) : msg.key.remoteJid;
-        const chatId = msg.key.remoteJid;
-        // --- Fin de la gestion ---
-
-        // On ignore les messages de statut et les messages qui ne viennent pas d'un utilisateur
-        if (!senderId) return;
-
-        const player = getPlayer(senderId);
-        if (!player.name) player.name = msg.pushName || 'Inconnu';
-
-        const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
-
-        if (player.lastDeath) {
-            const timeSinceDeath = Date.now() - player.lastDeath;
-            if (timeSinceDeath < 3600000) { // 1 heure
-                return;
-            } else {
-                player.lastDeath = null;
-                player.health = 100;
-                player.energy = 100;
+                player.class = selectedClass;
                 savePlayers();
-                await sock.sendMessage(chatId, { text: `🧟‍♂️ Vous êtes de retour parmi les vivants !` });
-            }
-        }
+                await sock.sendMessage(chatId, { text: `✅ Vous avez choisi la classe ${selectedClass}.` });
+                break;
+            case 'tire':
+                const targetId = msg.message.extendedTextMessage?.contextInfo?.participant;
+                if (!targetId) return await sock.sendMessage(chatId, { text: "❌ Pour tirer, vous devez répondre au message d'un adversaire." });
+                if (targetId === senderId) return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez pas vous tirer dessus !" });
 
-        const args = messageContent.slice(1).trim().split(/ +/);
-        const command = args.shift().toLowerCase();
+                const weapons = JSON.parse(fs.readFileSync('./weapons.json', 'utf8'));
+                const playerWeapon = weapons.find(w => w.name === player.weapon);
 
-        if (messageContent.startsWith('/')) {
-            switch(command) {
-                case 'menu':
-                case 'aide':
-                    const menuImagePath = await generateMenuImage();
-                    await sock.sendMessage(chatId, { image: { url: menuImagePath }, caption: "Voici la liste des commandes disponibles."});
-                    break;
-                case 'statut':
-                    const statusImagePath = await generateStatusImage(player);
-                    await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption: `Voici votre statut actuel, ${player.name}.`});
-                    break;
-                case 'classes':
-                    const availableClasses = ['simple', 'sniper', 'lourd', 'bomber', 'assassin'];
-                    const selectedClass = args[0];
+                if (!playerWeapon) {
+                    return await sock.sendMessage(chatId, { text: "❌ Vous n'avez pas d'arme équipée." });
+                }
 
-                    if (!selectedClass) {
-                        let classList = "CHOISISSEZ VOTRE CLASSE:\n\n";
-                        availableClasses.forEach(c => {
-                            classList += `➡️ /classes ${c}\n`;
-                        });
-                        return await sock.sendMessage(chatId, { text: classList });
-                    }
+                let damage = playerWeapon.damage;
 
-                    if (!availableClasses.includes(selectedClass)) {
-                        return await sock.sendMessage(chatId, { text: "❌ Classe non valide. Veuillez choisir parmi les classes disponibles." });
-                    }
+                // Appliquer les bonus de classe
+                if (player.class === playerWeapon.class) {
+                    damage *= 1.2; // Bonus de 20%
+                }
 
-                    player.class = selectedClass;
-                    savePlayers();
-                    await sock.sendMessage(chatId, { text: `✅ Vous avez choisi la classe ${selectedClass}.` });
-                    break;
-                case 'tire':
-                    const targetId = msg.message.extendedTextMessage?.contextInfo?.participant;
-                    if (!targetId) return await sock.sendMessage(chatId, { text: "❌ Pour tirer, vous devez répondre au message d'un adversaire." });
-                    if (targetId === senderId) return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez pas vous tirer dessus !" });
+                const target = getPlayer(targetId);
+                target.health -= damage;
+                player.energy -= 5;
 
-                    const weapons = JSON.parse(fs.readFileSync('./weapons.json', 'utf8'));
-                    const playerWeapon = weapons.find(w => w.name === player.weapon);
-
-                    if (!playerWeapon) {
-                        return await sock.sendMessage(chatId, { text: "❌ Vous n'avez pas d'arme équipée." });
-                    }
-
-                    let damage = playerWeapon.damage;
-
-                    // Appliquer les bonus de classe
-                    if (player.class === playerWeapon.class) {
-                        damage *= 1.2; // Bonus de 20%
-                    }
-
-                    const target = getPlayer(targetId);
-                    target.health -= damage;
-                    player.energy -= 5;
-
-                    if (target.health <= 0) {
-                        target.health = 0;
-                        target.lastDeath = Date.now();
-                        await sock.sendMessage(chatId, { text: `💥 Vous avez abattu ${target.name} !` });
-                        await sock.sendMessage(targetId, { text: `☠️ ${player.name} vous a tué. Vous ne pourrez plus parler pendant 1 heure.` });
-                    } else {
-                        await sock.sendMessage(chatId, { text: `💥 Vous avez touché ${target.name} ! Il lui reste ${target.health}% de vie.` });
-                        await sock.sendMessage(targetId, { text: `🤕 ${player.name} vous a tiré dessus ! Il vous reste ${target.health}% de vie.` });
-                    }
-                    if (player.quests.active) {
-                        const activeQuestId = player.quests.active;
-                        if (!player.quests.progress[activeQuestId]) {
-                            player.quests.progress[activeQuestId] = { shotsFired: 0 };
-                        }
-                        player.quests.progress[activeQuestId].shotsFired += 1;
-                    }
-                    savePlayers();
-                    break;
-                case 'regles': await sock.sendMessage(chatId, { text: "📜 Règles du jeu : ... (à définir)" }); break;
-                case 'quests':
-                case 'missions':
-                    const quests = JSON.parse(fs.readFileSync('./quests.json', 'utf8'));
-                    let questList = "MISSIONS DISPONIBLES:\n\n";
-                    quests.forEach(q => {
-                        if (!player.quests.completed.includes(q.id)) {
-                            questList += `*${q.title}* (#${q.id})\n${q.description}\nRécompense: ${q.reward.item || q.reward.xp + 'xp'}\n\n`;
-                        }
-                    });
-                    questList += "Pour accepter une mission, utilisez /quete <id>";
-                    await sock.sendMessage(chatId, { text: questList });
-                    break;
-                case 'quete':
-                    const questId = parseInt(args[0]);
-                    if (isNaN(questId)) {
-                        return await sock.sendMessage(chatId, { text: "❌ Veuillez fournir un ID de quête valide." });
-                    }
-
-                    const allQuests = JSON.parse(fs.readFileSync('./quests.json', 'utf8'));
-                    const selectedQuest = allQuests.find(q => q.id === questId);
-
-                    if (!selectedQuest) {
-                        return await sock.sendMessage(chatId, { text: "❌ Quête non trouvée." });
-                    }
-
-                    if (player.quests.active) {
-                        return await sock.sendMessage(chatId, { text: "❌ Vous avez déjà une quête active." });
-                    }
-
-                    player.quests.active = selectedQuest.id;
-                    savePlayers();
-                    await sock.sendMessage(chatId, { text: `✅ Quête "${selectedQuest.title}" acceptée !` });
-                    break;
-                case 'terminer':
-                    if (!player.quests.active) {
-                        return await sock.sendMessage(chatId, { text: "❌ Vous n'avez pas de quête active." });
-                    }
-
+                if (target.health <= 0) {
+                    target.health = 0;
+                    target.lastDeath = Date.now();
+                    await sock.sendMessage(chatId, { text: `💥 Vous avez abattu ${target.name} !` });
+                    await sock.sendMessage(targetId, { text: `☠️ ${player.name} vous a tué. Vous ne pourrez plus parler pendant 1 heure.` });
+                } else {
+                    await sock.sendMessage(chatId, { text: `💥 Vous avez touché ${target.name} ! Il lui reste ${target.health}% de vie.` });
+                    await sock.sendMessage(targetId, { text: `🤕 ${player.name} vous a tiré dessus ! Il vous reste ${target.health}% de vie.` });
+                }
+                if (player.quests.active) {
                     const activeQuestId = player.quests.active;
-                    const allQuestsData = JSON.parse(fs.readFileSync('./quests.json', 'utf8'));
-                    const activeQuest = allQuestsData.find(q => q.id === activeQuestId);
+                    if (!player.quests.progress[activeQuestId]) {
+                        player.quests.progress[activeQuestId] = { shotsFired: 0 };
+                    }
+                    player.quests.progress[activeQuestId].shotsFired += 1;
+                }
+                savePlayers();
+                break;
+            case 'regles': await sock.sendMessage(chatId, { text: "📜 Règles du jeu : ... (à définir)" }); break;
+            case 'quests':
+            case 'missions':
+                const quests = JSON.parse(fs.readFileSync('./quests.json', 'utf8'));
+                let questList = "MISSIONS DISPONIBLES:\n\n";
+                quests.forEach(q => {
+                    if (!player.quests.completed.includes(q.id)) {
+                        questList += `*${q.title}* (#${q.id})\n${q.description}\nRécompense: ${q.reward.item || q.reward.xp + 'xp'}\n\n`;
+                    }
+                });
+                questList += "Pour accepter une mission, utilisez /quete <id>";
+                await sock.sendMessage(chatId, { text: questList });
+                break;
+            case 'quete':
+                const questId = parseInt(args[0]);
+                if (isNaN(questId)) {
+                    return await sock.sendMessage(chatId, { text: "❌ Veuillez fournir un ID de quête valide." });
+                }
 
-                    let isQuestCompleted = false;
-                    const progress = player.quests.progress[activeQuestId];
-                    if (progress) {
-                        if (activeQuest.completion.type === 'shotsFired' && progress.shotsFired >= activeQuest.completion.count) {
-                            isQuestCompleted = true;
-                        }
+                const allQuests = JSON.parse(fs.readFileSync('./quests.json', 'utf8'));
+                const selectedQuest = allQuests.find(q => q.id === questId);
+
+                if (!selectedQuest) {
+                    return await sock.sendMessage(chatId, { text: "❌ Quête non trouvée." });
+                }
+
+                if (player.quests.active) {
+                    return await sock.sendMessage(chatId, { text: "❌ Vous avez déjà une quête active." });
+                }
+
+                player.quests.active = selectedQuest.id;
+                savePlayers();
+                await sock.sendMessage(chatId, { text: `✅ Quête "${selectedQuest.title}" acceptée !` });
+                break;
+            case 'terminer':
+                if (!player.quests.active) {
+                    return await sock.sendMessage(chatId, { text: "❌ Vous n'avez pas de quête active." });
+                }
+
+                const activeQuestId = player.quests.active;
+                const allQuestsData = JSON.parse(fs.readFileSync('./quests.json', 'utf8'));
+                const activeQuest = allQuestsData.find(q => q.id === activeQuestId);
+
+                let isQuestCompleted = false;
+                const progress = player.quests.progress[activeQuestId];
+                if (progress) {
+                    if (activeQuest.completion.type === 'shotsFired' && progress.shotsFired >= activeQuest.completion.count) {
+                        isQuestCompleted = true;
+                    }
+                }
+
+                if (!isQuestCompleted) {
+                    return await sock.sendMessage(chatId, { text: "❌ Vous n'avez pas encore terminé les objectifs de la quête." });
+                }
+
+                player.quests.completed.push(activeQuestId);
+                player.quests.active = null;
+
+                let rewardMessage = `🎉 Quête "${activeQuest.title}" terminée !\n\n`;
+                if (activeQuest.reward.xp && player.class) {
+                    const playerClass = player.class;
+                    player.ranks[playerClass].xp += activeQuest.reward.xp;
+
+                    // Logique de montée de niveau (exemple simple)
+                    const xpForNextRank = player.ranks[playerClass].rank * 100;
+                    if (player.ranks[playerClass].xp >= xpForNextRank) {
+                        player.ranks[playerClass].rank++;
+                        player.ranks[playerClass].xp -= xpForNextRank;
+                        rewardMessage += `⭐ Vous êtes monté au rang ${player.ranks[playerClass].rank} en tant que ${playerClass} !\n`;
                     }
 
-                    if (!isQuestCompleted) {
-                        return await sock.sendMessage(chatId, { text: "❌ Vous n'avez pas encore terminé les objectifs de la quête." });
-                    }
-
-                    player.quests.completed.push(activeQuestId);
-                    player.quests.active = null;
-
-                    let rewardMessage = `🎉 Quête "${activeQuest.title}" terminée !\n\n`;
-                    if (activeQuest.reward.xp && player.class) {
-                        const playerClass = player.class;
-                        player.ranks[playerClass].xp += activeQuest.reward.xp;
-
-                        // Logique de montée de niveau (exemple simple)
-                        const xpForNextRank = player.ranks[playerClass].rank * 100;
-                        if (player.ranks[playerClass].xp >= xpForNextRank) {
-                            player.ranks[playerClass].rank++;
-                            player.ranks[playerClass].xp -= xpForNextRank;
-                            rewardMessage += `⭐ Vous êtes monté au rang ${player.ranks[playerClass].rank} en tant que ${playerClass} !\n`;
-                        }
-
-                        rewardMessage += `+${activeQuest.reward.xp} XP en ${playerClass}\n`;
-                    }
-                    if (activeQuest.reward.item) {
-                        player.weapon = activeQuest.reward.item; // Simplifié pour l'exemple
-                        rewardMessage += `Vous avez obtenu: ${activeQuest.reward.item}\n`;
-                    }
-                    savePlayers();
-                    await sock.sendMessage(chatId, { text: rewardMessage });
-                    break;
-                case 'lieux': await sock.sendMessage(chatId, { text: "🗺️ Lieux explorables : ... (à définir)" }); break;
-                case 'events': await sock.sendMessage(chatId, { text: "🎉 Événements en cours : ... (à définir)" }); break;
-                case 'histoire':
-                    const storyData = JSON.parse(fs.readFileSync('./story.json', 'utf8'));
-                    let storyText = "";
-                    if (player.quests.completed.length === 0) {
-                        storyText = storyData.introduction;
+                    rewardMessage += `+${activeQuest.reward.xp} XP en ${playerClass}\n`;
+                }
+                if (activeQuest.reward.item) {
+                    player.weapon = activeQuest.reward.item; // Simplifié pour l'exemple
+                    rewardMessage += `Vous avez obtenu: ${activeQuest.reward.item}\n`;
+                }
+                savePlayers();
+                await sock.sendMessage(chatId, { text: rewardMessage });
+                break;
+            case 'lieux': await sock.sendMessage(chatId, { text: "🗺️ Lieux explorables : ... (à définir)" }); break;
+            case 'events': await sock.sendMessage(chatId, { text: "🎉 Événements en cours : ... (à définir)" }); break;
+            case 'histoire':
+                const storyData = JSON.parse(fs.readFileSync('./story.json', 'utf8'));
+                let storyText = "";
+                if (player.quests.completed.length === 0) {
+                    storyText = storyData.introduction;
+                } else {
+                    const lastCompletedQuest = player.quests.completed[player.quests.completed.length - 1];
+                    const nextStory = storyData.quests.find(q => q.id === lastCompletedQuest + 1);
+                    if (nextStory) {
+                        storyText = nextStory.story;
                     } else {
-                        const lastCompletedQuest = player.quests.completed[player.quests.completed.length - 1];
-                        const nextStory = storyData.quests.find(q => q.id === lastCompletedQuest + 1);
-                        if (nextStory) {
-                            storyText = nextStory.story;
-                        } else {
-                            storyText = "Vous avez terminé toutes les quêtes de l'histoire pour le moment. Revenez plus tard !";
-                        }
+                        storyText = "Vous avez terminé toutes les quêtes de l'histoire pour le moment. Revenez plus tard !";
                     }
-                    await sock.sendMessage(chatId, { text: storyText });
-                    break;
-                case 'armes':
-                    const weaponsData = JSON.parse(fs.readFileSync('./weapons.json', 'utf8'));
-                    let weaponList = "CATALOGUE D'ARMES:\n\n";
-                    weaponsData.forEach(w => {
-                        weaponList += `*${w.name}*\n`;
-                        weaponList += `  Classe: ${w.class}\n`;
-                        weaponList += `  Dégâts: ${w.damage}\n\n`;
-                    });
-                    await sock.sendMessage(chatId, { text: weaponList });
-                    break;
-            }
+                }
+                await sock.sendMessage(chatId, { text: storyText });
+                break;
+            case 'armes':
+                const weaponsData = JSON.parse(fs.readFileSync('./weapons.json', 'utf8'));
+                let weaponList = "CATALOGUE D'ARMES:\n\n";
+                weaponsData.forEach(w => {
+                    weaponList += `*${w.name}*\n`;
+                    weaponList += `  Classe: ${w.class}\n`;
+                    weaponList += `  Dégâts: ${w.damage}\n\n`;
+                });
+                await sock.sendMessage(chatId, { text: weaponList });
+                break;
         }
-    });
-}
+    }
 }
 
-// Démarrer la connexion lorsque le client envoie un numéro de téléphone
+
+// Gérer la logique de connexion du client
 io.on('connection', (socket) => {
     console.log('Un client est connecté au serveur WebSocket.');
 
     socket.on('start-connection', (phoneNumber) => {
+        if (sock || isConnecting) {
+            socket.emit('connectionError', 'Une connexion est déjà en cours ou établie. Veuillez rafraîchir la page.');
+            return;
+        }
         console.log(`Demande de connexion reçue pour le numéro : ${phoneNumber}`);
         connectToWhatsApp(phoneNumber).catch(err => {
             console.error("Erreur inattendue lors de la connexion :", err);
             io.emit('connectionError', 'Une erreur interne est survenue.');
+            isConnecting = false; // Réinitialiser en cas d'erreur
+            sock = null;
         });
     });
 });
