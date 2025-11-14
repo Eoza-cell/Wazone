@@ -9,16 +9,11 @@
 <body>
     <div id="connection-container">
         <h1>Wazone Bot</h1>
-        <div id="form-container">
-            <p>Entrez votre numéro de téléphone WhatsApp (avec l'indicatif pays, sans le '+') :</p>
-            <input type="text" id="phone-number" placeholder="Ex: 33612345678">
-            <button id="connect-button">Générer le code</button>
+        <div id="qr-container">
+            <p>Scannez le QR code avec WhatsApp pour vous connecter.</p>
+            <img id="qr-image" src="" alt="QR Code">
         </div>
-        <div id="code-container" style="display: none;">
-            <p>Allez dans les <strong>Appareils connectés</strong> de WhatsApp, sélectionnez <strong>"Connecter avec le numéro de téléphone"</strong> et entrez ce code :</p>
-            <p id="pairing-code" class="code-display">En attente du code...</p>
-        </div>
-        <p class="status-text"></p>
+        <p class="status-text">En attente du QR code...</p>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
