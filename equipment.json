@@ -1,0 +1,6002 @@
+[
+  {
+    "id": 1,
+    "name": "Casque de recrue",
+    "type": "helmet",
+    "protection": 5
+  },
+  {
+    "id": 2,
+    "name": "Gilet de base",
+    "type": "vest",
+    "protection": 10
+  },
+  {
+    "id": 3,
+    "name": "Bottes usées",
+    "type": "boots",
+    "protection": 3
+  },
+  {
+    "id": 4,
+    "name": "Gants en cuir",
+    "type": "gloves",
+    "protection": 2
+  },
+  {
+    "id": 5,
+    "name": "Visière tactique",
+    "type": "helmet",
+    "protection": 7
+  },
+  {
+    "id": 6,
+    "name": "Gilet renforcé",
+    "type": "vest",
+    "protection": 15
+  },
+  {
+    "id": 7,
+    "name": "Bottes de combat",
+    "type": "boots",
+    "protection": 5
+  },
+  {
+    "id": 8,
+    "name": "Gants tactiques",
+    "type": "gloves",
+    "protection": 4
+  },
+  {
+    "id": 9,
+    "name": "Casque balistique",
+    "type": "helmet",
+    "protection": 10
+  },
+  {
+    "id": 10,
+    "name": "Gilet lourd",
+    "type": "vest",
+    "protection": 20
+  },
+  {
+    "id": 11,
+    "name": "Bottes militaires",
+    "type": "boots",
+    "protection": 8
+  },
+  {
+    "id": 12,
+    "name": "Gants d'assaut",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 13,
+    "name": "Casque d'assaut",
+    "type": "helmet",
+    "protection": 12
+  },
+  {
+    "id": 14,
+    "name": "Gilet d'assaut",
+    "type": "vest",
+    "protection": 25
+  },
+  {
+    "id": 15,
+    "name": "Bottes d'assaut",
+    "type": "boots",
+    "protection": 10
+  },
+  {
+    "id": 16,
+    "name": "Gants renforcés",
+    "type": "gloves",
+    "protection": 8
+  },
+  {
+    "id": 17,
+    "name": "Casque de commando",
+    "type": "helmet",
+    "protection": 15
+  },
+  {
+    "id": 18,
+    "name": "Gilet de commando",
+    "type": "vest",
+    "protection": 30
+  },
+  {
+    "id": 19,
+    "name": "Bottes de commando",
+    "type": "boots",
+    "protection": 12
+  },
+  {
+    "id": 20,
+    "name": "Gants de commando",
+    "type": "gloves",
+    "protection": 10
+  },
+  {
+    "id": 21,
+    "name": "Veste de Recrue en Acier",
+    "type": "vest",
+    "protection": 46
+  },
+  {
+    "id": 22,
+    "name": "Heaume Médical en Carbone",
+    "type": "helmet",
+    "protection": 19
+  },
+  {
+    "id": 23,
+    "name": "Mitaines Léger en Titane",
+    "type": "gloves",
+    "protection": 23
+  },
+  {
+    "id": 24,
+    "name": "Gantelets Médical en Carbone",
+    "type": "gloves",
+    "protection": 46
+  },
+  {
+    "id": 25,
+    "name": "Mitaines Médical en Cuir",
+    "type": "gloves",
+    "protection": 35
+  },
+  {
+    "id": 26,
+    "name": "Grèves Médical en Acier",
+    "type": "boots",
+    "protection": 38
+  },
+  {
+    "id": 27,
+    "name": "Mitaines d'Élite Énergétique",
+    "type": "gloves",
+    "protection": 32
+  },
+  {
+    "id": 28,
+    "name": "Bottes Tactique en Titane",
+    "type": "boots",
+    "protection": 9
+  },
+  {
+    "id": 29,
+    "name": "Casque Furtif Magnétique",
+    "type": "helmet",
+    "protection": 21
+  },
+  {
+    "id": 30,
+    "name": "Gilet Léger Balistique",
+    "type": "vest",
+    "protection": 12
+  },
+  {
+    "id": 31,
+    "name": "Bottes Tactique en Céramique",
+    "type": "boots",
+    "protection": 12
+  },
+  {
+    "id": 32,
+    "name": "Bottes de Sniper en Acier",
+    "type": "boots",
+    "protection": 35
+  },
+  {
+    "id": 33,
+    "name": "Gilet Tactique en Kevlar",
+    "type": "vest",
+    "protection": 30
+  },
+  {
+    "id": 34,
+    "name": "Harnais d'Élite en Acier",
+    "type": "vest",
+    "protection": 42
+  },
+  {
+    "id": 35,
+    "name": "Brassards d'Assaut Balistique",
+    "type": "gloves",
+    "protection": 45
+  },
+  {
+    "id": 36,
+    "name": "Grèves Renforcé en Carbone",
+    "type": "boots",
+    "protection": 15
+  },
+  {
+    "id": 37,
+    "name": "Poignets Tactique en Acier",
+    "type": "gloves",
+    "protection": 27
+  },
+  {
+    "id": 38,
+    "name": "Mitaines de Soldat Énergétique",
+    "type": "gloves",
+    "protection": 49
+  },
+  {
+    "id": 39,
+    "name": "Grèves Tactique en Céramique",
+    "type": "boots",
+    "protection": 29
+  },
+  {
+    "id": 40,
+    "name": "Brassards d'Élite Composite",
+    "type": "gloves",
+    "protection": 24
+  },
+  {
+    "id": 41,
+    "name": "Jambières Tactique en Cuir",
+    "type": "boots",
+    "protection": 26
+  },
+  {
+    "id": 42,
+    "name": "Chaussures de Soldat Magnétique",
+    "type": "boots",
+    "protection": 23
+  },
+  {
+    "id": 43,
+    "name": "Visière d'Assaut en Carbone",
+    "type": "helmet",
+    "protection": 31
+  },
+  {
+    "id": 44,
+    "name": "Masque Lourd Énergétique",
+    "type": "helmet",
+    "protection": 16
+  },
+  {
+    "id": 45,
+    "name": "Bottes d'Élite Magnétique",
+    "type": "boots",
+    "protection": 48
+  },
+  {
+    "id": 46,
+    "name": "Jambières de Sniper en Acier",
+    "type": "boots",
+    "protection": 12
+  },
+  {
+    "id": 47,
+    "name": "Bottes de Soldat Composite",
+    "type": "boots",
+    "protection": 5
+  },
+  {
+    "id": 48,
+    "name": "Masque Léger en Cuir",
+    "type": "helmet",
+    "protection": 40
+  },
+  {
+    "id": 49,
+    "name": "Harnais de Vétéran en Titane",
+    "type": "vest",
+    "protection": 32
+  },
+  {
+    "id": 50,
+    "name": "Chaussures Tactique en Cuir",
+    "type": "boots",
+    "protection": 49
+  },
+  {
+    "id": 51,
+    "name": "Gilet Lourd en Acier",
+    "type": "vest",
+    "protection": 17
+  },
+  {
+    "id": 52,
+    "name": "Visière Lourd en Titane",
+    "type": "helmet",
+    "protection": 30
+  },
+  {
+    "id": 53,
+    "name": "Gilet Lourd en Carbone",
+    "type": "vest",
+    "protection": 50
+  },
+  {
+    "id": 54,
+    "name": "Casque Tactique en Carbone",
+    "type": "helmet",
+    "protection": 37
+  },
+  {
+    "id": 55,
+    "name": "Chaussures de Soutien en Carbone",
+    "type": "boots",
+    "protection": 41
+  },
+  {
+    "id": 56,
+    "name": "Masque Furtif en Céramique",
+    "type": "helmet",
+    "protection": 11
+  },
+  {
+    "id": 57,
+    "name": "Poignets Renforcé en Carbone",
+    "type": "gloves",
+    "protection": 20
+  },
+  {
+    "id": 58,
+    "name": "Veste de Sniper en Carbone",
+    "type": "vest",
+    "protection": 11
+  },
+  {
+    "id": 59,
+    "name": "Casque de Recrue en Carbone",
+    "type": "helmet",
+    "protection": 9
+  },
+  {
+    "id": 60,
+    "name": "Solerets Explosif en Kevlar",
+    "type": "boots",
+    "protection": 48
+  },
+  {
+    "id": 61,
+    "name": "Gantelets de Soldat en Acier",
+    "type": "gloves",
+    "protection": 45
+  },
+  {
+    "id": 62,
+    "name": "Jambières Lourd Balistique",
+    "type": "boots",
+    "protection": 16
+  },
+  {
+    "id": 63,
+    "name": "Bottes Lourd en Acier",
+    "type": "boots",
+    "protection": 28
+  },
+  {
+    "id": 64,
+    "name": "Gantelets de Vétéran en Titane",
+    "type": "gloves",
+    "protection": 45
+  },
+  {
+    "id": 65,
+    "name": "Jambières Léger en Carbone",
+    "type": "boots",
+    "protection": 46
+  },
+  {
+    "id": 66,
+    "name": "Chaussures de Soldat Énergétique",
+    "type": "boots",
+    "protection": 5
+  },
+  {
+    "id": 67,
+    "name": "Chaussures d'Élite en Carbone",
+    "type": "boots",
+    "protection": 18
+  },
+  {
+    "id": 68,
+    "name": "Bottes d'Élite en Cuir",
+    "type": "boots",
+    "protection": 49
+  },
+  {
+    "id": 69,
+    "name": "Visière Léger en Acier",
+    "type": "helmet",
+    "protection": 37
+  },
+  {
+    "id": 70,
+    "name": "Chaussures de Commando Magnétique",
+    "type": "boots",
+    "protection": 29
+  },
+  {
+    "id": 71,
+    "name": "Solerets de Commando en Kevlar",
+    "type": "boots",
+    "protection": 23
+  },
+  {
+    "id": 72,
+    "name": "Heaume d'Élite en Acier",
+    "type": "helmet",
+    "protection": 33
+  },
+  {
+    "id": 73,
+    "name": "Mitaines de Vétéran en Carbone",
+    "type": "gloves",
+    "protection": 13
+  },
+  {
+    "id": 74,
+    "name": "Gantelets Tactique Composite",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 75,
+    "name": "Veste de Commando en Acier",
+    "type": "vest",
+    "protection": 20
+  },
+  {
+    "id": 76,
+    "name": "Chaussures de Vétéran en Acier",
+    "type": "boots",
+    "protection": 16
+  },
+  {
+    "id": 77,
+    "name": "Cuirasse d'Assaut en Titane",
+    "type": "vest",
+    "protection": 36
+  },
+  {
+    "id": 78,
+    "name": "Brassards Léger Balistique",
+    "type": "gloves",
+    "protection": 11
+  },
+  {
+    "id": 79,
+    "name": "Grèves Lourd Composite",
+    "type": "boots",
+    "protection": 40
+  },
+  {
+    "id": 80,
+    "name": "Cuirasse Léger en Carbone",
+    "type": "vest",
+    "protection": 44
+  },
+  {
+    "id": 81,
+    "name": "Harnais de Soutien en Carbone",
+    "type": "vest",
+    "protection": 15
+  },
+  {
+    "id": 82,
+    "name": "Chaussures de Commando en Titane",
+    "type": "boots",
+    "protection": 40
+  },
+  {
+    "id": 83,
+    "name": "Gilet de Recrue en Céramique",
+    "type": "vest",
+    "protection": 5
+  },
+  {
+    "id": 84,
+    "name": "Harnais Furtif Balistique",
+    "type": "vest",
+    "protection": 24
+  },
+  {
+    "id": 85,
+    "name": "Cagoule Tactique Composite",
+    "type": "helmet",
+    "protection": 35
+  },
+  {
+    "id": 86,
+    "name": "Cagoule d'Assaut Énergétique",
+    "type": "helmet",
+    "protection": 49
+  },
+  {
+    "id": 87,
+    "name": "Gants Renforcé en Cuir",
+    "type": "gloves",
+    "protection": 15
+  },
+  {
+    "id": 88,
+    "name": "Cuirasse de Sniper Énergétique",
+    "type": "vest",
+    "protection": 17
+  },
+  {
+    "id": 89,
+    "name": "Casque Médical Composite",
+    "type": "helmet",
+    "protection": 49
+  },
+  {
+    "id": 90,
+    "name": "Bottes de Vétéran Magnétique",
+    "type": "boots",
+    "protection": 8
+  },
+  {
+    "id": 91,
+    "name": "Gilet Médical Énergétique",
+    "type": "vest",
+    "protection": 16
+  },
+  {
+    "id": 92,
+    "name": "Visière Renforcé en Céramique",
+    "type": "helmet",
+    "protection": 8
+  },
+  {
+    "id": 93,
+    "name": "Bottes Renforcé Magnétique",
+    "type": "boots",
+    "protection": 37
+  },
+  {
+    "id": 94,
+    "name": "Mitaines Tactique en Carbone",
+    "type": "gloves",
+    "protection": 13
+  },
+  {
+    "id": 95,
+    "name": "Heaume Léger Composite",
+    "type": "helmet",
+    "protection": 37
+  },
+  {
+    "id": 96,
+    "name": "Poignets Furtif en Kevlar",
+    "type": "gloves",
+    "protection": 34
+  },
+  {
+    "id": 97,
+    "name": "Chaussures Lourd en Céramique",
+    "type": "boots",
+    "protection": 14
+  },
+  {
+    "id": 98,
+    "name": "Cagoule de Vétéran Composite",
+    "type": "helmet",
+    "protection": 22
+  },
+  {
+    "id": 99,
+    "name": "Bottes Lourd en Kevlar",
+    "type": "boots",
+    "protection": 50
+  },
+  {
+    "id": 100,
+    "name": "Visière de Soldat en Cuir",
+    "type": "helmet",
+    "protection": 5
+  },
+  {
+    "id": 101,
+    "name": "Bottes Explosif en Kevlar",
+    "type": "boots",
+    "protection": 44
+  },
+  {
+    "id": 102,
+    "name": "Mitaines Léger Balistique",
+    "type": "gloves",
+    "protection": 46
+  },
+  {
+    "id": 103,
+    "name": "Plastron Léger en Carbone",
+    "type": "vest",
+    "protection": 8
+  },
+  {
+    "id": 104,
+    "name": "Solerets Léger en Carbone",
+    "type": "boots",
+    "protection": 28
+  },
+  {
+    "id": 105,
+    "name": "Visière de Soutien en Acier",
+    "type": "helmet",
+    "protection": 45
+  },
+  {
+    "id": 106,
+    "name": "Gilet Renforcé en Cuir",
+    "type": "vest",
+    "protection": 8
+  },
+  {
+    "id": 107,
+    "name": "Gilet d'Assaut en Kevlar",
+    "type": "vest",
+    "protection": 24
+  },
+  {
+    "id": 108,
+    "name": "Gantelets d'Assaut en Kevlar",
+    "type": "gloves",
+    "protection": 21
+  },
+  {
+    "id": 109,
+    "name": "Gantelets de Soldat Composite",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 110,
+    "name": "Masque de Commando Composite",
+    "type": "helmet",
+    "protection": 21
+  },
+  {
+    "id": 111,
+    "name": "Casque d'Assaut en Cuir",
+    "type": "helmet",
+    "protection": 7
+  },
+  {
+    "id": 112,
+    "name": "Grèves Léger Magnétique",
+    "type": "boots",
+    "protection": 19
+  },
+  {
+    "id": 113,
+    "name": "Heaume de Vétéran en Titane",
+    "type": "helmet",
+    "protection": 38
+  },
+  {
+    "id": 114,
+    "name": "Visière Explosif en Titane",
+    "type": "helmet",
+    "protection": 15
+  },
+  {
+    "id": 115,
+    "name": "Brassards Renforcé en Cuir",
+    "type": "gloves",
+    "protection": 20
+  },
+  {
+    "id": 116,
+    "name": "Heaume Furtif Énergétique",
+    "type": "helmet",
+    "protection": 47
+  },
+  {
+    "id": 117,
+    "name": "Heaume de Recrue en Carbone",
+    "type": "helmet",
+    "protection": 8
+  },
+  {
+    "id": 118,
+    "name": "Cuirasse de Soutien Balistique",
+    "type": "vest",
+    "protection": 33
+  },
+  {
+    "id": 119,
+    "name": "Harnais d'Assaut Magnétique",
+    "type": "vest",
+    "protection": 47
+  },
+  {
+    "id": 120,
+    "name": "Plastron de Recrue Composite",
+    "type": "vest",
+    "protection": 13
+  },
+  {
+    "id": 121,
+    "name": "Mitaines Explosif Composite",
+    "type": "gloves",
+    "protection": 5
+  },
+  {
+    "id": 122,
+    "name": "Brassards Renforcé Composite",
+    "type": "gloves",
+    "protection": 18
+  },
+  {
+    "id": 123,
+    "name": "Gants Explosif Composite",
+    "type": "gloves",
+    "protection": 12
+  },
+  {
+    "id": 124,
+    "name": "Cuirasse Furtif en Titane",
+    "type": "vest",
+    "protection": 15
+  },
+  {
+    "id": 125,
+    "name": "Gilet Médical Balistique",
+    "type": "vest",
+    "protection": 5
+  },
+  {
+    "id": 126,
+    "name": "Poignets d'Assaut en Kevlar",
+    "type": "gloves",
+    "protection": 21
+  },
+  {
+    "id": 127,
+    "name": "Heaume Léger en Titane",
+    "type": "helmet",
+    "protection": 24
+  },
+  {
+    "id": 128,
+    "name": "Plastron d'Assaut en Carbone",
+    "type": "vest",
+    "protection": 34
+  },
+  {
+    "id": 129,
+    "name": "Masque de Sniper Énergétique",
+    "type": "helmet",
+    "protection": 23
+  },
+  {
+    "id": 130,
+    "name": "Gantelets Médical en Titane",
+    "type": "gloves",
+    "protection": 46
+  },
+  {
+    "id": 131,
+    "name": "Grèves Médical en Kevlar",
+    "type": "boots",
+    "protection": 48
+  },
+  {
+    "id": 132,
+    "name": "Grèves d'Assaut Composite",
+    "type": "boots",
+    "protection": 49
+  },
+  {
+    "id": 133,
+    "name": "Chaussures d'Assaut en Céramique",
+    "type": "boots",
+    "protection": 14
+  },
+  {
+    "id": 134,
+    "name": "Gants Lourd en Carbone",
+    "type": "gloves",
+    "protection": 37
+  },
+  {
+    "id": 135,
+    "name": "Visière de Vétéran Magnétique",
+    "type": "helmet",
+    "protection": 5
+  },
+  {
+    "id": 136,
+    "name": "Grèves Médical Énergétique",
+    "type": "boots",
+    "protection": 49
+  },
+  {
+    "id": 137,
+    "name": "Jambières Médical en Acier",
+    "type": "boots",
+    "protection": 41
+  },
+  {
+    "id": 138,
+    "name": "Cagoule Léger en Titane",
+    "type": "helmet",
+    "protection": 23
+  },
+  {
+    "id": 139,
+    "name": "Casque d'Élite Composite",
+    "type": "helmet",
+    "protection": 9
+  },
+  {
+    "id": 140,
+    "name": "Cagoule d'Assaut en Acier",
+    "type": "helmet",
+    "protection": 24
+  },
+  {
+    "id": 141,
+    "name": "Jambières de Soutien Énergétique",
+    "type": "boots",
+    "protection": 40
+  },
+  {
+    "id": 142,
+    "name": "Brassards Tactique en Céramique",
+    "type": "gloves",
+    "protection": 46
+  },
+  {
+    "id": 143,
+    "name": "Masque de Soutien en Cuir",
+    "type": "helmet",
+    "protection": 22
+  },
+  {
+    "id": 144,
+    "name": "Casque d'Élite en Acier",
+    "type": "helmet",
+    "protection": 39
+  },
+  {
+    "id": 145,
+    "name": "Cagoule Furtif en Kevlar",
+    "type": "helmet",
+    "protection": 38
+  },
+  {
+    "id": 146,
+    "name": "Mitaines de Commando Balistique",
+    "type": "gloves",
+    "protection": 27
+  },
+  {
+    "id": 147,
+    "name": "Chaussures d'Élite Énergétique",
+    "type": "boots",
+    "protection": 6
+  },
+  {
+    "id": 148,
+    "name": "Solerets de Sniper en Céramique",
+    "type": "boots",
+    "protection": 12
+  },
+  {
+    "id": 149,
+    "name": "Bottes Léger Énergétique",
+    "type": "boots",
+    "protection": 37
+  },
+  {
+    "id": 150,
+    "name": "Mitaines Renforcé Balistique",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 151,
+    "name": "Plastron de Recrue Balistique",
+    "type": "vest",
+    "protection": 7
+  },
+  {
+    "id": 152,
+    "name": "Visière de Sniper Balistique",
+    "type": "helmet",
+    "protection": 12
+  },
+  {
+    "id": 153,
+    "name": "Veste de Vétéran Énergétique",
+    "type": "vest",
+    "protection": 29
+  },
+  {
+    "id": 154,
+    "name": "Visière de Vétéran en Titane",
+    "type": "helmet",
+    "protection": 41
+  },
+  {
+    "id": 155,
+    "name": "Cagoule d'Élite en Cuir",
+    "type": "helmet",
+    "protection": 12
+  },
+  {
+    "id": 156,
+    "name": "Chaussures Médical en Kevlar",
+    "type": "boots",
+    "protection": 34
+  },
+  {
+    "id": 157,
+    "name": "Grèves de Sniper Balistique",
+    "type": "boots",
+    "protection": 16
+  },
+  {
+    "id": 158,
+    "name": "Brassards de Commando Magnétique",
+    "type": "gloves",
+    "protection": 46
+  },
+  {
+    "id": 159,
+    "name": "Mitaines Léger Composite",
+    "type": "gloves",
+    "protection": 42
+  },
+  {
+    "id": 160,
+    "name": "Harnais de Sniper Balistique",
+    "type": "vest",
+    "protection": 19
+  },
+  {
+    "id": 161,
+    "name": "Cagoule de Soldat en Kevlar",
+    "type": "helmet",
+    "protection": 10
+  },
+  {
+    "id": 162,
+    "name": "Heaume Furtif Balistique",
+    "type": "helmet",
+    "protection": 18
+  },
+  {
+    "id": 163,
+    "name": "Harnais de Soldat Magnétique",
+    "type": "vest",
+    "protection": 30
+  },
+  {
+    "id": 164,
+    "name": "Veste Tactique en Acier",
+    "type": "vest",
+    "protection": 11
+  },
+  {
+    "id": 165,
+    "name": "Heaume de Vétéran en Cuir",
+    "type": "helmet",
+    "protection": 33
+  },
+  {
+    "id": 166,
+    "name": "Chaussures de Recrue Balistique",
+    "type": "boots",
+    "protection": 48
+  },
+  {
+    "id": 167,
+    "name": "Mitaines Médical en Céramique",
+    "type": "gloves",
+    "protection": 43
+  },
+  {
+    "id": 168,
+    "name": "Masque Tactique en Cuir",
+    "type": "helmet",
+    "protection": 32
+  },
+  {
+    "id": 169,
+    "name": "Casque Lourd en Acier",
+    "type": "helmet",
+    "protection": 10
+  },
+  {
+    "id": 170,
+    "name": "Mitaines Tactique en Cuir",
+    "type": "gloves",
+    "protection": 34
+  },
+  {
+    "id": 171,
+    "name": "Grèves Médical Balistique",
+    "type": "boots",
+    "protection": 33
+  },
+  {
+    "id": 172,
+    "name": "Veste de Soutien en Cuir",
+    "type": "vest",
+    "protection": 26
+  },
+  {
+    "id": 173,
+    "name": "Mitaines d'Élite Balistique",
+    "type": "gloves",
+    "protection": 16
+  },
+  {
+    "id": 174,
+    "name": "Bottes de Recrue Composite",
+    "type": "boots",
+    "protection": 16
+  },
+  {
+    "id": 175,
+    "name": "Visière Lourd en Kevlar",
+    "type": "helmet",
+    "protection": 29
+  },
+  {
+    "id": 176,
+    "name": "Masque Furtif Balistique",
+    "type": "helmet",
+    "protection": 15
+  },
+  {
+    "id": 177,
+    "name": "Chaussures Léger en Céramique",
+    "type": "boots",
+    "protection": 11
+  },
+  {
+    "id": 178,
+    "name": "Chaussures de Soldat en Cuir",
+    "type": "boots",
+    "protection": 43
+  },
+  {
+    "id": 179,
+    "name": "Gantelets Médical en Cuir",
+    "type": "gloves",
+    "protection": 25
+  },
+  {
+    "id": 180,
+    "name": "Gants de Soldat en Carbone",
+    "type": "gloves",
+    "protection": 15
+  },
+  {
+    "id": 181,
+    "name": "Heaume de Recrue en Kevlar",
+    "type": "helmet",
+    "protection": 26
+  },
+  {
+    "id": 182,
+    "name": "Casque d'Assaut en Acier",
+    "type": "helmet",
+    "protection": 39
+  },
+  {
+    "id": 183,
+    "name": "Cagoule Médical en Carbone",
+    "type": "helmet",
+    "protection": 39
+  },
+  {
+    "id": 184,
+    "name": "Veste de Commando en Titane",
+    "type": "vest",
+    "protection": 47
+  },
+  {
+    "id": 185,
+    "name": "Solerets de Sniper en Cuir",
+    "type": "boots",
+    "protection": 44
+  },
+  {
+    "id": 186,
+    "name": "Visière de Commando en Titane",
+    "type": "helmet",
+    "protection": 43
+  },
+  {
+    "id": 187,
+    "name": "Grèves Furtif en Kevlar",
+    "type": "boots",
+    "protection": 5
+  },
+  {
+    "id": 188,
+    "name": "Harnais de Vétéran Composite",
+    "type": "vest",
+    "protection": 39
+  },
+  {
+    "id": 189,
+    "name": "Veste d'Assaut en Kevlar",
+    "type": "vest",
+    "protection": 47
+  },
+  {
+    "id": 190,
+    "name": "Bottes d'Élite en Titane",
+    "type": "boots",
+    "protection": 33
+  },
+  {
+    "id": 191,
+    "name": "Gantelets de Vétéran Composite",
+    "type": "gloves",
+    "protection": 41
+  },
+  {
+    "id": 192,
+    "name": "Cuirasse de Vétéran Énergétique",
+    "type": "vest",
+    "protection": 41
+  },
+  {
+    "id": 193,
+    "name": "Gants Renforcé en Kevlar",
+    "type": "gloves",
+    "protection": 13
+  },
+  {
+    "id": 194,
+    "name": "Gants Médical Énergétique",
+    "type": "gloves",
+    "protection": 46
+  },
+  {
+    "id": 195,
+    "name": "Cagoule Renforcé en Titane",
+    "type": "helmet",
+    "protection": 15
+  },
+  {
+    "id": 196,
+    "name": "Solerets de Vétéran Énergétique",
+    "type": "boots",
+    "protection": 10
+  },
+  {
+    "id": 197,
+    "name": "Cagoule de Vétéran en Cuir",
+    "type": "helmet",
+    "protection": 36
+  },
+  {
+    "id": 198,
+    "name": "Chaussures Léger Énergétique",
+    "type": "boots",
+    "protection": 9
+  },
+  {
+    "id": 199,
+    "name": "Gants Explosif en Kevlar",
+    "type": "gloves",
+    "protection": 35
+  },
+  {
+    "id": 200,
+    "name": "Grèves de Sniper en Kevlar",
+    "type": "boots",
+    "protection": 10
+  },
+  {
+    "id": 201,
+    "name": "Cuirasse Médical en Céramique",
+    "type": "vest",
+    "protection": 11
+  },
+  {
+    "id": 202,
+    "name": "Bottes Furtif Énergétique",
+    "type": "boots",
+    "protection": 41
+  },
+  {
+    "id": 203,
+    "name": "Heaume Lourd en Kevlar",
+    "type": "helmet",
+    "protection": 7
+  },
+  {
+    "id": 204,
+    "name": "Chaussures d'Assaut en Kevlar",
+    "type": "boots",
+    "protection": 39
+  },
+  {
+    "id": 205,
+    "name": "Gants de Vétéran Composite",
+    "type": "gloves",
+    "protection": 15
+  },
+  {
+    "id": 206,
+    "name": "Casque de Soldat Balistique",
+    "type": "helmet",
+    "protection": 32
+  },
+  {
+    "id": 207,
+    "name": "Casque de Recrue en Acier",
+    "type": "helmet",
+    "protection": 29
+  },
+  {
+    "id": 208,
+    "name": "Casque de Sniper en Acier",
+    "type": "helmet",
+    "protection": 32
+  },
+  {
+    "id": 209,
+    "name": "Solerets de Recrue en Kevlar",
+    "type": "boots",
+    "protection": 49
+  },
+  {
+    "id": 210,
+    "name": "Masque Tactique Énergétique",
+    "type": "helmet",
+    "protection": 20
+  },
+  {
+    "id": 211,
+    "name": "Cagoule Léger en Carbone",
+    "type": "helmet",
+    "protection": 34
+  },
+  {
+    "id": 212,
+    "name": "Harnais Tactique en Acier",
+    "type": "vest",
+    "protection": 13
+  },
+  {
+    "id": 213,
+    "name": "Solerets Médical en Acier",
+    "type": "boots",
+    "protection": 8
+  },
+  {
+    "id": 214,
+    "name": "Veste Tactique Composite",
+    "type": "vest",
+    "protection": 49
+  },
+  {
+    "id": 215,
+    "name": "Mitaines Lourd en Acier",
+    "type": "gloves",
+    "protection": 39
+  },
+  {
+    "id": 216,
+    "name": "Heaume Léger en Céramique",
+    "type": "helmet",
+    "protection": 32
+  },
+  {
+    "id": 217,
+    "name": "Heaume de Sniper Magnétique",
+    "type": "helmet",
+    "protection": 39
+  },
+  {
+    "id": 218,
+    "name": "Mitaines Renforcé en Carbone",
+    "type": "gloves",
+    "protection": 22
+  },
+  {
+    "id": 219,
+    "name": "Mitaines Lourd en Cuir",
+    "type": "gloves",
+    "protection": 50
+  },
+  {
+    "id": 220,
+    "name": "Veste Médical en Acier",
+    "type": "vest",
+    "protection": 32
+  },
+  {
+    "id": 221,
+    "name": "Visière de Sniper Magnétique",
+    "type": "helmet",
+    "protection": 48
+  },
+  {
+    "id": 222,
+    "name": "Solerets Explosif en Acier",
+    "type": "boots",
+    "protection": 10
+  },
+  {
+    "id": 223,
+    "name": "Plastron de Soldat en Kevlar",
+    "type": "vest",
+    "protection": 24
+  },
+  {
+    "id": 224,
+    "name": "Heaume de Vétéran Balistique",
+    "type": "helmet",
+    "protection": 45
+  },
+  {
+    "id": 225,
+    "name": "Solerets de Soutien en Titane",
+    "type": "boots",
+    "protection": 23
+  },
+  {
+    "id": 226,
+    "name": "Gants Médical en Titane",
+    "type": "gloves",
+    "protection": 37
+  },
+  {
+    "id": 227,
+    "name": "Gilet Explosif en Cuir",
+    "type": "vest",
+    "protection": 36
+  },
+  {
+    "id": 228,
+    "name": "Heaume de Soutien en Cuir",
+    "type": "helmet",
+    "protection": 46
+  },
+  {
+    "id": 229,
+    "name": "Plastron Explosif Énergétique",
+    "type": "vest",
+    "protection": 8
+  },
+  {
+    "id": 230,
+    "name": "Brassards d'Élite en Titane",
+    "type": "gloves",
+    "protection": 33
+  },
+  {
+    "id": 231,
+    "name": "Jambières d'Élite Balistique",
+    "type": "boots",
+    "protection": 48
+  },
+  {
+    "id": 232,
+    "name": "Masque de Vétéran Composite",
+    "type": "helmet",
+    "protection": 32
+  },
+  {
+    "id": 233,
+    "name": "Poignets Tactique Composite",
+    "type": "gloves",
+    "protection": 45
+  },
+  {
+    "id": 234,
+    "name": "Gantelets Léger en Céramique",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 235,
+    "name": "Gants de Vétéran en Cuir",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 236,
+    "name": "Heaume Médical en Titane",
+    "type": "helmet",
+    "protection": 39
+  },
+  {
+    "id": 237,
+    "name": "Heaume de Commando en Kevlar",
+    "type": "helmet",
+    "protection": 9
+  },
+  {
+    "id": 238,
+    "name": "Gantelets Furtif en Acier",
+    "type": "gloves",
+    "protection": 49
+  },
+  {
+    "id": 239,
+    "name": "Gants d'Élite en Kevlar",
+    "type": "gloves",
+    "protection": 26
+  },
+  {
+    "id": 240,
+    "name": "Brassards Médical en Carbone",
+    "type": "gloves",
+    "protection": 37
+  },
+  {
+    "id": 241,
+    "name": "Gilet de Vétéran Balistique",
+    "type": "vest",
+    "protection": 19
+  },
+  {
+    "id": 242,
+    "name": "Masque de Soldat en Acier",
+    "type": "helmet",
+    "protection": 43
+  },
+  {
+    "id": 243,
+    "name": "Visière de Commando Balistique",
+    "type": "helmet",
+    "protection": 8
+  },
+  {
+    "id": 244,
+    "name": "Poignets de Vétéran en Carbone",
+    "type": "gloves",
+    "protection": 21
+  },
+  {
+    "id": 245,
+    "name": "Masque Furtif en Kevlar",
+    "type": "helmet",
+    "protection": 35
+  },
+  {
+    "id": 246,
+    "name": "Cagoule de Soldat en Céramique",
+    "type": "helmet",
+    "protection": 25
+  },
+  {
+    "id": 247,
+    "name": "Poignets Renforcé Magnétique",
+    "type": "gloves",
+    "protection": 17
+  },
+  {
+    "id": 248,
+    "name": "Masque de Soutien en Carbone",
+    "type": "helmet",
+    "protection": 5
+  },
+  {
+    "id": 249,
+    "name": "Brassards d'Élite Énergétique",
+    "type": "gloves",
+    "protection": 5
+  },
+  {
+    "id": 250,
+    "name": "Solerets de Commando en Acier",
+    "type": "boots",
+    "protection": 10
+  },
+  {
+    "id": 251,
+    "name": "Cuirasse de Vétéran Balistique",
+    "type": "vest",
+    "protection": 19
+  },
+  {
+    "id": 252,
+    "name": "Cuirasse Tactique en Titane",
+    "type": "vest",
+    "protection": 19
+  },
+  {
+    "id": 253,
+    "name": "Masque Léger en Kevlar",
+    "type": "helmet",
+    "protection": 19
+  },
+  {
+    "id": 254,
+    "name": "Gilet Renforcé Balistique",
+    "type": "vest",
+    "protection": 28
+  },
+  {
+    "id": 255,
+    "name": "Bottes Tactique Magnétique",
+    "type": "boots",
+    "protection": 49
+  },
+  {
+    "id": 256,
+    "name": "Masque Explosif en Cuir",
+    "type": "helmet",
+    "protection": 35
+  },
+  {
+    "id": 257,
+    "name": "Jambières Médical Magnétique",
+    "type": "boots",
+    "protection": 29
+  },
+  {
+    "id": 258,
+    "name": "Cuirasse d'Assaut en Cuir",
+    "type": "vest",
+    "protection": 49
+  },
+  {
+    "id": 259,
+    "name": "Plastron d'Élite Composite",
+    "type": "vest",
+    "protection": 23
+  },
+  {
+    "id": 260,
+    "name": "Gants d'Assaut en Titane",
+    "type": "gloves",
+    "protection": 7
+  },
+  {
+    "id": 261,
+    "name": "Jambières Renforcé Composite",
+    "type": "boots",
+    "protection": 41
+  },
+  {
+    "id": 262,
+    "name": "Plastron Furtif en Kevlar",
+    "type": "vest",
+    "protection": 33
+  },
+  {
+    "id": 263,
+    "name": "Visière d'Élite Balistique",
+    "type": "helmet",
+    "protection": 14
+  },
+  {
+    "id": 264,
+    "name": "Casque d'Assaut Balistique",
+    "type": "helmet",
+    "protection": 33
+  },
+  {
+    "id": 265,
+    "name": "Veste de Commando en Kevlar",
+    "type": "vest",
+    "protection": 40
+  },
+  {
+    "id": 266,
+    "name": "Poignets Lourd en Acier",
+    "type": "gloves",
+    "protection": 28
+  },
+  {
+    "id": 267,
+    "name": "Plastron Tactique en Carbone",
+    "type": "vest",
+    "protection": 22
+  },
+  {
+    "id": 268,
+    "name": "Solerets Lourd Balistique",
+    "type": "boots",
+    "protection": 34
+  },
+  {
+    "id": 269,
+    "name": "Poignets de Commando Énergétique",
+    "type": "gloves",
+    "protection": 29
+  },
+  {
+    "id": 270,
+    "name": "Jambières de Soutien en Carbone",
+    "type": "boots",
+    "protection": 8
+  },
+  {
+    "id": 271,
+    "name": "Grèves de Soldat en Acier",
+    "type": "boots",
+    "protection": 15
+  },
+  {
+    "id": 272,
+    "name": "Chaussures Renforcé Énergétique",
+    "type": "boots",
+    "protection": 23
+  },
+  {
+    "id": 273,
+    "name": "Solerets Léger en Titane",
+    "type": "boots",
+    "protection": 33
+  },
+  {
+    "id": 274,
+    "name": "Masque Furtif en Titane",
+    "type": "helmet",
+    "protection": 11
+  },
+  {
+    "id": 275,
+    "name": "Gantelets de Sniper en Cuir",
+    "type": "gloves",
+    "protection": 44
+  },
+  {
+    "id": 276,
+    "name": "Cuirasse Furtif Magnétique",
+    "type": "vest",
+    "protection": 49
+  },
+  {
+    "id": 277,
+    "name": "Heaume de Soldat Magnétique",
+    "type": "helmet",
+    "protection": 23
+  },
+  {
+    "id": 278,
+    "name": "Cagoule de Vétéran Balistique",
+    "type": "helmet",
+    "protection": 32
+  },
+  {
+    "id": 279,
+    "name": "Grèves Explosif Énergétique",
+    "type": "boots",
+    "protection": 8
+  },
+  {
+    "id": 280,
+    "name": "Veste Explosif Balistique",
+    "type": "vest",
+    "protection": 48
+  },
+  {
+    "id": 281,
+    "name": "Veste Médical Magnétique",
+    "type": "vest",
+    "protection": 18
+  },
+  {
+    "id": 282,
+    "name": "Grèves de Sniper en Acier",
+    "type": "boots",
+    "protection": 48
+  },
+  {
+    "id": 283,
+    "name": "Mitaines Tactique en Acier",
+    "type": "gloves",
+    "protection": 31
+  },
+  {
+    "id": 284,
+    "name": "Plastron Lourd Magnétique",
+    "type": "vest",
+    "protection": 19
+  },
+  {
+    "id": 285,
+    "name": "Plastron Furtif Composite",
+    "type": "vest",
+    "protection": 40
+  },
+  {
+    "id": 286,
+    "name": "Gilet de Sniper en Kevlar",
+    "type": "vest",
+    "protection": 9
+  },
+  {
+    "id": 287,
+    "name": "Bottes de Commando Magnétique",
+    "type": "boots",
+    "protection": 18
+  },
+  {
+    "id": 288,
+    "name": "Jambières de Commando en Cuir",
+    "type": "boots",
+    "protection": 30
+  },
+  {
+    "id": 289,
+    "name": "Harnais Furtif Énergétique",
+    "type": "vest",
+    "protection": 40
+  },
+  {
+    "id": 290,
+    "name": "Gantelets Médical en Acier",
+    "type": "gloves",
+    "protection": 31
+  },
+  {
+    "id": 291,
+    "name": "Cagoule de Soutien Balistique",
+    "type": "helmet",
+    "protection": 16
+  },
+  {
+    "id": 292,
+    "name": "Gilet Léger en Kevlar",
+    "type": "vest",
+    "protection": 20
+  },
+  {
+    "id": 293,
+    "name": "Chaussures de Commando en Kevlar",
+    "type": "boots",
+    "protection": 25
+  },
+  {
+    "id": 294,
+    "name": "Solerets Léger en Céramique",
+    "type": "boots",
+    "protection": 40
+  },
+  {
+    "id": 295,
+    "name": "Gilet Tactique en Titane",
+    "type": "vest",
+    "protection": 21
+  },
+  {
+    "id": 296,
+    "name": "Grèves de Soutien Composite",
+    "type": "boots",
+    "protection": 49
+  },
+  {
+    "id": 297,
+    "name": "Mitaines de Recrue en Kevlar",
+    "type": "gloves",
+    "protection": 12
+  },
+  {
+    "id": 298,
+    "name": "Mitaines Renforcé en Titane",
+    "type": "gloves",
+    "protection": 22
+  },
+  {
+    "id": 299,
+    "name": "Gants Léger Magnétique",
+    "type": "gloves",
+    "protection": 18
+  },
+  {
+    "id": 300,
+    "name": "Harnais de Vétéran Balistique",
+    "type": "vest",
+    "protection": 47
+  },
+  {
+    "id": 301,
+    "name": "Visière Lourd en Cuir",
+    "type": "helmet",
+    "protection": 31
+  },
+  {
+    "id": 302,
+    "name": "Gants Médical en Carbone",
+    "type": "gloves",
+    "protection": 20
+  },
+  {
+    "id": 303,
+    "name": "Gilet d'Assaut en Carbone",
+    "type": "vest",
+    "protection": 16
+  },
+  {
+    "id": 304,
+    "name": "Jambières de Soutien en Céramique",
+    "type": "boots",
+    "protection": 17
+  },
+  {
+    "id": 305,
+    "name": "Grèves Léger en Céramique",
+    "type": "boots",
+    "protection": 13
+  },
+  {
+    "id": 306,
+    "name": "Poignets Lourd Balistique",
+    "type": "gloves",
+    "protection": 7
+  },
+  {
+    "id": 307,
+    "name": "Cagoule de Soldat en Cuir",
+    "type": "helmet",
+    "protection": 21
+  },
+  {
+    "id": 308,
+    "name": "Veste Lourd en Kevlar",
+    "type": "vest",
+    "protection": 16
+  },
+  {
+    "id": 309,
+    "name": "Gants d'Assaut en Cuir",
+    "type": "gloves",
+    "protection": 14
+  },
+  {
+    "id": 310,
+    "name": "Veste d'Assaut Magnétique",
+    "type": "vest",
+    "protection": 50
+  },
+  {
+    "id": 311,
+    "name": "Gantelets de Recrue en Acier",
+    "type": "gloves",
+    "protection": 13
+  },
+  {
+    "id": 312,
+    "name": "Gants de Soldat en Titane",
+    "type": "gloves",
+    "protection": 20
+  },
+  {
+    "id": 313,
+    "name": "Poignets Explosif en Cuir",
+    "type": "gloves",
+    "protection": 34
+  },
+  {
+    "id": 314,
+    "name": "Gants Lourd Composite",
+    "type": "gloves",
+    "protection": 37
+  },
+  {
+    "id": 315,
+    "name": "Harnais Médical Balistique",
+    "type": "vest",
+    "protection": 10
+  },
+  {
+    "id": 316,
+    "name": "Gants Médical Composite",
+    "type": "gloves",
+    "protection": 10
+  },
+  {
+    "id": 317,
+    "name": "Masque de Vétéran en Céramique",
+    "type": "helmet",
+    "protection": 43
+  },
+  {
+    "id": 318,
+    "name": "Gantelets d'Élite en Titane",
+    "type": "gloves",
+    "protection": 22
+  },
+  {
+    "id": 319,
+    "name": "Veste de Soldat en Titane",
+    "type": "vest",
+    "protection": 19
+  },
+  {
+    "id": 320,
+    "name": "Brassards Tactique Énergétique",
+    "type": "gloves",
+    "protection": 45
+  },
+  {
+    "id": 321,
+    "name": "Cuirasse Médical en Cuir",
+    "type": "vest",
+    "protection": 14
+  },
+  {
+    "id": 322,
+    "name": "Mitaines d'Élite en Titane",
+    "type": "gloves",
+    "protection": 29
+  },
+  {
+    "id": 323,
+    "name": "Harnais de Vétéran en Cuir",
+    "type": "vest",
+    "protection": 42
+  },
+  {
+    "id": 324,
+    "name": "Mitaines Médical en Titane",
+    "type": "gloves",
+    "protection": 24
+  },
+  {
+    "id": 325,
+    "name": "Masque Lourd en Titane",
+    "type": "helmet",
+    "protection": 36
+  },
+  {
+    "id": 326,
+    "name": "Poignets de Soutien Énergétique",
+    "type": "gloves",
+    "protection": 46
+  },
+  {
+    "id": 327,
+    "name": "Brassards de Vétéran en Carbone",
+    "type": "gloves",
+    "protection": 11
+  },
+  {
+    "id": 328,
+    "name": "Mitaines de Vétéran Composite",
+    "type": "gloves",
+    "protection": 22
+  },
+  {
+    "id": 329,
+    "name": "Gantelets de Soutien en Acier",
+    "type": "gloves",
+    "protection": 41
+  },
+  {
+    "id": 330,
+    "name": "Masque de Soldat en Céramique",
+    "type": "helmet",
+    "protection": 13
+  },
+  {
+    "id": 331,
+    "name": "Cagoule de Recrue en Céramique",
+    "type": "helmet",
+    "protection": 16
+  },
+  {
+    "id": 332,
+    "name": "Masque Furtif en Carbone",
+    "type": "helmet",
+    "protection": 39
+  },
+  {
+    "id": 333,
+    "name": "Chaussures Renforcé en Kevlar",
+    "type": "boots",
+    "protection": 18
+  },
+  {
+    "id": 334,
+    "name": "Visière Léger Composite",
+    "type": "helmet",
+    "protection": 28
+  },
+  {
+    "id": 335,
+    "name": "Plastron Lourd Balistique",
+    "type": "vest",
+    "protection": 31
+  },
+  {
+    "id": 336,
+    "name": "Gilet de Recrue en Carbone",
+    "type": "vest",
+    "protection": 15
+  },
+  {
+    "id": 337,
+    "name": "Cagoule d'Assaut en Kevlar",
+    "type": "helmet",
+    "protection": 22
+  },
+  {
+    "id": 338,
+    "name": "Jambières Médical en Céramique",
+    "type": "boots",
+    "protection": 28
+  },
+  {
+    "id": 339,
+    "name": "Jambières de Soldat en Acier",
+    "type": "boots",
+    "protection": 17
+  },
+  {
+    "id": 340,
+    "name": "Grèves d'Élite en Acier",
+    "type": "boots",
+    "protection": 49
+  },
+  {
+    "id": 341,
+    "name": "Bottes de Soldat en Kevlar",
+    "type": "boots",
+    "protection": 50
+  },
+  {
+    "id": 342,
+    "name": "Jambières de Soldat Magnétique",
+    "type": "boots",
+    "protection": 32
+  },
+  {
+    "id": 343,
+    "name": "Bottes Tactique en Kevlar",
+    "type": "boots",
+    "protection": 13
+  },
+  {
+    "id": 344,
+    "name": "Chaussures de Soutien Magnétique",
+    "type": "boots",
+    "protection": 8
+  },
+  {
+    "id": 345,
+    "name": "Mitaines d'Assaut Balistique",
+    "type": "gloves",
+    "protection": 12
+  },
+  {
+    "id": 346,
+    "name": "Poignets de Soutien en Carbone",
+    "type": "gloves",
+    "protection": 40
+  },
+  {
+    "id": 347,
+    "name": "Plastron Renforcé en Céramique",
+    "type": "vest",
+    "protection": 21
+  },
+  {
+    "id": 348,
+    "name": "Bottes de Soutien en Acier",
+    "type": "boots",
+    "protection": 23
+  },
+  {
+    "id": 349,
+    "name": "Plastron Médical en Céramique",
+    "type": "vest",
+    "protection": 11
+  },
+  {
+    "id": 350,
+    "name": "Chaussures Médical en Cuir",
+    "type": "boots",
+    "protection": 29
+  },
+  {
+    "id": 351,
+    "name": "Visière de Vétéran en Kevlar",
+    "type": "helmet",
+    "protection": 29
+  },
+  {
+    "id": 352,
+    "name": "Gilet Furtif Composite",
+    "type": "vest",
+    "protection": 7
+  },
+  {
+    "id": 353,
+    "name": "Cagoule Tactique en Kevlar",
+    "type": "helmet",
+    "protection": 38
+  },
+  {
+    "id": 354,
+    "name": "Casque de Vétéran en Kevlar",
+    "type": "helmet",
+    "protection": 10
+  },
+  {
+    "id": 355,
+    "name": "Heaume Médical Magnétique",
+    "type": "helmet",
+    "protection": 42
+  },
+  {
+    "id": 356,
+    "name": "Gilet Léger Composite",
+    "type": "vest",
+    "protection": 11
+  },
+  {
+    "id": 357,
+    "name": "Casque de Soldat en Céramique",
+    "type": "helmet",
+    "protection": 15
+  },
+  {
+    "id": 358,
+    "name": "Mitaines Explosif Balistique",
+    "type": "gloves",
+    "protection": 5
+  },
+  {
+    "id": 359,
+    "name": "Cuirasse de Soutien Composite",
+    "type": "vest",
+    "protection": 15
+  },
+  {
+    "id": 360,
+    "name": "Chaussures d'Élite Balistique",
+    "type": "boots",
+    "protection": 14
+  },
+  {
+    "id": 361,
+    "name": "Plastron de Soldat en Carbone",
+    "type": "vest",
+    "protection": 18
+  },
+  {
+    "id": 362,
+    "name": "Jambières Tactique Énergétique",
+    "type": "boots",
+    "protection": 44
+  },
+  {
+    "id": 363,
+    "name": "Gilet Tactique Composite",
+    "type": "vest",
+    "protection": 27
+  },
+  {
+    "id": 364,
+    "name": "Casque de Sniper Énergétique",
+    "type": "helmet",
+    "protection": 45
+  },
+  {
+    "id": 365,
+    "name": "Brassards Léger Composite",
+    "type": "gloves",
+    "protection": 50
+  },
+  {
+    "id": 366,
+    "name": "Gantelets Léger en Cuir",
+    "type": "gloves",
+    "protection": 40
+  },
+  {
+    "id": 367,
+    "name": "Casque de Soutien Composite",
+    "type": "helmet",
+    "protection": 43
+  },
+  {
+    "id": 368,
+    "name": "Grèves Renforcé en Kevlar",
+    "type": "boots",
+    "protection": 33
+  },
+  {
+    "id": 369,
+    "name": "Visière de Soutien en Cuir",
+    "type": "helmet",
+    "protection": 42
+  },
+  {
+    "id": 370,
+    "name": "Mitaines de Recrue Composite",
+    "type": "gloves",
+    "protection": 12
+  },
+  {
+    "id": 371,
+    "name": "Gants Lourd en Céramique",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 372,
+    "name": "Harnais de Soutien en Céramique",
+    "type": "vest",
+    "protection": 38
+  },
+  {
+    "id": 373,
+    "name": "Grèves de Recrue en Cuir",
+    "type": "boots",
+    "protection": 38
+  },
+  {
+    "id": 374,
+    "name": "Bottes d'Assaut en Kevlar",
+    "type": "boots",
+    "protection": 13
+  },
+  {
+    "id": 375,
+    "name": "Plastron Furtif en Cuir",
+    "type": "vest",
+    "protection": 5
+  },
+  {
+    "id": 376,
+    "name": "Brassards de Soutien en Kevlar",
+    "type": "gloves",
+    "protection": 45
+  },
+  {
+    "id": 377,
+    "name": "Gantelets Lourd Composite",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 378,
+    "name": "Brassards Tactique en Acier",
+    "type": "gloves",
+    "protection": 44
+  },
+  {
+    "id": 379,
+    "name": "Grèves de Soldat Énergétique",
+    "type": "boots",
+    "protection": 13
+  },
+  {
+    "id": 380,
+    "name": "Plastron Léger en Kevlar",
+    "type": "vest",
+    "protection": 13
+  },
+  {
+    "id": 381,
+    "name": "Bottes Explosif Composite",
+    "type": "boots",
+    "protection": 28
+  },
+  {
+    "id": 382,
+    "name": "Visière de Soutien Composite",
+    "type": "helmet",
+    "protection": 19
+  },
+  {
+    "id": 383,
+    "name": "Jambières de Vétéran Énergétique",
+    "type": "boots",
+    "protection": 21
+  },
+  {
+    "id": 384,
+    "name": "Visière Léger en Kevlar",
+    "type": "helmet",
+    "protection": 33
+  },
+  {
+    "id": 385,
+    "name": "Jambières Renforcé en Cuir",
+    "type": "boots",
+    "protection": 19
+  },
+  {
+    "id": 386,
+    "name": "Mitaines d'Assaut en Kevlar",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 387,
+    "name": "Visière d'Assaut en Céramique",
+    "type": "helmet",
+    "protection": 17
+  },
+  {
+    "id": 388,
+    "name": "Bottes de Sniper en Carbone",
+    "type": "boots",
+    "protection": 6
+  },
+  {
+    "id": 389,
+    "name": "Casque Furtif en Kevlar",
+    "type": "helmet",
+    "protection": 39
+  },
+  {
+    "id": 390,
+    "name": "Poignets d'Élite en Titane",
+    "type": "gloves",
+    "protection": 27
+  },
+  {
+    "id": 391,
+    "name": "Plastron de Commando en Cuir",
+    "type": "vest",
+    "protection": 22
+  },
+  {
+    "id": 392,
+    "name": "Heaume Léger Énergétique",
+    "type": "helmet",
+    "protection": 38
+  },
+  {
+    "id": 393,
+    "name": "Mitaines d'Assaut Composite",
+    "type": "gloves",
+    "protection": 11
+  },
+  {
+    "id": 394,
+    "name": "Jambières de Vétéran Magnétique",
+    "type": "boots",
+    "protection": 25
+  },
+  {
+    "id": 395,
+    "name": "Gilet Médical Composite",
+    "type": "vest",
+    "protection": 30
+  },
+  {
+    "id": 396,
+    "name": "Cagoule Léger Composite",
+    "type": "helmet",
+    "protection": 29
+  },
+  {
+    "id": 397,
+    "name": "Gilet de Soldat en Acier",
+    "type": "vest",
+    "protection": 35
+  },
+  {
+    "id": 398,
+    "name": "Gants de Recrue en Titane",
+    "type": "gloves",
+    "protection": 19
+  },
+  {
+    "id": 399,
+    "name": "Masque de Commando en Carbone",
+    "type": "helmet",
+    "protection": 16
+  },
+  {
+    "id": 400,
+    "name": "Casque Explosif en Cuir",
+    "type": "helmet",
+    "protection": 29
+  },
+  {
+    "id": 401,
+    "name": "Chaussures de Vétéran Énergétique",
+    "type": "boots",
+    "protection": 13
+  },
+  {
+    "id": 402,
+    "name": "Plastron Renforcé Énergétique",
+    "type": "vest",
+    "protection": 30
+  },
+  {
+    "id": 403,
+    "name": "Harnais Lourd en Carbone",
+    "type": "vest",
+    "protection": 35
+  },
+  {
+    "id": 404,
+    "name": "Visière de Recrue en Acier",
+    "type": "helmet",
+    "protection": 27
+  },
+  {
+    "id": 405,
+    "name": "Veste d'Assaut en Carbone",
+    "type": "vest",
+    "protection": 45
+  },
+  {
+    "id": 406,
+    "name": "Veste d'Assaut en Céramique",
+    "type": "vest",
+    "protection": 39
+  },
+  {
+    "id": 407,
+    "name": "Veste d'Assaut Balistique",
+    "type": "vest",
+    "protection": 24
+  },
+  {
+    "id": 408,
+    "name": "Harnais d'Élite Balistique",
+    "type": "vest",
+    "protection": 32
+  },
+  {
+    "id": 409,
+    "name": "Gantelets Explosif Énergétique",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 410,
+    "name": "Mitaines de Commando Énergétique",
+    "type": "gloves",
+    "protection": 11
+  },
+  {
+    "id": 411,
+    "name": "Heaume Léger en Cuir",
+    "type": "helmet",
+    "protection": 41
+  },
+  {
+    "id": 412,
+    "name": "Poignets Tactique en Cuir",
+    "type": "gloves",
+    "protection": 35
+  },
+  {
+    "id": 413,
+    "name": "Gantelets Lourd Balistique",
+    "type": "gloves",
+    "protection": 46
+  },
+  {
+    "id": 414,
+    "name": "Grèves Renforcé en Cuir",
+    "type": "boots",
+    "protection": 14
+  },
+  {
+    "id": 415,
+    "name": "Poignets de Sniper Composite",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 416,
+    "name": "Visière de Soutien Balistique",
+    "type": "helmet",
+    "protection": 27
+  },
+  {
+    "id": 417,
+    "name": "Harnais de Vétéran Énergétique",
+    "type": "vest",
+    "protection": 48
+  },
+  {
+    "id": 418,
+    "name": "Gants Renforcé Magnétique",
+    "type": "gloves",
+    "protection": 37
+  },
+  {
+    "id": 419,
+    "name": "Gantelets Léger Composite",
+    "type": "gloves",
+    "protection": 44
+  },
+  {
+    "id": 420,
+    "name": "Brassards Explosif Énergétique",
+    "type": "gloves",
+    "protection": 25
+  },
+  {
+    "id": 421,
+    "name": "Gantelets de Recrue Balistique",
+    "type": "gloves",
+    "protection": 49
+  },
+  {
+    "id": 422,
+    "name": "Cagoule Médical Composite",
+    "type": "helmet",
+    "protection": 22
+  },
+  {
+    "id": 423,
+    "name": "Casque d'Élite en Céramique",
+    "type": "helmet",
+    "protection": 5
+  },
+  {
+    "id": 424,
+    "name": "Masque de Soldat en Kevlar",
+    "type": "helmet",
+    "protection": 20
+  },
+  {
+    "id": 425,
+    "name": "Casque Explosif en Acier",
+    "type": "helmet",
+    "protection": 19
+  },
+  {
+    "id": 426,
+    "name": "Poignets Explosif en Carbone",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 427,
+    "name": "Grèves de Soldat en Carbone",
+    "type": "boots",
+    "protection": 30
+  },
+  {
+    "id": 428,
+    "name": "Chaussures de Soldat Balistique",
+    "type": "boots",
+    "protection": 50
+  },
+  {
+    "id": 429,
+    "name": "Grèves de Soutien en Carbone",
+    "type": "boots",
+    "protection": 46
+  },
+  {
+    "id": 430,
+    "name": "Jambières Lourd en Acier",
+    "type": "boots",
+    "protection": 19
+  },
+  {
+    "id": 431,
+    "name": "Heaume Explosif en Carbone",
+    "type": "helmet",
+    "protection": 19
+  },
+  {
+    "id": 432,
+    "name": "Veste Furtif Énergétique",
+    "type": "vest",
+    "protection": 48
+  },
+  {
+    "id": 433,
+    "name": "Gilet d'Assaut en Acier",
+    "type": "vest",
+    "protection": 23
+  },
+  {
+    "id": 434,
+    "name": "Poignets de Soutien Composite",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 435,
+    "name": "Chaussures de Sniper Énergétique",
+    "type": "boots",
+    "protection": 38
+  },
+  {
+    "id": 436,
+    "name": "Solerets Léger Magnétique",
+    "type": "boots",
+    "protection": 21
+  },
+  {
+    "id": 437,
+    "name": "Heaume d'Assaut en Titane",
+    "type": "helmet",
+    "protection": 27
+  },
+  {
+    "id": 438,
+    "name": "Visière Lourd Magnétique",
+    "type": "helmet",
+    "protection": 20
+  },
+  {
+    "id": 439,
+    "name": "Plastron Explosif en Céramique",
+    "type": "vest",
+    "protection": 22
+  },
+  {
+    "id": 440,
+    "name": "Masque de Soutien en Acier",
+    "type": "helmet",
+    "protection": 35
+  },
+  {
+    "id": 441,
+    "name": "Poignets de Recrue en Cuir",
+    "type": "gloves",
+    "protection": 40
+  },
+  {
+    "id": 442,
+    "name": "Harnais d'Assaut Énergétique",
+    "type": "vest",
+    "protection": 11
+  },
+  {
+    "id": 443,
+    "name": "Brassards Explosif en Cuir",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 444,
+    "name": "Chaussures Furtif en Cuir",
+    "type": "boots",
+    "protection": 45
+  },
+  {
+    "id": 445,
+    "name": "Visière de Recrue en Céramique",
+    "type": "helmet",
+    "protection": 35
+  },
+  {
+    "id": 446,
+    "name": "Casque de Soldat en Carbone",
+    "type": "helmet",
+    "protection": 47
+  },
+  {
+    "id": 447,
+    "name": "Bottes Médical Balistique",
+    "type": "boots",
+    "protection": 17
+  },
+  {
+    "id": 448,
+    "name": "Gantelets Lourd en Titane",
+    "type": "gloves",
+    "protection": 10
+  },
+  {
+    "id": 449,
+    "name": "Poignets d'Élite Énergétique",
+    "type": "gloves",
+    "protection": 50
+  },
+  {
+    "id": 450,
+    "name": "Gilet de Vétéran Magnétique",
+    "type": "vest",
+    "protection": 48
+  },
+  {
+    "id": 451,
+    "name": "Mitaines Renforcé en Céramique",
+    "type": "gloves",
+    "protection": 16
+  },
+  {
+    "id": 452,
+    "name": "Gilet d'Assaut en Cuir",
+    "type": "vest",
+    "protection": 48
+  },
+  {
+    "id": 453,
+    "name": "Plastron de Commando Énergétique",
+    "type": "vest",
+    "protection": 49
+  },
+  {
+    "id": 454,
+    "name": "Masque Renforcé Composite",
+    "type": "helmet",
+    "protection": 19
+  },
+  {
+    "id": 455,
+    "name": "Harnais de Soldat en Acier",
+    "type": "vest",
+    "protection": 12
+  },
+  {
+    "id": 456,
+    "name": "Gilet de Soutien Magnétique",
+    "type": "vest",
+    "protection": 10
+  },
+  {
+    "id": 457,
+    "name": "Casque de Soutien en Céramique",
+    "type": "helmet",
+    "protection": 15
+  },
+  {
+    "id": 458,
+    "name": "Poignets de Vétéran Balistique",
+    "type": "gloves",
+    "protection": 5
+  },
+  {
+    "id": 459,
+    "name": "Gants Renforcé en Carbone",
+    "type": "gloves",
+    "protection": 40
+  },
+  {
+    "id": 460,
+    "name": "Gilet de Soutien en Kevlar",
+    "type": "vest",
+    "protection": 29
+  },
+  {
+    "id": 461,
+    "name": "Gants de Commando Balistique",
+    "type": "gloves",
+    "protection": 29
+  },
+  {
+    "id": 462,
+    "name": "Gantelets Lourd en Cuir",
+    "type": "gloves",
+    "protection": 20
+  },
+  {
+    "id": 463,
+    "name": "Veste Renforcé en Kevlar",
+    "type": "vest",
+    "protection": 30
+  },
+  {
+    "id": 464,
+    "name": "Cagoule de Commando Composite",
+    "type": "helmet",
+    "protection": 50
+  },
+  {
+    "id": 465,
+    "name": "Jambières de Recrue en Cuir",
+    "type": "boots",
+    "protection": 36
+  },
+  {
+    "id": 466,
+    "name": "Gants Médical en Acier",
+    "type": "gloves",
+    "protection": 9
+  },
+  {
+    "id": 467,
+    "name": "Harnais Tactique en Titane",
+    "type": "vest",
+    "protection": 36
+  },
+  {
+    "id": 468,
+    "name": "Brassards de Soldat en Kevlar",
+    "type": "gloves",
+    "protection": 26
+  },
+  {
+    "id": 469,
+    "name": "Solerets de Recrue en Carbone",
+    "type": "boots",
+    "protection": 13
+  },
+  {
+    "id": 470,
+    "name": "Cuirasse Renforcé Énergétique",
+    "type": "vest",
+    "protection": 23
+  },
+  {
+    "id": 471,
+    "name": "Gants Explosif Balistique",
+    "type": "gloves",
+    "protection": 33
+  },
+  {
+    "id": 472,
+    "name": "Plastron Renforcé en Cuir",
+    "type": "vest",
+    "protection": 39
+  },
+  {
+    "id": 473,
+    "name": "Poignets Léger Magnétique",
+    "type": "gloves",
+    "protection": 34
+  },
+  {
+    "id": 474,
+    "name": "Gants Tactique Balistique",
+    "type": "gloves",
+    "protection": 16
+  },
+  {
+    "id": 475,
+    "name": "Gantelets d'Assaut en Acier",
+    "type": "gloves",
+    "protection": 45
+  },
+  {
+    "id": 476,
+    "name": "Solerets Léger Composite",
+    "type": "boots",
+    "protection": 44
+  },
+  {
+    "id": 477,
+    "name": "Bottes de Soutien en Kevlar",
+    "type": "boots",
+    "protection": 31
+  },
+  {
+    "id": 478,
+    "name": "Brassards d'Assaut Énergétique",
+    "type": "gloves",
+    "protection": 25
+  },
+  {
+    "id": 479,
+    "name": "Casque de Vétéran Composite",
+    "type": "helmet",
+    "protection": 26
+  },
+  {
+    "id": 480,
+    "name": "Mitaines de Vétéran en Titane",
+    "type": "gloves",
+    "protection": 31
+  },
+  {
+    "id": 481,
+    "name": "Casque d'Élite Balistique",
+    "type": "helmet",
+    "protection": 35
+  },
+  {
+    "id": 482,
+    "name": "Gilet Explosif en Kevlar",
+    "type": "vest",
+    "protection": 41
+  },
+  {
+    "id": 483,
+    "name": "Cuirasse de Sniper en Carbone",
+    "type": "vest",
+    "protection": 47
+  },
+  {
+    "id": 484,
+    "name": "Brassards Lourd en Céramique",
+    "type": "gloves",
+    "protection": 32
+  },
+  {
+    "id": 485,
+    "name": "Chaussures de Soutien en Acier",
+    "type": "boots",
+    "protection": 34
+  },
+  {
+    "id": 486,
+    "name": "Solerets Lourd en Céramique",
+    "type": "boots",
+    "protection": 15
+  },
+  {
+    "id": 487,
+    "name": "Harnais d'Élite en Céramique",
+    "type": "vest",
+    "protection": 41
+  },
+  {
+    "id": 488,
+    "name": "Veste de Vétéran en Carbone",
+    "type": "vest",
+    "protection": 44
+  },
+  {
+    "id": 489,
+    "name": "Heaume de Commando Énergétique",
+    "type": "helmet",
+    "protection": 37
+  },
+  {
+    "id": 490,
+    "name": "Brassards Lourd Énergétique",
+    "type": "gloves",
+    "protection": 14
+  },
+  {
+    "id": 491,
+    "name": "Heaume de Commando en Carbone",
+    "type": "helmet",
+    "protection": 36
+  },
+  {
+    "id": 492,
+    "name": "Veste d'Assaut Énergétique",
+    "type": "vest",
+    "protection": 9
+  },
+  {
+    "id": 493,
+    "name": "Bottes de Recrue en Cuir",
+    "type": "boots",
+    "protection": 29
+  },
+  {
+    "id": 494,
+    "name": "Heaume de Commando en Titane",
+    "type": "helmet",
+    "protection": 9
+  },
+  {
+    "id": 495,
+    "name": "Mitaines Léger Magnétique",
+    "type": "gloves",
+    "protection": 12
+  },
+  {
+    "id": 496,
+    "name": "Brassards de Commando Balistique",
+    "type": "gloves",
+    "protection": 13
+  },
+  {
+    "id": 497,
+    "name": "Cagoule Renforcé Énergétique",
+    "type": "helmet",
+    "protection": 34
+  },
+  {
+    "id": 498,
+    "name": "Brassards de Sniper Composite",
+    "type": "gloves",
+    "protection": 45
+  },
+  {
+    "id": 499,
+    "name": "Poignets de Vétéran en Acier",
+    "type": "gloves",
+    "protection": 49
+  },
+  {
+    "id": 500,
+    "name": "Harnais Explosif en Acier",
+    "type": "vest",
+    "protection": 8
+  },
+  {
+    "id": 501,
+    "name": "Brassards Léger en Acier",
+    "type": "gloves",
+    "protection": 22
+  },
+  {
+    "id": 502,
+    "name": "Heaume de Sniper Composite",
+    "type": "helmet",
+    "protection": 24
+  },
+  {
+    "id": 503,
+    "name": "Masque de Vétéran Magnétique",
+    "type": "helmet",
+    "protection": 30
+  },
+  {
+    "id": 504,
+    "name": "Poignets Renforcé en Cuir",
+    "type": "gloves",
+    "protection": 22
+  },
+  {
+    "id": 505,
+    "name": "Chaussures Tactique en Kevlar",
+    "type": "boots",
+    "protection": 16
+  },
+  {
+    "id": 506,
+    "name": "Gantelets Explosif Composite",
+    "type": "gloves",
+    "protection": 42
+  },
+  {
+    "id": 507,
+    "name": "Cagoule de Sniper en Titane",
+    "type": "helmet",
+    "protection": 34
+  },
+  {
+    "id": 508,
+    "name": "Solerets de Vétéran Magnétique",
+    "type": "boots",
+    "protection": 32
+  },
+  {
+    "id": 509,
+    "name": "Harnais Explosif en Carbone",
+    "type": "vest",
+    "protection": 24
+  },
+  {
+    "id": 510,
+    "name": "Gantelets Furtif Magnétique",
+    "type": "gloves",
+    "protection": 36
+  },
+  {
+    "id": 511,
+    "name": "Grèves Lourd en Carbone",
+    "type": "boots",
+    "protection": 40
+  },
+  {
+    "id": 512,
+    "name": "Casque Explosif Composite",
+    "type": "helmet",
+    "protection": 44
+  },
+  {
+    "id": 513,
+    "name": "Poignets Lourd Composite",
+    "type": "gloves",
+    "protection": 29
+  },
+  {
+    "id": 514,
+    "name": "Masque Furtif Composite",
+    "type": "helmet",
+    "protection": 42
+  },
+  {
+    "id": 515,
+    "name": "Harnais Renforcé en Titane",
+    "type": "vest",
+    "protection": 44
+  },
+  {
+    "id": 516,
+    "name": "Veste de Sniper Composite",
+    "type": "vest",
+    "protection": 41
+  },
+  {
+    "id": 517,
+    "name": "Cagoule Médical Balistique",
+    "type": "helmet",
+    "protection": 13
+  },
+  {
+    "id": 518,
+    "name": "Heaume d'Assaut en Carbone",
+    "type": "helmet",
+    "protection": 9
+  },
+  {
+    "id": 519,
+    "name": "Jambières de Vétéran en Carbone",
+    "type": "boots",
+    "protection": 11
+  },
+  {
+    "id": 520,
+    "name": "Grèves de Recrue Énergétique",
+    "type": "boots",
+    "protection": 44
+  },
+  {
+    "id": 521,
+    "name": "Veste de Commando en Cuir",
+    "type": "vest",
+    "protection": 40
+  },
+  {
+    "id": 522,
+    "name": "Gilet Lourd en Céramique",
+    "type": "vest",
+    "protection": 48
+  },
+  {
+    "id": 523,
+    "name": "Gants de Soldat Composite",
+    "type": "gloves",
+    "protection": 30
+  },
+  {
+    "id": 524,
+    "name": "Gilet Léger Énergétique",
+    "type": "vest",
+    "protection": 6
+  },
+  {
+    "id": 525,
+    "name": "Veste Furtif en Titane",
+    "type": "vest",
+    "protection": 15
+  },
+  {
+    "id": 526,
+    "name": "Brassards Explosif en Titane",
+    "type": "gloves",
+    "protection": 16
+  },
+  {
+    "id": 527,
+    "name": "Jambières Tactique en Carbone",
+    "type": "boots",
+    "protection": 20
+  },
+  {
+    "id": 528,
+    "name": "Casque de Soldat Composite",
+    "type": "helmet",
+    "protection": 35
+  },
+  {
+    "id": 529,
+    "name": "Jambières de Commando en Titane",
+    "type": "boots",
+    "protection": 49
+  },
+  {
+    "id": 530,
+    "name": "Bottes d'Élite en Kevlar",
+    "type": "boots",
+    "protection": 26
+  },
+  {
+    "id": 531,
+    "name": "Heaume d'Élite Composite",
+    "type": "helmet",
+    "protection": 26
+  },
+  {
+    "id": 532,
+    "name": "Mitaines de Recrue Balistique",
+    "type": "gloves",
+    "protection": 30
+  },
+  {
+    "id": 533,
+    "name": "Cuirasse Furtif Balistique",
+    "type": "vest",
+    "protection": 17
+  },
+  {
+    "id": 534,
+    "name": "Chaussures Léger Balistique",
+    "type": "boots",
+    "protection": 48
+  },
+  {
+    "id": 535,
+    "name": "Chaussures de Soutien en Cuir",
+    "type": "boots",
+    "protection": 38
+  },
+  {
+    "id": 536,
+    "name": "Gants d'Assaut en Carbone",
+    "type": "gloves",
+    "protection": 31
+  },
+  {
+    "id": 537,
+    "name": "Jambières Léger Composite",
+    "type": "boots",
+    "protection": 31
+  },
+  {
+    "id": 538,
+    "name": "Jambières d'Élite Composite",
+    "type": "boots",
+    "protection": 7
+  },
+  {
+    "id": 539,
+    "name": "Solerets de Soutien en Kevlar",
+    "type": "boots",
+    "protection": 40
+  },
+  {
+    "id": 540,
+    "name": "Cuirasse Tactique en Carbone",
+    "type": "vest",
+    "protection": 49
+  },
+  {
+    "id": 541,
+    "name": "Mitaines Léger Énergétique",
+    "type": "gloves",
+    "protection": 37
+  },
+  {
+    "id": 542,
+    "name": "Jambières de Commando en Carbone",
+    "type": "boots",
+    "protection": 15
+  },
+  {
+    "id": 543,
+    "name": "Plastron de Soutien en Titane",
+    "type": "vest",
+    "protection": 30
+  },
+  {
+    "id": 544,
+    "name": "Gants de Vétéran en Kevlar",
+    "type": "gloves",
+    "protection": 20
+  },
+  {
+    "id": 545,
+    "name": "Gilet Léger en Cuir",
+    "type": "vest",
+    "protection": 34
+  },
+  {
+    "id": 546,
+    "name": "Gantelets de Vétéran en Cuir",
+    "type": "gloves",
+    "protection": 18
+  },
+  {
+    "id": 547,
+    "name": "Jambières Explosif Composite",
+    "type": "boots",
+    "protection": 19
+  },
+  {
+    "id": 548,
+    "name": "Solerets d'Assaut Énergétique",
+    "type": "boots",
+    "protection": 43
+  },
+  {
+    "id": 549,
+    "name": "Bottes de Recrue Magnétique",
+    "type": "boots",
+    "protection": 38
+  },
+  {
+    "id": 550,
+    "name": "Masque Médical en Carbone",
+    "type": "helmet",
+    "protection": 45
+  },
+  {
+    "id": 551,
+    "name": "Visière Explosif Composite",
+    "type": "helmet",
+    "protection": 14
+  },
+  {
+    "id": 552,
+    "name": "Mitaines d'Élite Magnétique",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 553,
+    "name": "Jambières Lourd en Kevlar",
+    "type": "boots",
+    "protection": 41
+  },
+  {
+    "id": 554,
+    "name": "Masque Léger Magnétique",
+    "type": "helmet",
+    "protection": 17
+  },
+  {
+    "id": 555,
+    "name": "Visière de Soldat Composite",
+    "type": "helmet",
+    "protection": 43
+  },
+  {
+    "id": 556,
+    "name": "Mitaines Furtif Magnétique",
+    "type": "gloves",
+    "protection": 49
+  },
+  {
+    "id": 557,
+    "name": "Cuirasse Furtif en Cuir",
+    "type": "vest",
+    "protection": 13
+  },
+  {
+    "id": 558,
+    "name": "Bottes Lourd en Titane",
+    "type": "boots",
+    "protection": 24
+  },
+  {
+    "id": 559,
+    "name": "Solerets de Vétéran Balistique",
+    "type": "boots",
+    "protection": 38
+  },
+  {
+    "id": 560,
+    "name": "Grèves Léger en Acier",
+    "type": "boots",
+    "protection": 21
+  },
+  {
+    "id": 561,
+    "name": "Bottes Léger en Céramique",
+    "type": "boots",
+    "protection": 5
+  },
+  {
+    "id": 562,
+    "name": "Veste Médical en Kevlar",
+    "type": "vest",
+    "protection": 26
+  },
+  {
+    "id": 563,
+    "name": "Cuirasse de Soldat en Carbone",
+    "type": "vest",
+    "protection": 15
+  },
+  {
+    "id": 564,
+    "name": "Grèves d'Élite en Céramique",
+    "type": "boots",
+    "protection": 18
+  },
+  {
+    "id": 565,
+    "name": "Casque Tactique en Acier",
+    "type": "helmet",
+    "protection": 38
+  },
+  {
+    "id": 566,
+    "name": "Mitaines de Soutien Composite",
+    "type": "gloves",
+    "protection": 23
+  },
+  {
+    "id": 567,
+    "name": "Poignets de Commando en Céramique",
+    "type": "gloves",
+    "protection": 14
+  },
+  {
+    "id": 568,
+    "name": "Masque Médical Composite",
+    "type": "helmet",
+    "protection": 42
+  },
+  {
+    "id": 569,
+    "name": "Visière Léger en Cuir",
+    "type": "helmet",
+    "protection": 13
+  },
+  {
+    "id": 570,
+    "name": "Brassards Tactique Balistique",
+    "type": "gloves",
+    "protection": 23
+  },
+  {
+    "id": 571,
+    "name": "Visière Explosif Balistique",
+    "type": "helmet",
+    "protection": 27
+  },
+  {
+    "id": 572,
+    "name": "Jambières Renforcé en Kevlar",
+    "type": "boots",
+    "protection": 35
+  },
+  {
+    "id": 573,
+    "name": "Chaussures de Commando Balistique",
+    "type": "boots",
+    "protection": 33
+  },
+  {
+    "id": 574,
+    "name": "Casque de Soldat Magnétique",
+    "type": "helmet",
+    "protection": 23
+  },
+  {
+    "id": 575,
+    "name": "Harnais Furtif Composite",
+    "type": "vest",
+    "protection": 45
+  },
+  {
+    "id": 576,
+    "name": "Gants Furtif en Kevlar",
+    "type": "gloves",
+    "protection": 40
+  },
+  {
+    "id": 577,
+    "name": "Chaussures Tactique Magnétique",
+    "type": "boots",
+    "protection": 40
+  },
+  {
+    "id": 578,
+    "name": "Heaume de Commando en Acier",
+    "type": "helmet",
+    "protection": 21
+  },
+  {
+    "id": 579,
+    "name": "Plastron de Soldat Balistique",
+    "type": "vest",
+    "protection": 27
+  },
+  {
+    "id": 580,
+    "name": "Poignets Furtif Magnétique",
+    "type": "gloves",
+    "protection": 39
+  },
+  {
+    "id": 581,
+    "name": "Plastron Renforcé en Kevlar",
+    "type": "vest",
+    "protection": 43
+  },
+  {
+    "id": 582,
+    "name": "Cuirasse Médical Composite",
+    "type": "vest",
+    "protection": 25
+  },
+  {
+    "id": 583,
+    "name": "Heaume Lourd en Cuir",
+    "type": "helmet",
+    "protection": 14
+  },
+  {
+    "id": 584,
+    "name": "Mitaines Lourd Magnétique",
+    "type": "gloves",
+    "protection": 46
+  },
+  {
+    "id": 585,
+    "name": "Solerets d'Assaut en Kevlar",
+    "type": "boots",
+    "protection": 34
+  },
+  {
+    "id": 586,
+    "name": "Veste de Recrue Magnétique",
+    "type": "vest",
+    "protection": 49
+  },
+  {
+    "id": 587,
+    "name": "Gantelets Renforcé en Carbone",
+    "type": "gloves",
+    "protection": 29
+  },
+  {
+    "id": 588,
+    "name": "Chaussures Furtif en Carbone",
+    "type": "boots",
+    "protection": 26
+  },
+  {
+    "id": 589,
+    "name": "Jambières Explosif en Kevlar",
+    "type": "boots",
+    "protection": 17
+  },
+  {
+    "id": 590,
+    "name": "Cagoule Furtif en Titane",
+    "type": "helmet",
+    "protection": 9
+  },
+  {
+    "id": 591,
+    "name": "Chaussures de Soldat en Acier",
+    "type": "boots",
+    "protection": 19
+  },
+  {
+    "id": 592,
+    "name": "Gilet de Soldat en Carbone",
+    "type": "vest",
+    "protection": 7
+  },
+  {
+    "id": 593,
+    "name": "Cagoule Médical en Céramique",
+    "type": "helmet",
+    "protection": 26
+  },
+  {
+    "id": 594,
+    "name": "Jambières Furtif Composite",
+    "type": "boots",
+    "protection": 22
+  },
+  {
+    "id": 595,
+    "name": "Grèves Tactique Balistique",
+    "type": "boots",
+    "protection": 10
+  },
+  {
+    "id": 596,
+    "name": "Cagoule Médical en Titane",
+    "type": "helmet",
+    "protection": 9
+  },
+  {
+    "id": 597,
+    "name": "Cagoule de Sniper Magnétique",
+    "type": "helmet",
+    "protection": 20
+  },
+  {
+    "id": 598,
+    "name": "Cagoule de Vétéran en Céramique",
+    "type": "helmet",
+    "protection": 16
+  },
+  {
+    "id": 599,
+    "name": "Brassards de Commando en Carbone",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 600,
+    "name": "Jambières d'Élite Énergétique",
+    "type": "boots",
+    "protection": 15
+  },
+  {
+    "id": 601,
+    "name": "Solerets Renforcé Magnétique",
+    "type": "boots",
+    "protection": 31
+  },
+  {
+    "id": 602,
+    "name": "Chaussures Médical en Acier",
+    "type": "boots",
+    "protection": 24
+  },
+  {
+    "id": 603,
+    "name": "Cagoule Lourd en Cuir",
+    "type": "helmet",
+    "protection": 28
+  },
+  {
+    "id": 604,
+    "name": "Solerets Explosif Composite",
+    "type": "boots",
+    "protection": 19
+  },
+  {
+    "id": 605,
+    "name": "Gilet de Recrue Magnétique",
+    "type": "vest",
+    "protection": 35
+  },
+  {
+    "id": 606,
+    "name": "Gants Explosif en Acier",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 607,
+    "name": "Harnais Tactique en Carbone",
+    "type": "vest",
+    "protection": 44
+  },
+  {
+    "id": 608,
+    "name": "Poignets Furtif en Céramique",
+    "type": "gloves",
+    "protection": 34
+  },
+  {
+    "id": 609,
+    "name": "Poignets d'Élite en Carbone",
+    "type": "gloves",
+    "protection": 45
+  },
+  {
+    "id": 610,
+    "name": "Veste Explosif en Titane",
+    "type": "vest",
+    "protection": 31
+  },
+  {
+    "id": 611,
+    "name": "Cagoule d'Élite en Titane",
+    "type": "helmet",
+    "protection": 38
+  },
+  {
+    "id": 612,
+    "name": "Gilet de Vétéran en Kevlar",
+    "type": "vest",
+    "protection": 16
+  },
+  {
+    "id": 613,
+    "name": "Solerets Tactique Balistique",
+    "type": "boots",
+    "protection": 25
+  },
+  {
+    "id": 614,
+    "name": "Solerets Tactique en Titane",
+    "type": "boots",
+    "protection": 6
+  },
+  {
+    "id": 615,
+    "name": "Gants Lourd en Kevlar",
+    "type": "gloves",
+    "protection": 11
+  },
+  {
+    "id": 616,
+    "name": "Cagoule Lourd en Carbone",
+    "type": "helmet",
+    "protection": 37
+  },
+  {
+    "id": 617,
+    "name": "Grèves de Recrue Magnétique",
+    "type": "boots",
+    "protection": 49
+  },
+  {
+    "id": 618,
+    "name": "Plastron de Sniper en Carbone",
+    "type": "vest",
+    "protection": 9
+  },
+  {
+    "id": 619,
+    "name": "Jambières de Vétéran en Kevlar",
+    "type": "boots",
+    "protection": 6
+  },
+  {
+    "id": 620,
+    "name": "Plastron d'Élite en Kevlar",
+    "type": "vest",
+    "protection": 31
+  },
+  {
+    "id": 621,
+    "name": "Plastron de Soutien en Carbone",
+    "type": "vest",
+    "protection": 32
+  },
+  {
+    "id": 622,
+    "name": "Jambières de Soldat Balistique",
+    "type": "boots",
+    "protection": 38
+  },
+  {
+    "id": 623,
+    "name": "Cagoule Explosif en Céramique",
+    "type": "helmet",
+    "protection": 41
+  },
+  {
+    "id": 624,
+    "name": "Veste Médical en Cuir",
+    "type": "vest",
+    "protection": 35
+  },
+  {
+    "id": 625,
+    "name": "Jambières de Recrue en Acier",
+    "type": "boots",
+    "protection": 6
+  },
+  {
+    "id": 626,
+    "name": "Bottes Renforcé en Carbone",
+    "type": "boots",
+    "protection": 46
+  },
+  {
+    "id": 627,
+    "name": "Veste d'Élite en Titane",
+    "type": "vest",
+    "protection": 36
+  },
+  {
+    "id": 628,
+    "name": "Chaussures Tactique en Céramique",
+    "type": "boots",
+    "protection": 27
+  },
+  {
+    "id": 629,
+    "name": "Masque Médical en Acier",
+    "type": "helmet",
+    "protection": 21
+  },
+  {
+    "id": 630,
+    "name": "Visière d'Assaut en Acier",
+    "type": "helmet",
+    "protection": 48
+  },
+  {
+    "id": 631,
+    "name": "Gants de Sniper en Kevlar",
+    "type": "gloves",
+    "protection": 20
+  },
+  {
+    "id": 632,
+    "name": "Harnais Médical en Titane",
+    "type": "vest",
+    "protection": 30
+  },
+  {
+    "id": 633,
+    "name": "Gantelets Furtif en Kevlar",
+    "type": "gloves",
+    "protection": 41
+  },
+  {
+    "id": 634,
+    "name": "Plastron d'Assaut Énergétique",
+    "type": "vest",
+    "protection": 16
+  },
+  {
+    "id": 635,
+    "name": "Visière Tactique Composite",
+    "type": "helmet",
+    "protection": 23
+  },
+  {
+    "id": 636,
+    "name": "Brassards Furtif en Kevlar",
+    "type": "gloves",
+    "protection": 16
+  },
+  {
+    "id": 637,
+    "name": "Gilet Furtif en Titane",
+    "type": "vest",
+    "protection": 8
+  },
+  {
+    "id": 638,
+    "name": "Cagoule de Commando en Kevlar",
+    "type": "helmet",
+    "protection": 5
+  },
+  {
+    "id": 639,
+    "name": "Casque de Soutien Magnétique",
+    "type": "helmet",
+    "protection": 39
+  },
+  {
+    "id": 640,
+    "name": "Cuirasse de Vétéran en Kevlar",
+    "type": "vest",
+    "protection": 43
+  },
+  {
+    "id": 641,
+    "name": "Veste Léger Énergétique",
+    "type": "vest",
+    "protection": 33
+  },
+  {
+    "id": 642,
+    "name": "Plastron Léger en Acier",
+    "type": "vest",
+    "protection": 35
+  },
+  {
+    "id": 643,
+    "name": "Gantelets de Vétéran Balistique",
+    "type": "gloves",
+    "protection": 11
+  },
+  {
+    "id": 644,
+    "name": "Masque Tactique Balistique",
+    "type": "helmet",
+    "protection": 45
+  },
+  {
+    "id": 645,
+    "name": "Poignets de Commando en Cuir",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 646,
+    "name": "Masque Explosif Magnétique",
+    "type": "helmet",
+    "protection": 13
+  },
+  {
+    "id": 647,
+    "name": "Chaussures de Recrue en Carbone",
+    "type": "boots",
+    "protection": 36
+  },
+  {
+    "id": 648,
+    "name": "Gilet Furtif en Kevlar",
+    "type": "vest",
+    "protection": 17
+  },
+  {
+    "id": 649,
+    "name": "Mitaines Léger en Kevlar",
+    "type": "gloves",
+    "protection": 37
+  },
+  {
+    "id": 650,
+    "name": "Grèves Furtif en Titane",
+    "type": "boots",
+    "protection": 17
+  },
+  {
+    "id": 651,
+    "name": "Gantelets Tactique en Carbone",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 652,
+    "name": "Gants Léger en Cuir",
+    "type": "gloves",
+    "protection": 22
+  },
+  {
+    "id": 653,
+    "name": "Grèves Médical en Titane",
+    "type": "boots",
+    "protection": 46
+  },
+  {
+    "id": 654,
+    "name": "Casque d'Élite en Kevlar",
+    "type": "helmet",
+    "protection": 17
+  },
+  {
+    "id": 655,
+    "name": "Chaussures Explosif Magnétique",
+    "type": "boots",
+    "protection": 8
+  },
+  {
+    "id": 656,
+    "name": "Gilet de Soutien en Céramique",
+    "type": "vest",
+    "protection": 37
+  },
+  {
+    "id": 657,
+    "name": "Mitaines d'Élite en Kevlar",
+    "type": "gloves",
+    "protection": 24
+  },
+  {
+    "id": 658,
+    "name": "Masque de Soldat Magnétique",
+    "type": "helmet",
+    "protection": 49
+  },
+  {
+    "id": 659,
+    "name": "Cagoule Furtif en Acier",
+    "type": "helmet",
+    "protection": 16
+  },
+  {
+    "id": 660,
+    "name": "Veste d'Élite en Acier",
+    "type": "vest",
+    "protection": 26
+  },
+  {
+    "id": 661,
+    "name": "Jambières Explosif en Titane",
+    "type": "boots",
+    "protection": 38
+  },
+  {
+    "id": 662,
+    "name": "Jambières de Recrue Magnétique",
+    "type": "boots",
+    "protection": 41
+  },
+  {
+    "id": 663,
+    "name": "Bottes Furtif Magnétique",
+    "type": "boots",
+    "protection": 32
+  },
+  {
+    "id": 664,
+    "name": "Jambières Furtif Énergétique",
+    "type": "boots",
+    "protection": 21
+  },
+  {
+    "id": 665,
+    "name": "Mitaines Furtif Balistique",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 666,
+    "name": "Plastron d'Élite Énergétique",
+    "type": "vest",
+    "protection": 49
+  },
+  {
+    "id": 667,
+    "name": "Gantelets de Sniper Balistique",
+    "type": "gloves",
+    "protection": 19
+  },
+  {
+    "id": 668,
+    "name": "Mitaines d'Assaut en Carbone",
+    "type": "gloves",
+    "protection": 44
+  },
+  {
+    "id": 669,
+    "name": "Visière Lourd en Céramique",
+    "type": "helmet",
+    "protection": 48
+  },
+  {
+    "id": 670,
+    "name": "Harnais de Recrue Composite",
+    "type": "vest",
+    "protection": 46
+  },
+  {
+    "id": 671,
+    "name": "Chaussures Renforcé Balistique",
+    "type": "boots",
+    "protection": 42
+  },
+  {
+    "id": 672,
+    "name": "Cagoule de Soldat en Acier",
+    "type": "helmet",
+    "protection": 23
+  },
+  {
+    "id": 673,
+    "name": "Harnais de Soldat en Céramique",
+    "type": "vest",
+    "protection": 31
+  },
+  {
+    "id": 674,
+    "name": "Gilet de Vétéran en Cuir",
+    "type": "vest",
+    "protection": 30
+  },
+  {
+    "id": 675,
+    "name": "Masque de Soutien Magnétique",
+    "type": "helmet",
+    "protection": 43
+  },
+  {
+    "id": 676,
+    "name": "Brassards de Soldat Magnétique",
+    "type": "gloves",
+    "protection": 40
+  },
+  {
+    "id": 677,
+    "name": "Grèves d'Assaut en Cuir",
+    "type": "boots",
+    "protection": 11
+  },
+  {
+    "id": 678,
+    "name": "Gants Renforcé Balistique",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 679,
+    "name": "Heaume de Recrue en Céramique",
+    "type": "helmet",
+    "protection": 34
+  },
+  {
+    "id": 680,
+    "name": "Heaume Lourd Composite",
+    "type": "helmet",
+    "protection": 16
+  },
+  {
+    "id": 681,
+    "name": "Brassards de Sniper en Cuir",
+    "type": "gloves",
+    "protection": 23
+  },
+  {
+    "id": 682,
+    "name": "Poignets Renforcé Composite",
+    "type": "gloves",
+    "protection": 26
+  },
+  {
+    "id": 683,
+    "name": "Cagoule de Soldat en Titane",
+    "type": "helmet",
+    "protection": 37
+  },
+  {
+    "id": 684,
+    "name": "Masque de Vétéran Balistique",
+    "type": "helmet",
+    "protection": 37
+  },
+  {
+    "id": 685,
+    "name": "Brassards Léger Énergétique",
+    "type": "gloves",
+    "protection": 37
+  },
+  {
+    "id": 686,
+    "name": "Casque Médical Énergétique",
+    "type": "helmet",
+    "protection": 18
+  },
+  {
+    "id": 687,
+    "name": "Cuirasse Lourd Magnétique",
+    "type": "vest",
+    "protection": 30
+  },
+  {
+    "id": 688,
+    "name": "Cuirasse Renforcé en Cuir",
+    "type": "vest",
+    "protection": 23
+  },
+  {
+    "id": 689,
+    "name": "Gants d'Assaut en Kevlar",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 690,
+    "name": "Heaume Léger en Kevlar",
+    "type": "helmet",
+    "protection": 32
+  },
+  {
+    "id": 691,
+    "name": "Grèves de Soutien Balistique",
+    "type": "boots",
+    "protection": 9
+  },
+  {
+    "id": 692,
+    "name": "Mitaines de Soldat Composite",
+    "type": "gloves",
+    "protection": 19
+  },
+  {
+    "id": 693,
+    "name": "Cuirasse d'Assaut en Carbone",
+    "type": "vest",
+    "protection": 27
+  },
+  {
+    "id": 694,
+    "name": "Jambières Furtif Magnétique",
+    "type": "boots",
+    "protection": 15
+  },
+  {
+    "id": 695,
+    "name": "Plastron Explosif Magnétique",
+    "type": "vest",
+    "protection": 44
+  },
+  {
+    "id": 696,
+    "name": "Gilet Tactique Balistique",
+    "type": "vest",
+    "protection": 45
+  },
+  {
+    "id": 697,
+    "name": "Plastron de Sniper Composite",
+    "type": "vest",
+    "protection": 11
+  },
+  {
+    "id": 698,
+    "name": "Gilet Explosif en Céramique",
+    "type": "vest",
+    "protection": 39
+  },
+  {
+    "id": 699,
+    "name": "Jambières de Recrue Énergétique",
+    "type": "boots",
+    "protection": 17
+  },
+  {
+    "id": 700,
+    "name": "Grèves Lourd Magnétique",
+    "type": "boots",
+    "protection": 39
+  },
+  {
+    "id": 701,
+    "name": "Chaussures de Soutien Balistique",
+    "type": "boots",
+    "protection": 19
+  },
+  {
+    "id": 702,
+    "name": "Veste de Soldat Composite",
+    "type": "vest",
+    "protection": 33
+  },
+  {
+    "id": 703,
+    "name": "Gants de Soutien Magnétique",
+    "type": "gloves",
+    "protection": 45
+  },
+  {
+    "id": 704,
+    "name": "Heaume Tactique Composite",
+    "type": "helmet",
+    "protection": 39
+  },
+  {
+    "id": 705,
+    "name": "Cuirasse de Recrue Magnétique",
+    "type": "vest",
+    "protection": 33
+  },
+  {
+    "id": 706,
+    "name": "Masque d'Élite en Kevlar",
+    "type": "helmet",
+    "protection": 41
+  },
+  {
+    "id": 707,
+    "name": "Solerets Médical Magnétique",
+    "type": "boots",
+    "protection": 39
+  },
+  {
+    "id": 708,
+    "name": "Bottes Renforcé en Céramique",
+    "type": "boots",
+    "protection": 44
+  },
+  {
+    "id": 709,
+    "name": "Heaume de Soldat en Carbone",
+    "type": "helmet",
+    "protection": 30
+  },
+  {
+    "id": 710,
+    "name": "Heaume d'Assaut en Cuir",
+    "type": "helmet",
+    "protection": 23
+  },
+  {
+    "id": 711,
+    "name": "Gants Renforcé en Céramique",
+    "type": "gloves",
+    "protection": 42
+  },
+  {
+    "id": 712,
+    "name": "Gantelets Explosif en Cuir",
+    "type": "gloves",
+    "protection": 22
+  },
+  {
+    "id": 713,
+    "name": "Harnais Furtif en Acier",
+    "type": "vest",
+    "protection": 16
+  },
+  {
+    "id": 714,
+    "name": "Cagoule Médical Énergétique",
+    "type": "helmet",
+    "protection": 13
+  },
+  {
+    "id": 715,
+    "name": "Poignets d'Assaut en Céramique",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 716,
+    "name": "Gilet de Sniper en Cuir",
+    "type": "vest",
+    "protection": 46
+  },
+  {
+    "id": 717,
+    "name": "Cuirasse Explosif en Titane",
+    "type": "vest",
+    "protection": 35
+  },
+  {
+    "id": 718,
+    "name": "Cagoule Médical en Acier",
+    "type": "helmet",
+    "protection": 9
+  },
+  {
+    "id": 719,
+    "name": "Gantelets d'Assaut Composite",
+    "type": "gloves",
+    "protection": 43
+  },
+  {
+    "id": 720,
+    "name": "Harnais de Recrue Énergétique",
+    "type": "vest",
+    "protection": 46
+  },
+  {
+    "id": 721,
+    "name": "Heaume de Sniper en Carbone",
+    "type": "helmet",
+    "protection": 14
+  },
+  {
+    "id": 722,
+    "name": "Brassards Renforcé en Titane",
+    "type": "gloves",
+    "protection": 12
+  },
+  {
+    "id": 723,
+    "name": "Solerets Furtif en Cuir",
+    "type": "boots",
+    "protection": 33
+  },
+  {
+    "id": 724,
+    "name": "Jambières de Commando Composite",
+    "type": "boots",
+    "protection": 10
+  },
+  {
+    "id": 725,
+    "name": "Brassards de Soutien en Acier",
+    "type": "gloves",
+    "protection": 29
+  },
+  {
+    "id": 726,
+    "name": "Gants Médical Balistique",
+    "type": "gloves",
+    "protection": 5
+  },
+  {
+    "id": 727,
+    "name": "Solerets Explosif Énergétique",
+    "type": "boots",
+    "protection": 16
+  },
+  {
+    "id": 728,
+    "name": "Poignets de Recrue Énergétique",
+    "type": "gloves",
+    "protection": 30
+  },
+  {
+    "id": 729,
+    "name": "Poignets Léger en Kevlar",
+    "type": "gloves",
+    "protection": 14
+  },
+  {
+    "id": 730,
+    "name": "Veste de Vétéran Composite",
+    "type": "vest",
+    "protection": 28
+  },
+  {
+    "id": 731,
+    "name": "Gilet de Soldat en Céramique",
+    "type": "vest",
+    "protection": 25
+  },
+  {
+    "id": 732,
+    "name": "Gilet Renforcé en Carbone",
+    "type": "vest",
+    "protection": 45
+  },
+  {
+    "id": 733,
+    "name": "Cagoule de Soutien en Céramique",
+    "type": "helmet",
+    "protection": 27
+  },
+  {
+    "id": 734,
+    "name": "Gants Renforcé Énergétique",
+    "type": "gloves",
+    "protection": 27
+  },
+  {
+    "id": 735,
+    "name": "Mitaines de Soutien Magnétique",
+    "type": "gloves",
+    "protection": 22
+  },
+  {
+    "id": 736,
+    "name": "Brassards de Sniper en Céramique",
+    "type": "gloves",
+    "protection": 22
+  },
+  {
+    "id": 737,
+    "name": "Plastron Furtif en Acier",
+    "type": "vest",
+    "protection": 43
+  },
+  {
+    "id": 738,
+    "name": "Veste de Vétéran en Titane",
+    "type": "vest",
+    "protection": 35
+  },
+  {
+    "id": 739,
+    "name": "Cagoule Tactique en Cuir",
+    "type": "helmet",
+    "protection": 41
+  },
+  {
+    "id": 740,
+    "name": "Grèves Renforcé en Acier",
+    "type": "boots",
+    "protection": 43
+  },
+  {
+    "id": 741,
+    "name": "Cagoule d'Élite Énergétique",
+    "type": "helmet",
+    "protection": 8
+  },
+  {
+    "id": 742,
+    "name": "Harnais de Soldat Composite",
+    "type": "vest",
+    "protection": 13
+  },
+  {
+    "id": 743,
+    "name": "Plastron Médical en Titane",
+    "type": "vest",
+    "protection": 15
+  },
+  {
+    "id": 744,
+    "name": "Brassards Médical Magnétique",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 745,
+    "name": "Mitaines de Sniper en Acier",
+    "type": "gloves",
+    "protection": 5
+  },
+  {
+    "id": 746,
+    "name": "Harnais de Soutien Énergétique",
+    "type": "vest",
+    "protection": 46
+  },
+  {
+    "id": 747,
+    "name": "Masque Renforcé en Titane",
+    "type": "helmet",
+    "protection": 44
+  },
+  {
+    "id": 748,
+    "name": "Brassards d'Assaut Composite",
+    "type": "gloves",
+    "protection": 22
+  },
+  {
+    "id": 749,
+    "name": "Heaume de Vétéran Énergétique",
+    "type": "helmet",
+    "protection": 18
+  },
+  {
+    "id": 750,
+    "name": "Cuirasse Tactique en Acier",
+    "type": "vest",
+    "protection": 9
+  },
+  {
+    "id": 751,
+    "name": "Jambières de Vétéran en Céramique",
+    "type": "boots",
+    "protection": 20
+  },
+  {
+    "id": 752,
+    "name": "Grèves de Soldat en Céramique",
+    "type": "boots",
+    "protection": 32
+  },
+  {
+    "id": 753,
+    "name": "Jambières d'Assaut en Cuir",
+    "type": "boots",
+    "protection": 45
+  },
+  {
+    "id": 754,
+    "name": "Gilet de Soldat Magnétique",
+    "type": "vest",
+    "protection": 19
+  },
+  {
+    "id": 755,
+    "name": "Poignets de Soutien en Cuir",
+    "type": "gloves",
+    "protection": 46
+  },
+  {
+    "id": 756,
+    "name": "Cuirasse de Sniper en Céramique",
+    "type": "vest",
+    "protection": 39
+  },
+  {
+    "id": 757,
+    "name": "Cagoule Furtif Composite",
+    "type": "helmet",
+    "protection": 26
+  },
+  {
+    "id": 758,
+    "name": "Cagoule de Soutien en Titane",
+    "type": "helmet",
+    "protection": 15
+  },
+  {
+    "id": 759,
+    "name": "Grèves d'Assaut Balistique",
+    "type": "boots",
+    "protection": 40
+  },
+  {
+    "id": 760,
+    "name": "Masque de Soldat Énergétique",
+    "type": "helmet",
+    "protection": 35
+  },
+  {
+    "id": 761,
+    "name": "Bottes d'Élite en Céramique",
+    "type": "boots",
+    "protection": 12
+  },
+  {
+    "id": 762,
+    "name": "Poignets Explosif Balistique",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 763,
+    "name": "Harnais Tactique Balistique",
+    "type": "vest",
+    "protection": 17
+  },
+  {
+    "id": 764,
+    "name": "Visière de Recrue Énergétique",
+    "type": "helmet",
+    "protection": 18
+  },
+  {
+    "id": 765,
+    "name": "Bottes Médical en Titane",
+    "type": "boots",
+    "protection": 36
+  },
+  {
+    "id": 766,
+    "name": "Gantelets de Vétéran Magnétique",
+    "type": "gloves",
+    "protection": 48
+  },
+  {
+    "id": 767,
+    "name": "Visière de Soldat Balistique",
+    "type": "helmet",
+    "protection": 28
+  },
+  {
+    "id": 768,
+    "name": "Poignets de Soldat Composite",
+    "type": "gloves",
+    "protection": 40
+  },
+  {
+    "id": 769,
+    "name": "Masque de Soldat en Titane",
+    "type": "helmet",
+    "protection": 45
+  },
+  {
+    "id": 770,
+    "name": "Cagoule Léger en Céramique",
+    "type": "helmet",
+    "protection": 27
+  },
+  {
+    "id": 771,
+    "name": "Visière de Soldat en Kevlar",
+    "type": "helmet",
+    "protection": 19
+  },
+  {
+    "id": 772,
+    "name": "Cuirasse de Sniper en Acier",
+    "type": "vest",
+    "protection": 21
+  },
+  {
+    "id": 773,
+    "name": "Plastron de Soldat en Acier",
+    "type": "vest",
+    "protection": 8
+  },
+  {
+    "id": 774,
+    "name": "Solerets d'Élite en Kevlar",
+    "type": "boots",
+    "protection": 48
+  },
+  {
+    "id": 775,
+    "name": "Brassards Médical Composite",
+    "type": "gloves",
+    "protection": 38
+  },
+  {
+    "id": 776,
+    "name": "Brassards Médical en Titane",
+    "type": "gloves",
+    "protection": 38
+  },
+  {
+    "id": 777,
+    "name": "Visière d'Élite en Carbone",
+    "type": "helmet",
+    "protection": 18
+  },
+  {
+    "id": 778,
+    "name": "Bottes Léger en Acier",
+    "type": "boots",
+    "protection": 39
+  },
+  {
+    "id": 779,
+    "name": "Cagoule d'Assaut Balistique",
+    "type": "helmet",
+    "protection": 41
+  },
+  {
+    "id": 780,
+    "name": "Bottes d'Assaut Énergétique",
+    "type": "boots",
+    "protection": 12
+  },
+  {
+    "id": 781,
+    "name": "Gilet Médical en Carbone",
+    "type": "vest",
+    "protection": 25
+  },
+  {
+    "id": 782,
+    "name": "Cuirasse Médical en Carbone",
+    "type": "vest",
+    "protection": 38
+  },
+  {
+    "id": 783,
+    "name": "Heaume de Sniper Énergétique",
+    "type": "helmet",
+    "protection": 20
+  },
+  {
+    "id": 784,
+    "name": "Mitaines d'Assaut Magnétique",
+    "type": "gloves",
+    "protection": 36
+  },
+  {
+    "id": 785,
+    "name": "Veste de Soldat Balistique",
+    "type": "vest",
+    "protection": 12
+  },
+  {
+    "id": 786,
+    "name": "Gilet de Soldat Composite",
+    "type": "vest",
+    "protection": 49
+  },
+  {
+    "id": 787,
+    "name": "Veste Renforcé Balistique",
+    "type": "vest",
+    "protection": 34
+  },
+  {
+    "id": 788,
+    "name": "Gantelets de Recrue Composite",
+    "type": "gloves",
+    "protection": 29
+  },
+  {
+    "id": 789,
+    "name": "Mitaines de Soldat en Acier",
+    "type": "gloves",
+    "protection": 12
+  },
+  {
+    "id": 790,
+    "name": "Cagoule de Commando Magnétique",
+    "type": "helmet",
+    "protection": 33
+  },
+  {
+    "id": 791,
+    "name": "Cuirasse de Sniper Composite",
+    "type": "vest",
+    "protection": 12
+  },
+  {
+    "id": 792,
+    "name": "Visière de Vétéran en Cuir",
+    "type": "helmet",
+    "protection": 9
+  },
+  {
+    "id": 793,
+    "name": "Cagoule de Vétéran Énergétique",
+    "type": "helmet",
+    "protection": 35
+  },
+  {
+    "id": 794,
+    "name": "Gilet Furtif en Acier",
+    "type": "vest",
+    "protection": 12
+  },
+  {
+    "id": 795,
+    "name": "Veste Léger en Céramique",
+    "type": "vest",
+    "protection": 50
+  },
+  {
+    "id": 796,
+    "name": "Gilet d'Élite Composite",
+    "type": "vest",
+    "protection": 11
+  },
+  {
+    "id": 797,
+    "name": "Bottes Médical en Carbone",
+    "type": "boots",
+    "protection": 44
+  },
+  {
+    "id": 798,
+    "name": "Visière Furtif en Cuir",
+    "type": "helmet",
+    "protection": 39
+  },
+  {
+    "id": 799,
+    "name": "Visière d'Assaut Composite",
+    "type": "helmet",
+    "protection": 11
+  },
+  {
+    "id": 800,
+    "name": "Grèves de Vétéran en Kevlar",
+    "type": "boots",
+    "protection": 26
+  },
+  {
+    "id": 801,
+    "name": "Poignets Médical en Cuir",
+    "type": "gloves",
+    "protection": 48
+  },
+  {
+    "id": 802,
+    "name": "Visière de Sniper en Titane",
+    "type": "helmet",
+    "protection": 15
+  },
+  {
+    "id": 803,
+    "name": "Gilet Renforcé en Acier",
+    "type": "vest",
+    "protection": 19
+  },
+  {
+    "id": 804,
+    "name": "Casque Furtif Énergétique",
+    "type": "helmet",
+    "protection": 24
+  },
+  {
+    "id": 805,
+    "name": "Grèves de Recrue en Carbone",
+    "type": "boots",
+    "protection": 37
+  },
+  {
+    "id": 806,
+    "name": "Chaussures de Vétéran en Titane",
+    "type": "boots",
+    "protection": 23
+  },
+  {
+    "id": 807,
+    "name": "Harnais de Recrue Magnétique",
+    "type": "vest",
+    "protection": 14
+  },
+  {
+    "id": 808,
+    "name": "Cagoule Renforcé en Acier",
+    "type": "helmet",
+    "protection": 8
+  },
+  {
+    "id": 809,
+    "name": "Harnais Lourd en Cuir",
+    "type": "vest",
+    "protection": 29
+  },
+  {
+    "id": 810,
+    "name": "Visière de Soutien en Carbone",
+    "type": "helmet",
+    "protection": 21
+  },
+  {
+    "id": 811,
+    "name": "Gilet de Commando Balistique",
+    "type": "vest",
+    "protection": 47
+  },
+  {
+    "id": 812,
+    "name": "Heaume Explosif en Titane",
+    "type": "helmet",
+    "protection": 39
+  },
+  {
+    "id": 813,
+    "name": "Bottes Furtif en Titane",
+    "type": "boots",
+    "protection": 7
+  },
+  {
+    "id": 814,
+    "name": "Veste Furtif en Carbone",
+    "type": "vest",
+    "protection": 33
+  },
+  {
+    "id": 815,
+    "name": "Plastron de Recrue Magnétique",
+    "type": "vest",
+    "protection": 12
+  },
+  {
+    "id": 816,
+    "name": "Masque de Sniper en Cuir",
+    "type": "helmet",
+    "protection": 12
+  },
+  {
+    "id": 817,
+    "name": "Visière de Soutien en Titane",
+    "type": "helmet",
+    "protection": 20
+  },
+  {
+    "id": 818,
+    "name": "Gantelets Renforcé en Cuir",
+    "type": "gloves",
+    "protection": 24
+  },
+  {
+    "id": 819,
+    "name": "Casque Médical en Titane",
+    "type": "helmet",
+    "protection": 43
+  },
+  {
+    "id": 820,
+    "name": "Gants de Soldat en Céramique",
+    "type": "gloves",
+    "protection": 26
+  },
+  {
+    "id": 821,
+    "name": "Casque Léger en Kevlar",
+    "type": "helmet",
+    "protection": 11
+  },
+  {
+    "id": 822,
+    "name": "Cagoule de Recrue en Titane",
+    "type": "helmet",
+    "protection": 47
+  },
+  {
+    "id": 823,
+    "name": "Veste Léger en Kevlar",
+    "type": "vest",
+    "protection": 21
+  },
+  {
+    "id": 824,
+    "name": "Gilet Explosif en Titane",
+    "type": "vest",
+    "protection": 11
+  },
+  {
+    "id": 825,
+    "name": "Gilet de Commando en Carbone",
+    "type": "vest",
+    "protection": 30
+  },
+  {
+    "id": 826,
+    "name": "Gants d'Élite en Céramique",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 827,
+    "name": "Plastron d'Élite Magnétique",
+    "type": "vest",
+    "protection": 26
+  },
+  {
+    "id": 828,
+    "name": "Visière Tactique en Carbone",
+    "type": "helmet",
+    "protection": 19
+  },
+  {
+    "id": 829,
+    "name": "Casque Lourd Balistique",
+    "type": "helmet",
+    "protection": 14
+  },
+  {
+    "id": 830,
+    "name": "Cagoule de Recrue Magnétique",
+    "type": "helmet",
+    "protection": 28
+  },
+  {
+    "id": 831,
+    "name": "Brassards Médical Balistique",
+    "type": "gloves",
+    "protection": 39
+  },
+  {
+    "id": 832,
+    "name": "Gilet Renforcé Composite",
+    "type": "vest",
+    "protection": 12
+  },
+  {
+    "id": 833,
+    "name": "Gants de Commando en Kevlar",
+    "type": "gloves",
+    "protection": 21
+  },
+  {
+    "id": 834,
+    "name": "Grèves de Vétéran Magnétique",
+    "type": "boots",
+    "protection": 34
+  },
+  {
+    "id": 835,
+    "name": "Gants Furtif en Carbone",
+    "type": "gloves",
+    "protection": 45
+  },
+  {
+    "id": 836,
+    "name": "Cagoule Renforcé Composite",
+    "type": "helmet",
+    "protection": 27
+  },
+  {
+    "id": 837,
+    "name": "Gants d'Assaut en Acier",
+    "type": "gloves",
+    "protection": 30
+  },
+  {
+    "id": 838,
+    "name": "Harnais d'Assaut en Carbone",
+    "type": "vest",
+    "protection": 33
+  },
+  {
+    "id": 839,
+    "name": "Harnais Renforcé Énergétique",
+    "type": "vest",
+    "protection": 48
+  },
+  {
+    "id": 840,
+    "name": "Plastron Lourd en Céramique",
+    "type": "vest",
+    "protection": 47
+  },
+  {
+    "id": 841,
+    "name": "Casque d'Élite en Carbone",
+    "type": "helmet",
+    "protection": 42
+  },
+  {
+    "id": 842,
+    "name": "Masque de Commando en Titane",
+    "type": "helmet",
+    "protection": 14
+  },
+  {
+    "id": 843,
+    "name": "Brassards de Recrue en Titane",
+    "type": "gloves",
+    "protection": 40
+  },
+  {
+    "id": 844,
+    "name": "Grèves de Soutien en Titane",
+    "type": "boots",
+    "protection": 21
+  },
+  {
+    "id": 845,
+    "name": "Mitaines de Soldat en Cuir",
+    "type": "gloves",
+    "protection": 5
+  },
+  {
+    "id": 846,
+    "name": "Gilet de Sniper Énergétique",
+    "type": "vest",
+    "protection": 36
+  },
+  {
+    "id": 847,
+    "name": "Grèves de Recrue en Titane",
+    "type": "boots",
+    "protection": 44
+  },
+  {
+    "id": 848,
+    "name": "Jambières Lourd en Céramique",
+    "type": "boots",
+    "protection": 6
+  },
+  {
+    "id": 849,
+    "name": "Gants de Commando en Titane",
+    "type": "gloves",
+    "protection": 43
+  },
+  {
+    "id": 850,
+    "name": "Casque Léger en Titane",
+    "type": "helmet",
+    "protection": 35
+  },
+  {
+    "id": 851,
+    "name": "Casque Explosif en Titane",
+    "type": "helmet",
+    "protection": 45
+  },
+  {
+    "id": 852,
+    "name": "Bottes Lourd Balistique",
+    "type": "boots",
+    "protection": 43
+  },
+  {
+    "id": 853,
+    "name": "Gantelets Léger en Carbone",
+    "type": "gloves",
+    "protection": 20
+  },
+  {
+    "id": 854,
+    "name": "Gilet d'Élite en Carbone",
+    "type": "vest",
+    "protection": 39
+  },
+  {
+    "id": 855,
+    "name": "Plastron Furtif en Carbone",
+    "type": "vest",
+    "protection": 19
+  },
+  {
+    "id": 856,
+    "name": "Casque de Soutien en Kevlar",
+    "type": "helmet",
+    "protection": 26
+  },
+  {
+    "id": 857,
+    "name": "Solerets de Soutien en Céramique",
+    "type": "boots",
+    "protection": 21
+  },
+  {
+    "id": 858,
+    "name": "Gants Léger Énergétique",
+    "type": "gloves",
+    "protection": 20
+  },
+  {
+    "id": 859,
+    "name": "Cuirasse d'Élite en Titane",
+    "type": "vest",
+    "protection": 27
+  },
+  {
+    "id": 860,
+    "name": "Casque Médical en Cuir",
+    "type": "helmet",
+    "protection": 25
+  },
+  {
+    "id": 861,
+    "name": "Bottes Furtif en Cuir",
+    "type": "boots",
+    "protection": 35
+  },
+  {
+    "id": 862,
+    "name": "Chaussures de Sniper en Kevlar",
+    "type": "boots",
+    "protection": 14
+  },
+  {
+    "id": 863,
+    "name": "Brassards d'Assaut en Kevlar",
+    "type": "gloves",
+    "protection": 14
+  },
+  {
+    "id": 864,
+    "name": "Gilet de Soutien en Acier",
+    "type": "vest",
+    "protection": 6
+  },
+  {
+    "id": 865,
+    "name": "Plastron Explosif en Kevlar",
+    "type": "vest",
+    "protection": 26
+  },
+  {
+    "id": 866,
+    "name": "Gantelets Léger en Titane",
+    "type": "gloves",
+    "protection": 17
+  },
+  {
+    "id": 867,
+    "name": "Gantelets de Recrue en Titane",
+    "type": "gloves",
+    "protection": 5
+  },
+  {
+    "id": 868,
+    "name": "Mitaines de Soldat en Kevlar",
+    "type": "gloves",
+    "protection": 27
+  },
+  {
+    "id": 869,
+    "name": "Poignets Furtif en Acier",
+    "type": "gloves",
+    "protection": 30
+  },
+  {
+    "id": 870,
+    "name": "Mitaines de Sniper en Cuir",
+    "type": "gloves",
+    "protection": 6
+  },
+  {
+    "id": 871,
+    "name": "Bottes Explosif en Acier",
+    "type": "boots",
+    "protection": 33
+  },
+  {
+    "id": 872,
+    "name": "Solerets Tactique en Kevlar",
+    "type": "boots",
+    "protection": 8
+  },
+  {
+    "id": 873,
+    "name": "Brassards de Recrue en Kevlar",
+    "type": "gloves",
+    "protection": 9
+  },
+  {
+    "id": 874,
+    "name": "Mitaines Furtif Énergétique",
+    "type": "gloves",
+    "protection": 39
+  },
+  {
+    "id": 875,
+    "name": "Gilet Lourd en Kevlar",
+    "type": "vest",
+    "protection": 32
+  },
+  {
+    "id": 876,
+    "name": "Jambières de Vétéran Balistique",
+    "type": "boots",
+    "protection": 45
+  },
+  {
+    "id": 877,
+    "name": "Plastron Tactique en Cuir",
+    "type": "vest",
+    "protection": 31
+  },
+  {
+    "id": 878,
+    "name": "Gantelets Renforcé en Acier",
+    "type": "gloves",
+    "protection": 27
+  },
+  {
+    "id": 879,
+    "name": "Gants Médical en Kevlar",
+    "type": "gloves",
+    "protection": 25
+  },
+  {
+    "id": 880,
+    "name": "Cuirasse Renforcé en Titane",
+    "type": "vest",
+    "protection": 42
+  },
+  {
+    "id": 881,
+    "name": "Gants de Recrue en Acier",
+    "type": "gloves",
+    "protection": 19
+  },
+  {
+    "id": 882,
+    "name": "Cagoule Médical en Cuir",
+    "type": "helmet",
+    "protection": 46
+  },
+  {
+    "id": 883,
+    "name": "Masque Renforcé en Carbone",
+    "type": "helmet",
+    "protection": 41
+  },
+  {
+    "id": 884,
+    "name": "Bottes Lourd Magnétique",
+    "type": "boots",
+    "protection": 8
+  },
+  {
+    "id": 885,
+    "name": "Chaussures Explosif Composite",
+    "type": "boots",
+    "protection": 6
+  },
+  {
+    "id": 886,
+    "name": "Gants de Vétéran Magnétique",
+    "type": "gloves",
+    "protection": 13
+  },
+  {
+    "id": 887,
+    "name": "Gilet de Soldat Énergétique",
+    "type": "vest",
+    "protection": 31
+  },
+  {
+    "id": 888,
+    "name": "Chaussures d'Élite en Acier",
+    "type": "boots",
+    "protection": 18
+  },
+  {
+    "id": 889,
+    "name": "Grèves de Vétéran Balistique",
+    "type": "boots",
+    "protection": 5
+  },
+  {
+    "id": 890,
+    "name": "Harnais de Soldat Balistique",
+    "type": "vest",
+    "protection": 20
+  },
+  {
+    "id": 891,
+    "name": "Brassards Lourd en Acier",
+    "type": "gloves",
+    "protection": 42
+  },
+  {
+    "id": 892,
+    "name": "Gants de Recrue en Céramique",
+    "type": "gloves",
+    "protection": 33
+  },
+  {
+    "id": 893,
+    "name": "Gants Lourd en Acier",
+    "type": "gloves",
+    "protection": 7
+  },
+  {
+    "id": 894,
+    "name": "Gants Tactique en Titane",
+    "type": "gloves",
+    "protection": 29
+  },
+  {
+    "id": 895,
+    "name": "Gilet d'Élite en Kevlar",
+    "type": "vest",
+    "protection": 18
+  },
+  {
+    "id": 896,
+    "name": "Bottes Renforcé en Titane",
+    "type": "boots",
+    "protection": 30
+  },
+  {
+    "id": 897,
+    "name": "Gilet de Soldat Balistique",
+    "type": "vest",
+    "protection": 25
+  },
+  {
+    "id": 898,
+    "name": "Mitaines d'Élite en Acier",
+    "type": "gloves",
+    "protection": 49
+  },
+  {
+    "id": 899,
+    "name": "Chaussures de Commando en Céramique",
+    "type": "boots",
+    "protection": 38
+  },
+  {
+    "id": 900,
+    "name": "Mitaines de Vétéran Balistique",
+    "type": "gloves",
+    "protection": 12
+  },
+  {
+    "id": 901,
+    "name": "Plastron Tactique en Kevlar",
+    "type": "vest",
+    "protection": 22
+  },
+  {
+    "id": 902,
+    "name": "Masque de Sniper en Acier",
+    "type": "helmet",
+    "protection": 30
+  },
+  {
+    "id": 903,
+    "name": "Chaussures d'Assaut en Carbone",
+    "type": "boots",
+    "protection": 39
+  },
+  {
+    "id": 904,
+    "name": "Poignets de Soldat en Céramique",
+    "type": "gloves",
+    "protection": 15
+  },
+  {
+    "id": 905,
+    "name": "Harnais Renforcé Balistique",
+    "type": "vest",
+    "protection": 37
+  },
+  {
+    "id": 906,
+    "name": "Jambières de Vétéran en Acier",
+    "type": "boots",
+    "protection": 42
+  },
+  {
+    "id": 907,
+    "name": "Heaume de Soutien en Titane",
+    "type": "helmet",
+    "protection": 13
+  },
+  {
+    "id": 908,
+    "name": "Casque de Recrue en Cuir",
+    "type": "helmet",
+    "protection": 6
+  },
+  {
+    "id": 909,
+    "name": "Poignets de Vétéran en Kevlar",
+    "type": "gloves",
+    "protection": 39
+  },
+  {
+    "id": 910,
+    "name": "Veste Explosif en Cuir",
+    "type": "vest",
+    "protection": 44
+  },
+  {
+    "id": 911,
+    "name": "Gants d'Élite en Cuir",
+    "type": "gloves",
+    "protection": 17
+  },
+  {
+    "id": 912,
+    "name": "Veste Renforcé en Titane",
+    "type": "vest",
+    "protection": 14
+  },
+  {
+    "id": 913,
+    "name": "Brassards d'Assaut en Cuir",
+    "type": "gloves",
+    "protection": 30
+  },
+  {
+    "id": 914,
+    "name": "Masque Léger en Titane",
+    "type": "helmet",
+    "protection": 38
+  },
+  {
+    "id": 915,
+    "name": "Cagoule de Vétéran en Carbone",
+    "type": "helmet",
+    "protection": 23
+  },
+  {
+    "id": 916,
+    "name": "Plastron de Recrue en Carbone",
+    "type": "vest",
+    "protection": 38
+  },
+  {
+    "id": 917,
+    "name": "Mitaines Tactique en Kevlar",
+    "type": "gloves",
+    "protection": 37
+  },
+  {
+    "id": 918,
+    "name": "Cuirasse de Soutien en Céramique",
+    "type": "vest",
+    "protection": 43
+  },
+  {
+    "id": 919,
+    "name": "Solerets Médical en Céramique",
+    "type": "boots",
+    "protection": 17
+  },
+  {
+    "id": 920,
+    "name": "Visière Médical Balistique",
+    "type": "helmet",
+    "protection": 24
+  },
+  {
+    "id": 921,
+    "name": "Solerets de Recrue Composite",
+    "type": "boots",
+    "protection": 20
+  },
+  {
+    "id": 922,
+    "name": "Mitaines de Recrue en Titane",
+    "type": "gloves",
+    "protection": 20
+  },
+  {
+    "id": 923,
+    "name": "Cagoule Tactique Magnétique",
+    "type": "helmet",
+    "protection": 22
+  },
+  {
+    "id": 924,
+    "name": "Plastron de Vétéran Composite",
+    "type": "vest",
+    "protection": 15
+  },
+  {
+    "id": 925,
+    "name": "Visière de Sniper en Acier",
+    "type": "helmet",
+    "protection": 23
+  },
+  {
+    "id": 926,
+    "name": "Mitaines de Recrue en Cuir",
+    "type": "gloves",
+    "protection": 18
+  },
+  {
+    "id": 927,
+    "name": "Chaussures Renforcé Magnétique",
+    "type": "boots",
+    "protection": 38
+  },
+  {
+    "id": 928,
+    "name": "Gilet d'Élite en Céramique",
+    "type": "vest",
+    "protection": 30
+  },
+  {
+    "id": 929,
+    "name": "Mitaines Explosif en Carbone",
+    "type": "gloves",
+    "protection": 15
+  },
+  {
+    "id": 930,
+    "name": "Grèves de Vétéran en Cuir",
+    "type": "boots",
+    "protection": 48
+  },
+  {
+    "id": 931,
+    "name": "Veste d'Élite en Carbone",
+    "type": "vest",
+    "protection": 37
+  },
+  {
+    "id": 932,
+    "name": "Harnais de Vétéran en Carbone",
+    "type": "vest",
+    "protection": 13
+  },
+  {
+    "id": 933,
+    "name": "Visière Renforcé en Acier",
+    "type": "helmet",
+    "protection": 40
+  },
+  {
+    "id": 934,
+    "name": "Solerets Médical Énergétique",
+    "type": "boots",
+    "protection": 16
+  },
+  {
+    "id": 935,
+    "name": "Harnais Renforcé en Céramique",
+    "type": "vest",
+    "protection": 42
+  },
+  {
+    "id": 936,
+    "name": "Casque Léger Magnétique",
+    "type": "helmet",
+    "protection": 19
+  },
+  {
+    "id": 937,
+    "name": "Plastron Renforcé Composite",
+    "type": "vest",
+    "protection": 8
+  },
+  {
+    "id": 938,
+    "name": "Poignets d'Élite en Kevlar",
+    "type": "gloves",
+    "protection": 19
+  },
+  {
+    "id": 939,
+    "name": "Jambières Lourd Énergétique",
+    "type": "boots",
+    "protection": 40
+  },
+  {
+    "id": 940,
+    "name": "Visière Léger Énergétique",
+    "type": "helmet",
+    "protection": 31
+  },
+  {
+    "id": 941,
+    "name": "Harnais de Soutien en Kevlar",
+    "type": "vest",
+    "protection": 37
+  },
+  {
+    "id": 942,
+    "name": "Bottes de Sniper Balistique",
+    "type": "boots",
+    "protection": 37
+  },
+  {
+    "id": 943,
+    "name": "Poignets de Soldat en Acier",
+    "type": "gloves",
+    "protection": 27
+  },
+  {
+    "id": 944,
+    "name": "Gants Furtif en Titane",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 945,
+    "name": "Solerets de Sniper Balistique",
+    "type": "boots",
+    "protection": 12
+  },
+  {
+    "id": 946,
+    "name": "Jambières de Commando Magnétique",
+    "type": "boots",
+    "protection": 10
+  },
+  {
+    "id": 947,
+    "name": "Masque Lourd en Céramique",
+    "type": "helmet",
+    "protection": 28
+  },
+  {
+    "id": 948,
+    "name": "Solerets de Recrue Énergétique",
+    "type": "boots",
+    "protection": 8
+  },
+  {
+    "id": 949,
+    "name": "Heaume Médical Composite",
+    "type": "helmet",
+    "protection": 15
+  },
+  {
+    "id": 950,
+    "name": "Cuirasse de Soutien en Cuir",
+    "type": "vest",
+    "protection": 13
+  },
+  {
+    "id": 951,
+    "name": "Gants de Soldat Énergétique",
+    "type": "gloves",
+    "protection": 13
+  },
+  {
+    "id": 952,
+    "name": "Gilet de Sniper en Céramique",
+    "type": "vest",
+    "protection": 47
+  },
+  {
+    "id": 953,
+    "name": "Harnais de Recrue en Cuir",
+    "type": "vest",
+    "protection": 42
+  },
+  {
+    "id": 954,
+    "name": "Casque Furtif Composite",
+    "type": "helmet",
+    "protection": 43
+  },
+  {
+    "id": 955,
+    "name": "Plastron de Soldat Composite",
+    "type": "vest",
+    "protection": 47
+  },
+  {
+    "id": 956,
+    "name": "Solerets Lourd en Kevlar",
+    "type": "boots",
+    "protection": 17
+  },
+  {
+    "id": 957,
+    "name": "Plastron d'Assaut Magnétique",
+    "type": "vest",
+    "protection": 34
+  },
+  {
+    "id": 958,
+    "name": "Brassards d'Assaut en Titane",
+    "type": "gloves",
+    "protection": 21
+  },
+  {
+    "id": 959,
+    "name": "Cuirasse de Soldat en Céramique",
+    "type": "vest",
+    "protection": 21
+  },
+  {
+    "id": 960,
+    "name": "Gilet Léger en Acier",
+    "type": "vest",
+    "protection": 29
+  },
+  {
+    "id": 961,
+    "name": "Poignets de Recrue Composite",
+    "type": "gloves",
+    "protection": 37
+  },
+  {
+    "id": 962,
+    "name": "Poignets de Soldat en Kevlar",
+    "type": "gloves",
+    "protection": 49
+  },
+  {
+    "id": 963,
+    "name": "Gantelets Renforcé en Céramique",
+    "type": "gloves",
+    "protection": 28
+  },
+  {
+    "id": 964,
+    "name": "Grèves Furtif en Carbone",
+    "type": "boots",
+    "protection": 14
+  },
+  {
+    "id": 965,
+    "name": "Veste de Vétéran Magnétique",
+    "type": "vest",
+    "protection": 24
+  },
+  {
+    "id": 966,
+    "name": "Cuirasse de Recrue Énergétique",
+    "type": "vest",
+    "protection": 29
+  },
+  {
+    "id": 967,
+    "name": "Chaussures Léger Composite",
+    "type": "boots",
+    "protection": 17
+  },
+  {
+    "id": 968,
+    "name": "Chaussures Médical Composite",
+    "type": "boots",
+    "protection": 47
+  },
+  {
+    "id": 969,
+    "name": "Veste Furtif en Kevlar",
+    "type": "vest",
+    "protection": 50
+  },
+  {
+    "id": 970,
+    "name": "Casque Médical Magnétique",
+    "type": "helmet",
+    "protection": 8
+  },
+  {
+    "id": 971,
+    "name": "Heaume de Recrue en Acier",
+    "type": "helmet",
+    "protection": 37
+  },
+  {
+    "id": 972,
+    "name": "Solerets de Soutien en Carbone",
+    "type": "boots",
+    "protection": 46
+  },
+  {
+    "id": 973,
+    "name": "Cuirasse Lourd Énergétique",
+    "type": "vest",
+    "protection": 41
+  },
+  {
+    "id": 974,
+    "name": "Cagoule Léger Magnétique",
+    "type": "helmet",
+    "protection": 27
+  },
+  {
+    "id": 975,
+    "name": "Harnais de Soldat en Cuir",
+    "type": "vest",
+    "protection": 47
+  },
+  {
+    "id": 976,
+    "name": "Harnais Renforcé en Acier",
+    "type": "vest",
+    "protection": 40
+  },
+  {
+    "id": 977,
+    "name": "Veste Renforcé Énergétique",
+    "type": "vest",
+    "protection": 35
+  },
+  {
+    "id": 978,
+    "name": "Gantelets de Recrue en Carbone",
+    "type": "gloves",
+    "protection": 47
+  },
+  {
+    "id": 979,
+    "name": "Poignets Léger en Carbone",
+    "type": "gloves",
+    "protection": 30
+  },
+  {
+    "id": 980,
+    "name": "Casque Lourd en Cuir",
+    "type": "helmet",
+    "protection": 6
+  },
+  {
+    "id": 981,
+    "name": "Harnais de Sniper en Titane",
+    "type": "vest",
+    "protection": 38
+  },
+  {
+    "id": 982,
+    "name": "Chaussures Furtif en Kevlar",
+    "type": "boots",
+    "protection": 30
+  },
+  {
+    "id": 983,
+    "name": "Masque Renforcé en Cuir",
+    "type": "helmet",
+    "protection": 29
+  },
+  {
+    "id": 984,
+    "name": "Poignets Lourd Énergétique",
+    "type": "gloves",
+    "protection": 13
+  },
+  {
+    "id": 985,
+    "name": "Gants de Soldat Magnétique",
+    "type": "gloves",
+    "protection": 21
+  },
+  {
+    "id": 986,
+    "name": "Gantelets de Vétéran en Kevlar",
+    "type": "gloves",
+    "protection": 33
+  },
+  {
+    "id": 987,
+    "name": "Gantelets Renforcé Composite",
+    "type": "gloves",
+    "protection": 32
+  },
+  {
+    "id": 988,
+    "name": "Chaussures de Vétéran Composite",
+    "type": "boots",
+    "protection": 20
+  },
+  {
+    "id": 989,
+    "name": "Grèves Explosif en Acier",
+    "type": "boots",
+    "protection": 5
+  },
+  {
+    "id": 990,
+    "name": "Harnais de Sniper en Kevlar",
+    "type": "vest",
+    "protection": 43
+  },
+  {
+    "id": 991,
+    "name": "Plastron Médical en Cuir",
+    "type": "vest",
+    "protection": 20
+  },
+  {
+    "id": 992,
+    "name": "Poignets de Recrue en Acier",
+    "type": "gloves",
+    "protection": 28
+  },
+  {
+    "id": 993,
+    "name": "Masque d'Élite Magnétique",
+    "type": "helmet",
+    "protection": 16
+  },
+  {
+    "id": 994,
+    "name": "Solerets de Vétéran en Titane",
+    "type": "boots",
+    "protection": 20
+  },
+  {
+    "id": 995,
+    "name": "Cuirasse d'Assaut Énergétique",
+    "type": "vest",
+    "protection": 47
+  },
+  {
+    "id": 996,
+    "name": "Gilet de Commando en Cuir",
+    "type": "vest",
+    "protection": 27
+  },
+  {
+    "id": 997,
+    "name": "Brassards Léger en Kevlar",
+    "type": "gloves",
+    "protection": 31
+  },
+  {
+    "id": 998,
+    "name": "Gants Furtif en Cuir",
+    "type": "gloves",
+    "protection": 31
+  },
+  {
+    "id": 999,
+    "name": "Poignets Renforcé Balistique",
+    "type": "gloves",
+    "protection": 42
+  },
+  {
+    "id": 1000,
+    "name": "Brassards Léger Magnétique",
+    "type": "gloves",
+    "protection": 36
+  }
+]
