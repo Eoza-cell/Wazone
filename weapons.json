@@ -1,44 +1,30 @@
 [
     {
-      "name": "Pistolet simple",
-      "class": "simple",
-      "rank": 1,
-      "damage": 15
-    },
-    {
-      "name": "Fusil d'assaut",
-      "class": "simple",
-      "rank": 2,
-      "damage": 25
-    },
-    {
-        "name": "Fusil à pompe",
+        "name": "M4A1",
         "class": "simple",
-        "rank": 3,
-        "damage": 35
+        "rarity": "Commun",
+        "damage": 30,
+        "image": "https://www.wazone.dev/images/m4a1.png"
     },
     {
-      "name": "Fusil de précision",
-      "class": "sniper",
-      "rank": 1,
-      "damage": 50
+        "name": "AK-47",
+        "class": "simple",
+        "rarity": "Rare",
+        "damage": 35,
+        "image": "https://www.wazone.dev/images/ak47.png"
     },
     {
-        "name": "Fusil de précision lourd",
+        "name": "Intervention",
         "class": "sniper",
-        "rank": 2,
-        "damage": 75
+        "rarity": "Épique",
+        "damage": 75,
+        "image": "https://www.wazone.dev/images/intervention.png"
     },
     {
-      "name": "Bazooka",
-      "class": "lourd",
-      "rank": 1,
-      "damage": 100
-    },
-    {
-        "name": "Lance-grenades",
+        "name": "Ray Gun",
         "class": "lourd",
-        "rank": 2,
-        "damage": 120
+        "rarity": "Légendaire",
+        "damage": 200,
+        "image": "https://www.wazone.dev/images/raygun.png"
     }
 ]
