@@ -1,44 +1,1045 @@
 [
-    {
-      "name": "Pistolet simple",
-      "class": "simple",
-      "rank": 1,
-      "damage": 15
-    },
-    {
-      "name": "Fusil d'assaut",
-      "class": "simple",
-      "rank": 2,
-      "damage": 25
-    },
-    {
-        "name": "Fusil à pompe",
-        "class": "simple",
-        "rank": 3,
-        "damage": 35
-    },
-    {
-      "name": "Fusil de précision",
-      "class": "sniper",
-      "rank": 1,
-      "damage": 50
-    },
-    {
-        "name": "Fusil de précision lourd",
-        "class": "sniper",
-        "rank": 2,
-        "damage": 75
-    },
-    {
-      "name": "Bazooka",
-      "class": "lourd",
-      "rank": 1,
-      "damage": 100
-    },
-    {
-        "name": "Lance-grenades",
-        "class": "lourd",
-        "rank": 2,
-        "damage": 120
-    }
+  {
+    "name": "Pistolet simple",
+    "class": "simple",
+    "rank": 1,
+    "damage": 15
+  },
+  {
+    "name": "Fusil d'assaut",
+    "class": "simple",
+    "rank": 2,
+    "damage": 25
+  },
+  {
+    "name": "Fusil à pompe",
+    "class": "simple",
+    "rank": 3,
+    "damage": 35
+  },
+  {
+    "name": "Fusil de précision",
+    "class": "sniper",
+    "rank": 1,
+    "damage": 50
+  },
+  {
+    "name": "Fusil de précision lourd",
+    "class": "sniper",
+    "rank": 2,
+    "damage": 75
+  },
+  {
+    "name": "Bazooka",
+    "class": "lourd",
+    "rank": 1,
+    "damage": 100
+  },
+  {
+    "name": "Lance-grenades",
+    "class": "lourd",
+    "rank": 2,
+    "damage": 120
+  },
+  {
+    "id": 8,
+    "name": "Canon amélioré de la glace",
+    "class": "lourd",
+    "rank": 3,
+    "damage": 112
+  },
+  {
+    "id": 9,
+    "name": "Shuriken de base du vétéran",
+    "class": "assassin",
+    "rank": 3,
+    "damage": 125
+  },
+  {
+    "id": 10,
+    "name": "Arbalète amélioré de la glace",
+    "class": "sniper",
+    "rank": 2,
+    "damage": 14
+  },
+  {
+    "id": 11,
+    "name": "Mine mythique de la glace",
+    "class": "bomber",
+    "rank": 3,
+    "damage": 56
+  },
+  {
+    "id": 12,
+    "name": "Fusil à baïonnette du chaos",
+    "class": "simple",
+    "rank": 3,
+    "damage": 116
+  },
+  {
+    "id": 13,
+    "name": "Arbalète mythique du soldat",
+    "class": "sniper",
+    "rank": 5,
+    "damage": 90
+  },
+  {
+    "id": 14,
+    "name": "Fusil anti-matériel tactique du maître",
+    "class": "sniper",
+    "rank": 5,
+    "damage": 59
+  },
+  {
+    "id": 15,
+    "name": "Bazooka tactique du chaos",
+    "class": "lourd",
+    "rank": 4,
+    "damage": 70
+  },
+  {
+    "id": 16,
+    "name": "Arc de base du maître",
+    "class": "sniper",
+    "rank": 1,
+    "damage": 92
+  },
+  {
+    "id": 17,
+    "name": "Pistolet légendaire du soldat",
+    "class": "simple",
+    "rank": 4,
+    "damage": 13
+  },
+  {
+    "id": 18,
+    "name": "Cocktail Molotov à visée laser de la glace",
+    "class": "bomber",
+    "rank": 3,
+    "damage": 88
+  },
+  {
+    "id": 19,
+    "name": "Bazooka à visée laser de l'ordre",
+    "class": "lourd",
+    "rank": 1,
+    "damage": 159
+  },
+  {
+    "id": 20,
+    "name": "Shuriken à canon long du soldat",
+    "class": "assassin",
+    "rank": 2,
+    "damage": 183
+  },
+  {
+    "id": 21,
+    "name": "C4 à canon long de la recrue",
+    "class": "bomber",
+    "rank": 5,
+    "damage": 44
+  },
+  {
+    "id": 22,
+    "name": "Lance-flammes mythique de l'ordre",
+    "class": "bomber",
+    "rank": 2,
+    "damage": 51
+  },
+  {
+    "id": 23,
+    "name": "Katana mythique du chaos",
+    "class": "assassin",
+    "rank": 3,
+    "damage": 141
+  },
+  {
+    "id": 24,
+    "name": "Revolver de base de la glace",
+    "class": "simple",
+    "rank": 3,
+    "damage": 40
+  },
+  {
+    "id": 25,
+    "name": "Canon amélioré du soldat",
+    "class": "lourd",
+    "rank": 3,
+    "damage": 179
+  },
+  {
+    "id": 26,
+    "name": "Grenade d'élite du vétéran",
+    "class": "bomber",
+    "rank": 1,
+    "damage": 120
+  },
+  {
+    "id": 27,
+    "name": "Couteau mythique de l'ordre",
+    "class": "assassin",
+    "rank": 1,
+    "damage": 58
+  },
+  {
+    "id": 28,
+    "name": "Arc mythique de la lumière",
+    "class": "sniper",
+    "rank": 1,
+    "damage": 83
+  },
+  {
+    "id": 29,
+    "name": "Cocktail Molotov d'élite du vétéran",
+    "class": "bomber",
+    "rank": 2,
+    "damage": 113
+  },
+  {
+    "id": 30,
+    "name": "Lance-grenades silencieux du vétéran",
+    "class": "lourd",
+    "rank": 2,
+    "damage": 12
+  },
+  {
+    "id": 31,
+    "name": "Cocktail Molotov tactique du soldat",
+    "class": "bomber",
+    "rank": 4,
+    "damage": 88
+  },
+  {
+    "id": 32,
+    "name": "Couteau d'élite de l'ombre",
+    "class": "assassin",
+    "rank": 4,
+    "damage": 86
+  },
+  {
+    "id": 33,
+    "name": "Fusil de précision silencieux du feu",
+    "class": "sniper",
+    "rank": 1,
+    "damage": 167
+  },
+  {
+    "id": 34,
+    "name": "Bazooka à visée laser du chaos",
+    "class": "lourd",
+    "rank": 4,
+    "damage": 78
+  },
+  {
+    "id": 35,
+    "name": "Revolver mythique du vétéran",
+    "class": "simple",
+    "rank": 2,
+    "damage": 95
+  },
+  {
+    "id": 36,
+    "name": "C4 tactique du vétéran",
+    "class": "bomber",
+    "rank": 2,
+    "damage": 168
+  },
+  {
+    "id": 37,
+    "name": "C4 à canon long de l'ordre",
+    "class": "bomber",
+    "rank": 1,
+    "damage": 89
+  },
+  {
+    "id": 38,
+    "name": "Couteau légendaire du feu",
+    "class": "assassin",
+    "rank": 2,
+    "damage": 81
+  },
+  {
+    "id": 39,
+    "name": "C4 de base du vétéran",
+    "class": "bomber",
+    "rank": 4,
+    "damage": 49
+  },
+  {
+    "id": 40,
+    "name": "Canon légendaire de la lumière",
+    "class": "lourd",
+    "rank": 1,
+    "damage": 117
+  },
+  {
+    "id": 41,
+    "name": "Fusil à baïonnette de la recrue",
+    "class": "simple",
+    "rank": 2,
+    "damage": 36
+  },
+  {
+    "id": 42,
+    "name": "Canon à canon long de la lumière",
+    "class": "lourd",
+    "rank": 2,
+    "damage": 165
+  },
+  {
+    "id": 43,
+    "name": "Arbalète d'élite du chaos",
+    "class": "sniper",
+    "rank": 2,
+    "damage": 14
+  },
+  {
+    "id": 44,
+    "name": "Mine d'élite du vétéran",
+    "class": "bomber",
+    "rank": 1,
+    "damage": 102
+  },
+  {
+    "id": 45,
+    "name": "Mitraillette d'élite de l'ombre",
+    "class": "simple",
+    "rank": 2,
+    "damage": 46
+  },
+  {
+    "id": 46,
+    "name": "Fusil de précision d'élite du soldat",
+    "class": "sniper",
+    "rank": 3,
+    "damage": 126
+  },
+  {
+    "id": 47,
+    "name": "Canon à baïonnette de l'ombre",
+    "class": "lourd",
+    "rank": 3,
+    "damage": 44
+  },
+  {
+    "id": 48,
+    "name": "C4 à canon long du feu",
+    "class": "bomber",
+    "rank": 4,
+    "damage": 41
+  },
+  {
+    "id": 49,
+    "name": "Carabine légendaire de la lumière",
+    "class": "simple",
+    "rank": 5,
+    "damage": 118
+  },
+  {
+    "id": 50,
+    "name": "Revolver amélioré du vétéran",
+    "class": "simple",
+    "rank": 4,
+    "damage": 26
+  },
+  {
+    "id": 51,
+    "name": "Pistolet mythique du feu",
+    "class": "simple",
+    "rank": 3,
+    "damage": 63
+  },
+  {
+    "id": 52,
+    "name": "Lance-flammes à canon long du vétéran",
+    "class": "bomber",
+    "rank": 2,
+    "damage": 117
+  },
+  {
+    "id": 53,
+    "name": "Arbalète à visée laser de l'ombre",
+    "class": "sniper",
+    "rank": 5,
+    "damage": 87
+  },
+  {
+    "id": 54,
+    "name": "Cocktail Molotov à canon long du feu",
+    "class": "bomber",
+    "rank": 2,
+    "damage": 11
+  },
+  {
+    "id": 55,
+    "name": "Mine amélioré de l'ombre",
+    "class": "bomber",
+    "rank": 2,
+    "damage": 69
+  },
+  {
+    "id": 56,
+    "name": "Arc d'élite de l'ombre",
+    "class": "sniper",
+    "rank": 5,
+    "damage": 189
+  },
+  {
+    "id": 57,
+    "name": "Nunchaku silencieux du vétéran",
+    "class": "assassin",
+    "rank": 3,
+    "damage": 156
+  },
+  {
+    "id": 58,
+    "name": "Shuriken à baïonnette du chaos",
+    "class": "assassin",
+    "rank": 1,
+    "damage": 69
+  },
+  {
+    "id": 59,
+    "name": "Bazooka mythique du soldat",
+    "class": "lourd",
+    "rank": 3,
+    "damage": 197
+  },
+  {
+    "id": 60,
+    "name": "Carabine légendaire de la glace",
+    "class": "simple",
+    "rank": 3,
+    "damage": 33
+  },
+  {
+    "id": 61,
+    "name": "Nunchaku à canon long du chaos",
+    "class": "assassin",
+    "rank": 5,
+    "damage": 108
+  },
+  {
+    "id": 62,
+    "name": "Arbalète à visée laser du chaos",
+    "class": "sniper",
+    "rank": 2,
+    "damage": 20
+  },
+  {
+    "id": 63,
+    "name": "Arbalète de base du chaos",
+    "class": "sniper",
+    "rank": 3,
+    "damage": 141
+  },
+  {
+    "id": 64,
+    "name": "Carabine amélioré du vétéran",
+    "class": "simple",
+    "rank": 4,
+    "damage": 135
+  },
+  {
+    "id": 65,
+    "name": "Couteau tactique de la recrue",
+    "class": "assassin",
+    "rank": 5,
+    "damage": 57
+  },
+  {
+    "id": 66,
+    "name": "Dague d'élite du chaos",
+    "class": "assassin",
+    "rank": 2,
+    "damage": 153
+  },
+  {
+    "id": 67,
+    "name": "Pistolet tactique de l'ordre",
+    "class": "simple",
+    "rank": 4,
+    "damage": 143
+  },
+  {
+    "id": 68,
+    "name": "Cocktail Molotov à baïonnette de la lumière",
+    "class": "bomber",
+    "rank": 3,
+    "damage": 78
+  },
+  {
+    "id": 69,
+    "name": "Canon à visée laser du feu",
+    "class": "lourd",
+    "rank": 1,
+    "damage": 77
+  },
+  {
+    "id": 70,
+    "name": "Mortier amélioré du maître",
+    "class": "lourd",
+    "rank": 4,
+    "damage": 167
+  },
+  {
+    "id": 71,
+    "name": "Lance-flammes amélioré de l'ordre",
+    "class": "bomber",
+    "rank": 2,
+    "damage": 74
+  },
+  {
+    "id": 72,
+    "name": "Mine légendaire de l'ordre",
+    "class": "bomber",
+    "rank": 4,
+    "damage": 129
+  },
+  {
+    "id": 73,
+    "name": "Fusil silencieux de l'ordre",
+    "class": "simple",
+    "rank": 2,
+    "damage": 141
+  },
+  {
+    "id": 74,
+    "name": "Mitraillette silencieux de la recrue",
+    "class": "simple",
+    "rank": 2,
+    "damage": 66
+  },
+  {
+    "id": 75,
+    "name": "C4 tactique du soldat",
+    "class": "bomber",
+    "rank": 4,
+    "damage": 76
+  },
+  {
+    "id": 76,
+    "name": "Minigun légendaire du soldat",
+    "class": "lourd",
+    "rank": 1,
+    "damage": 127
+  },
+  {
+    "id": 77,
+    "name": "Dague à canon long du vétéran",
+    "class": "assassin",
+    "rank": 2,
+    "damage": 24
+  },
+  {
+    "id": 78,
+    "name": "Canon d'élite de la lumière",
+    "class": "lourd",
+    "rank": 4,
+    "damage": 77
+  },
+  {
+    "id": 79,
+    "name": "Dague à canon long du soldat",
+    "class": "assassin",
+    "rank": 4,
+    "damage": 141
+  },
+  {
+    "id": 80,
+    "name": "Cocktail Molotov tactique de la recrue",
+    "class": "bomber",
+    "rank": 4,
+    "damage": 135
+  },
+  {
+    "id": 81,
+    "name": "Nunchaku de base de la glace",
+    "class": "assassin",
+    "rank": 4,
+    "damage": 106
+  },
+  {
+    "id": 82,
+    "name": "Canon tactique du maître",
+    "class": "lourd",
+    "rank": 2,
+    "damage": 196
+  },
+  {
+    "id": 83,
+    "name": "Mitraillette mythique de l'ombre",
+    "class": "simple",
+    "rank": 1,
+    "damage": 89
+  },
+  {
+    "id": 84,
+    "name": "Cocktail Molotov silencieux du feu",
+    "class": "bomber",
+    "rank": 2,
+    "damage": 156
+  },
+  {
+    "id": 85,
+    "name": "Lance-flammes à baïonnette de l'ombre",
+    "class": "bomber",
+    "rank": 5,
+    "damage": 98
+  },
+  {
+    "id": 86,
+    "name": "Fusil de précision de base du feu",
+    "class": "sniper",
+    "rank": 5,
+    "damage": 63
+  },
+  {
+    "id": 87,
+    "name": "Fusil de précision tactique de la glace",
+    "class": "sniper",
+    "rank": 4,
+    "damage": 30
+  },
+  {
+    "id": 88,
+    "name": "Bazooka silencieux de la glace",
+    "class": "lourd",
+    "rank": 3,
+    "damage": 53
+  },
+  {
+    "id": 89,
+    "name": "Mortier mythique du vétéran",
+    "class": "lourd",
+    "rank": 5,
+    "damage": 41
+  },
+  {
+    "id": 90,
+    "name": "Revolver silencieux de l'ombre",
+    "class": "simple",
+    "rank": 1,
+    "damage": 58
+  },
+  {
+    "id": 91,
+    "name": "Fusil de précision à visée laser du chaos",
+    "class": "sniper",
+    "rank": 3,
+    "damage": 28
+  },
+  {
+    "id": 92,
+    "name": "Mitraillette d'élite de la glace",
+    "class": "simple",
+    "rank": 2,
+    "damage": 168
+  },
+  {
+    "id": 93,
+    "name": "Carabine silencieux du maître",
+    "class": "simple",
+    "rank": 1,
+    "damage": 114
+  },
+  {
+    "id": 94,
+    "name": "Lance-flammes à canon long de l'ordre",
+    "class": "bomber",
+    "rank": 3,
+    "damage": 195
+  },
+  {
+    "id": 95,
+    "name": "Katana mythique du vétéran",
+    "class": "assassin",
+    "rank": 1,
+    "damage": 154
+  },
+  {
+    "id": 96,
+    "name": "Canon mythique de la recrue",
+    "class": "lourd",
+    "rank": 5,
+    "damage": 12
+  },
+  {
+    "id": 97,
+    "name": "Lance-grenades tactique de l'ombre",
+    "class": "lourd",
+    "rank": 1,
+    "damage": 136
+  },
+  {
+    "id": 98,
+    "name": "Lance-grenades à visée laser de l'ordre",
+    "class": "lourd",
+    "rank": 5,
+    "damage": 86
+  },
+  {
+    "id": 99,
+    "name": "Lance-grenades de base de l'ordre",
+    "class": "lourd",
+    "rank": 1,
+    "damage": 78
+  },
+  {
+    "id": 100,
+    "name": "Revolver à canon long de la lumière",
+    "class": "simple",
+    "rank": 5,
+    "damage": 191
+  },
+  {
+    "id": 101,
+    "name": "Minigun à canon long du soldat",
+    "class": "lourd",
+    "rank": 4,
+    "damage": 187
+  },
+  {
+    "id": 102,
+    "name": "Railgun tactique de la glace",
+    "class": "sniper",
+    "rank": 5,
+    "damage": 29
+  },
+  {
+    "id": 103,
+    "name": "C4 légendaire du maître",
+    "class": "bomber",
+    "rank": 4,
+    "damage": 189
+  },
+  {
+    "id": 104,
+    "name": "Lance-grenades à visée laser du chaos",
+    "class": "lourd",
+    "rank": 5,
+    "damage": 89
+  },
+  {
+    "id": 105,
+    "name": "Shuriken tactique du vétéran",
+    "class": "assassin",
+    "rank": 5,
+    "damage": 76
+  },
+  {
+    "id": 106,
+    "name": "Pistolet de base du maître",
+    "class": "simple",
+    "rank": 1,
+    "damage": 107
+  },
+  {
+    "id": 107,
+    "name": "Cocktail Molotov à canon long du vétéran",
+    "class": "bomber",
+    "rank": 3,
+    "damage": 101
+  },
+  {
+    "id": 108,
+    "name": "Lance-grenades légendaire du vétéran",
+    "class": "lourd",
+    "rank": 1,
+    "damage": 155
+  },
+  {
+    "id": 109,
+    "name": "Minigun à canon long de l'ordre",
+    "class": "lourd",
+    "rank": 3,
+    "damage": 163
+  },
+  {
+    "id": 110,
+    "name": "Canon de base de l'ordre",
+    "class": "lourd",
+    "rank": 2,
+    "damage": 139
+  },
+  {
+    "id": 111,
+    "name": "Canon tactique de la glace",
+    "class": "lourd",
+    "rank": 3,
+    "damage": 81
+  },
+  {
+    "id": 112,
+    "name": "Bazooka mythique de la recrue",
+    "class": "lourd",
+    "rank": 1,
+    "damage": 91
+  },
+  {
+    "id": 113,
+    "name": "Mitraillette légendaire de la glace",
+    "class": "simple",
+    "rank": 3,
+    "damage": 45
+  },
+  {
+    "id": 114,
+    "name": "Revolver mythique du maître",
+    "class": "simple",
+    "rank": 5,
+    "damage": 141
+  },
+  {
+    "id": 115,
+    "name": "Mitraillette à canon long du chaos",
+    "class": "simple",
+    "rank": 2,
+    "damage": 54
+  },
+  {
+    "id": 116,
+    "name": "Fusil de précision tactique de l'ombre",
+    "class": "sniper",
+    "rank": 4,
+    "damage": 108
+  },
+  {
+    "id": 117,
+    "name": "Lance-grenades d'élite du vétéran",
+    "class": "lourd",
+    "rank": 4,
+    "damage": 147
+  },
+  {
+    "id": 118,
+    "name": "Shuriken d'élite de l'ombre",
+    "class": "assassin",
+    "rank": 3,
+    "damage": 91
+  },
+  {
+    "id": 119,
+    "name": "Couteau de base de la glace",
+    "class": "assassin",
+    "rank": 2,
+    "damage": 184
+  },
+  {
+    "id": 120,
+    "name": "Carabine amélioré du chaos",
+    "class": "simple",
+    "rank": 4,
+    "damage": 63
+  },
+  {
+    "id": 121,
+    "name": "Shuriken à baïonnette du vétéran",
+    "class": "assassin",
+    "rank": 4,
+    "damage": 69
+  },
+  {
+    "id": 122,
+    "name": "Shuriken mythique de la recrue",
+    "class": "assassin",
+    "rank": 1,
+    "damage": 50
+  },
+  {
+    "id": 123,
+    "name": "Bazooka d'élite du soldat",
+    "class": "lourd",
+    "rank": 4,
+    "damage": 89
+  },
+  {
+    "id": 124,
+    "name": "Carabine tactique du chaos",
+    "class": "simple",
+    "rank": 2,
+    "damage": 116
+  },
+  {
+    "id": 125,
+    "name": "Couteau à canon long de la lumière",
+    "class": "assassin",
+    "rank": 4,
+    "damage": 11
+  },
+  {
+    "id": 126,
+    "name": "Grenade à canon long de l'ordre",
+    "class": "bomber",
+    "rank": 1,
+    "damage": 46
+  },
+  {
+    "id": 127,
+    "name": "Dague à baïonnette du vétéran",
+    "class": "assassin",
+    "rank": 1,
+    "damage": 160
+  },
+  {
+    "id": 128,
+    "name": "C4 silencieux du chaos",
+    "class": "bomber",
+    "rank": 3,
+    "damage": 37
+  },
+  {
+    "id": 129,
+    "name": "Minigun à visée laser du maître",
+    "class": "lourd",
+    "rank": 3,
+    "damage": 127
+  },
+  {
+    "id": 130,
+    "name": "Lance-flammes d'élite du chaos",
+    "class": "bomber",
+    "rank": 5,
+    "damage": 61
+  },
+  {
+    "id": 131,
+    "name": "Mine à canon long du vétéran",
+    "class": "bomber",
+    "rank": 4,
+    "damage": 160
+  },
+  {
+    "id": 132,
+    "name": "Revolver d'élite de la glace",
+    "class": "simple",
+    "rank": 4,
+    "damage": 174
+  },
+  {
+    "id": 133,
+    "name": "Dague mythique du soldat",
+    "class": "assassin",
+    "rank": 3,
+    "damage": 133
+  },
+  {
+    "id": 134,
+    "name": "Katana tactique du maître",
+    "class": "assassin",
+    "rank": 3,
+    "damage": 105
+  },
+  {
+    "id": 135,
+    "name": "Fusil de précision légendaire de la lumière",
+    "class": "sniper",
+    "rank": 3,
+    "damage": 17
+  },
+  {
+    "id": 136,
+    "name": "Fusil silencieux de l'ombre",
+    "class": "simple",
+    "rank": 2,
+    "damage": 147
+  },
+  {
+    "id": 137,
+    "name": "Nunchaku amélioré de l'ordre",
+    "class": "assassin",
+    "rank": 5,
+    "damage": 119
+  },
+  {
+    "id": 138,
+    "name": "Katana tactique du chaos",
+    "class": "assassin",
+    "rank": 1,
+    "damage": 65
+  },
+  {
+    "id": 139,
+    "name": "Couteau à visée laser de l'ordre",
+    "class": "assassin",
+    "rank": 1,
+    "damage": 31
+  },
+  {
+    "id": 140,
+    "name": "Katana silencieux de l'ordre",
+    "class": "assassin",
+    "rank": 1,
+    "damage": 91
+  },
+  {
+    "id": 141,
+    "name": "Lance-grenades à baïonnette du soldat",
+    "class": "lourd",
+    "rank": 2,
+    "damage": 65
+  },
+  {
+    "id": 142,
+    "name": "Fusil anti-matériel d'élite du maître",
+    "class": "sniper",
+    "rank": 4,
+    "damage": 26
+  },
+  {
+    "id": 143,
+    "name": "Cocktail Molotov à canon long de l'ordre",
+    "class": "bomber",
+    "rank": 4,
+    "damage": 186
+  },
+  {
+    "id": 144,
+    "name": "Nunchaku silencieux du feu",
+    "class": "assassin",
+    "rank": 1,
+    "damage": 108
+  },
+  {
+    "id": 145,
+    "name": "C4 mythique de la recrue",
+    "class": "bomber",
+    "rank": 5,
+    "damage": 150
+  },
+  {
+    "id": 146,
+    "name": "Fusil à visée laser de la recrue",
+    "class": "simple",
+    "rank": 1,
+    "damage": 167
+  },
+  {
+    "id": 147,
+    "name": "Grenade silencieux du chaos",
+    "class": "bomber",
+    "rank": 3,
+    "damage": 53
+  },
+  {
+    "id": 148,
+    "name": "Mine d'élite de l'ordre",
+    "class": "bomber",
+    "rank": 1,
+    "damage": 64
+  },
+  {
+    "id": 149,
+    "name": "Carabine mythique du feu",
+    "class": "simple",
+    "rank": 2,
+    "damage": 149
+  },
+  {
+    "id": 150,
+    "name": "Cocktail Molotov amélioré du vétéran",
+    "class": "bomber",
+    "rank": 1,
+    "damage": 41
+  }
 ]
