@@ -7,61 +7,34 @@ document.addEventListener('DOMContentLoaded', () => {
         randomizationFactor: 0.5
     });
 
-    const formContainer = document.getElementById('form-container');
-    const codeContainer = document.getElementById('code-container');
-    const phoneNumberInput = document.getElementById('phone-number');
-    const connectButton = document.getElementById('connect-button');
-    const pairingCodeDisplay = document.getElementById('pairing-code');
+    const qrContainer = document.getElementById('qr-container');
+    const qrImage = document.getElementById('qr-image');
     const statusText = document.querySelector('.status-text');
-
-    statusText.textContent = 'Connexion au serveur...';
 
     socket.on('connect', () => {
         console.log('Connecté au serveur !');
-        statusText.textContent = 'Prêt. Entrez votre numéro de téléphone.';
+        statusText.textContent = 'En attente du QR code...';
     });
 
     socket.on('disconnect', (reason) => {
         console.log(`Déconnecté : ${reason}`);
         statusText.textContent = '❌ Déconnecté. Tentative de reconnexion...';
-        formContainer.style.display = 'block';
-        codeContainer.style.display = 'none';
     });
 
-    connectButton.addEventListener('click', () => {
-        const phoneNumber = phoneNumberInput.value.trim();
-        if (phoneNumber) {
-            console.log(`Envoi du numéro ${phoneNumber} au serveur.`);
-            socket.emit('start-connection', phoneNumber);
-            statusText.textContent = '⏳ Demande du code d\'appairage...';
-            connectButton.disabled = true;
-            phoneNumberInput.disabled = true;
-        } else {
-            alert('Veuillez entrer un numéro de téléphone valide.');
-        }
-    });
-
-    socket.on('pairingCode', (code) => {
-        console.log(`Code reçu : ${code}`);
-        formContainer.style.display = 'none';
-        codeContainer.style.display = 'block';
-        pairingCodeDisplay.textContent = code;
-        statusText.textContent = 'Code reçu. Entrez-le dans WhatsApp.';
+    socket.on('qr', (url) => {
+        console.log('QR code reçu.');
+        statusText.textContent = 'Scannez le code avec WhatsApp.';
+        qrImage.src = url;
     });
 
     socket.on('connectionSuccess', (message) => {
         console.log('Connexion du bot réussie !');
-        codeContainer.style.display = 'none';
-        formContainer.style.display = 'none';
+        qrContainer.style.display = 'none';
         statusText.innerHTML = `✅ ${message} <br> Vous pouvez fermer cette page.`;
     });
 
     socket.on('connectionError', (errorMessage) => {
         console.error(`Erreur du serveur: ${errorMessage}`);
-        statusText.textContent = `❌ Erreur : ${errorMessage}`;
-        connectButton.disabled = false;
-        phoneNumberInput.disabled = false;
-        formContainer.style.display = 'block';
-        codeContainer.style.display = 'none';
+        statusText.textContent = `❌ Erreur : ${errorMessage}. Rafraîchissez la page pour réessayer.`;
     });
 });
