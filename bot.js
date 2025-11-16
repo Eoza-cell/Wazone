@@ -1,4 +1,6 @@
-const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
+const makeWASocket = require('@whiskeysockets/baileys').default;
+const { useMultiFileAuthState, DisconnectReason, isJidGroup } = require('@whiskeysockets/baileys');
+const { Boom } = require('@hapi/boom');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
@@ -6,6 +8,12 @@ const http = require('http');
 const { Server } = require("socket.io");
 const sharp = require('sharp');
 const qrcode = require('qrcode');
+const pino = require('pino');
+
+// --- CONFIGURATION UTILISATEUR ---
+// Définissez la variable d'environnement PHONE_NUMBER avec votre numéro (ex: "33612345678")
+const phoneNumber = process.env.PHONE_NUMBER;
+// --- FIN CONFIGURATION ---
 
 // --- CONFIGURATION DU SERVEUR WEB ---
 const app = express();
@@ -28,12 +36,17 @@ server.listen(PORT, () => {
 
 const PLAYERS_FILE = './data/players.json';
 const GENERATED_IMAGES_DIR = './generated_images/';
+const SESSION_DIR = process.env.SESSION_DIR || 'auth_info_baileys';
 
+if (!fs.existsSync(SESSION_DIR)) fs.mkdirSync(SESSION_DIR, { recursive: true });
 if (!fs.existsSync(GENERATED_IMAGES_DIR)) fs.mkdirSync(GENERATED_IMAGES_DIR);
 if (!fs.existsSync(path.dirname(PLAYERS_FILE))) fs.mkdirSync(path.dirname(PLAYERS_FILE), { recursive: true });
 if (!fs.existsSync(PLAYERS_FILE)) fs.writeFileSync(PLAYERS_FILE, JSON.stringify({}));
 
 let players = JSON.parse(fs.readFileSync(PLAYERS_FILE, 'utf8'));
+const weapons = JSON.parse(fs.readFileSync('./weapons.json', 'utf8'));
+const equipment = JSON.parse(fs.readFileSync('./equipment.json', 'utf8'));
+const quests = JSON.parse(fs.readFileSync('./quests.json', 'utf8'));
 
 function savePlayers() {
     fs.writeFileSync(PLAYERS_FILE, JSON.stringify(players, null, 2));
@@ -47,15 +60,38 @@ function getPlayer(id) {
             health: 100,
             energy: 100,
             weapon: 'Pistolet simple',
+            equipment: { helmet: null, vest: null, boots: null, gloves: null },
+            inventory: [],
             lastDeath: null,
             messageCount: 0,
             class: null,
-            ranks: { simple: { rank: 1, xp: 0 }, sniper: { rank: 1, xp: 0 }, lourd: { rank: 1, xp: 0 }, bomber: { rank: 1, xp: 0 }, assassin: { rank: 1, xp: 0 } },
-            quests: { active: null, completed: [], progress: {} }
+            gender: 'homme', // 'homme' ou 'femme'
+            xp: 0,
+            rank: 'Recrue',
+            quests: { active_main: null, active_side: [], completed: [], progress: {} }
         };
         savePlayers();
     }
     return players[id];
+}
+
+const ranks = [
+    { name: 'Recrue', xp: 0 },
+    { name: 'Soldat', xp: 100 },
+    { name: 'Pro', xp: 300 },
+    { name: 'Vétéran', xp: 700 },
+    { name: 'Démon', xp: 1500 },
+    { name: 'Légende', xp: 3000 }
+];
+
+function updateRank(player) {
+    const currentRank = ranks.find(r => r.name === player.rank);
+    const nextRank = ranks[ranks.indexOf(currentRank) + 1];
+    if (nextRank && player.xp >= nextRank.xp) {
+        player.rank = nextRank.name;
+        // Potentiellement envoyer un message de félicitations ici
+        // On ne peut pas appeler checkQuestCompletion ici car on n'a pas sock et chatId
+    }
 }
 
 async function generateStatusImage(player) {
@@ -105,182 +141,478 @@ async function generateStatusImage(player) {
 async function generateMenuImage() {
     const imagePath = path.join(GENERATED_IMAGES_DIR, `menu.png`);
     const svg = `
-    <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+    <svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
         <defs>
-            <linearGradient id="bg-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#111;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#333;stop-opacity:1" />
+            <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#0A0A0A;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#222222;stop-opacity:1" />
             </linearGradient>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
             <style>
-                .font { font-family: 'Courier New', Courier, monospace; }
-                .title { font-size: 42px; fill: #eee; font-weight: bold; text-transform: uppercase; letter-spacing: 5px; }
-                .subtitle { font-size: 20px; fill: #f1c40f; text-transform: uppercase; letter-spacing: 3px; }
-                .section-title { font-size: 24px; fill: #c0392b; font-weight: bold; text-transform: uppercase; }
-                .command { font-size: 18px; fill: #ddd; }
-                .desc { font-size: 14px; fill: #888; }
+                .font { font-family: 'Orbitron', sans-serif; }
+                .title { font-size: 80px; fill: url(#bg-grad); stroke: #888; stroke-width: 1px; font-weight: 700; text-transform: uppercase; letter-spacing: 10px; filter: url(#glow); }
+                .subtitle { font-size: 24px; fill: #00FF00; text-transform: uppercase; letter-spacing: 5px; opacity: 0.8; }
+                .section-title { font-size: 32px; fill: #FFA500; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; border-bottom: 1px solid #FFA500;}
+                .command { font-size: 24px; fill: #EAEAEA; }
+                .desc { font-size: 18px; fill: #888; }
+                .icon { fill: #FFA500; }
             </style>
         </defs>
+
         <rect width="100%" height="100%" fill="url(#bg-grad)" />
-        <text x="400" y="60" text-anchor="middle" class="font title">WAZONE</text>
-        <text x="400" y="90" text-anchor="middle" class="font subtitle">Terminal de Commandes</text>
-        <line x1="50" y1="110" x2="750" y2="110" stroke="#555" stroke-width="1"/>
-        <g transform="translate(50, 150)">
-            <text class="font section-title">Joueur</text>
-            <text x="20" y="40" class="font command">/statut</text>
-            <text x="20" y="60" class="font desc">Affiche votre état actuel.</text>
-            <text x="20" y="90" class="font command">/classes</text>
-            <text x="20" y="110" class="font desc">Choisir votre spécialisation.</text>
+        <rect x="10" y="10" width="1180" height="780" fill="none" stroke="#555" stroke-width="2" stroke-opacity="0.5"/>
+
+        <text x="600" y="100" text-anchor="middle" class="font title">WAZONE</text>
+        <text x="600" y="140" text-anchor="middle" class="font subtitle">TERMINAL DE COMBAT</text>
+
+        <line x1="50" y1="180" x2="1150" y2="180" stroke="#555" stroke-width="1"/>
+
+        <!-- Colonne 1: Joueur -->
+        <g transform="translate(100, 250)">
+            <text class="font section-title">👤 Joueur</text>
+            <text x="20" y="60" class="font command">/profil</text>
+            <text x="20" y="90" class="font desc">Votre identité et équipement.</text>
+            <text x="20" y="140" class="font command">/statut</text>
+            <text x="20" y="170" class="font desc">Affiche votre état actuel.</text>
+            <text x="20" y="220" class="font command">/classement</text>
+            <text x="20" y="250" class="font desc">Votre rang et progression.</text>
         </g>
-        <g transform="translate(300, 150)">
-            <text class="font section-title">Actions</text>
-            <text x="20" y="40" class="font command">/tire</text>
-            <text x="20" y="60" class="font desc">Engagez un adversaire.</text>
-            <text x="20" y="90" class="font command">/armes</text>
-            <text x="20" y="110" class="font desc">Consultez l'arsenal.</text>
+
+        <!-- Colonne 2: Actions -->
+        <g transform="translate(450, 250)">
+            <text class="font section-title">⚔️ Actions</text>
+            <text x="20" y="60" class="font command">/tire</text>
+            <text x="20" y="90" class="font desc">Engagez un adversaire.</text>
+            <text x="20" y="140" class="font command">/arme [nom]</text>
+            <text x="20" y="170" class="font desc">Consultez l'arsenal.</text>
+            <text x="20" y="220" class="font command">/equip [nom]</text>
+            <text x="20" y="250" class="font desc">Gérez votre équipement.</text>
         </g>
-        <g transform="translate(550, 150)">
-            <text class="font section-title">Monde</text>
-            <text x="20" y="40" class="font command">/missions</text>
-            <text x="20" y="60" class="font desc">Voir les objectifs disponibles.</text>
-            <text x="20" y="90" class="font command">/regles</text>
-            <text x="20" y="110" class="font desc">Consultez les règles.</text>
+
+        <!-- Colonne 3: Monde -->
+        <g transform="translate(800, 250)">
+            <text class="font section-title">🌍 Monde</text>
+            <text x="20" y="60" class="font command">/quetes</text>
+            <text x="20" y="90" class="font desc">Voir les objectifs disponibles.</text>
+            <text x="20" y="140" class="font command">/regles</text>
+            <text x="20" y="170" class="font desc">Consultez les règles du jeu.</text>
         </g>
-        <line x1="50" y1="500" x2="750" y2="500" stroke="#555" stroke-width="1"/>
-        <text x="400" y="540" text-anchor="middle" class="font desc">Développé par Wazone - v1.0</text>
+
+        <line x1="50" y1="700" x2="1150" y2="700" stroke="#555" stroke-width="1"/>
+        <text x="600" y="740" text-anchor="middle" class="font desc">VERSION 2.0 - NE PAS DIFFUSER</text>
     </svg>
     `;
     await sharp(Buffer.from(svg)).png().toFile(imagePath);
     return imagePath;
 }
 
-const client = new Client({
-    authStrategy: new LocalAuth(),
-    puppeteer: {
-        args: ['--no-sandbox'],
-    }
-});
+async function generateProfileImage(player) {
+    const imagePath = path.join(GENERATED_IMAGES_DIR, `profile_${player.id}.png`);
+    const composites = [];
 
-client.on('qr', (qr) => {
-    console.log('QR code reçu, envoi au frontend...');
-    qrcode.toDataURL(qr, (err, url) => {
-        if (err) {
-            console.error('Erreur lors de la conversion du QR code:', err);
-            return;
+    // Crée une image de fond transparente
+    const baseImage = sharp({
+        create: {
+            width: 500,
+            height: 500,
+            channels: 4,
+            background: { r: 0, g: 0, b: 0, alpha: 0 }
         }
-        io.emit('qr', url);
     });
-});
 
-client.on('ready', () => {
-    console.log('✅ Connexion ouverte et réussie !');
-    io.emit('connectionSuccess', 'Bot connecté avec succès !');
-});
+    for (const slot in player.equipment) {
+        if (player.equipment[slot]) {
+            const equipmentItem = equipment.find(e => e.name === player.equipment[slot]);
+            if (equipmentItem && equipmentItem.image) {
+                try {
+                    // Tente de télécharger chaque image d'équipement
+                    const equipmentImageResponse = await fetch(equipmentItem.image);
+                    if (!equipmentImageResponse.ok) {
+                        console.error(`Erreur HTTP ${equipmentImageResponse.status} pour l'image: ${equipmentItem.image}`);
+                        continue; // Passe à l'item suivant si le téléchargement échoue
+                    }
+                    const equipmentImageBuffer = await equipmentImageResponse.arrayBuffer();
+                    composites.push({ input: Buffer.from(equipmentImageBuffer) });
+                } catch (fetchError) {
+                    console.error(`Impossible de télécharger l'image d'équipement: ${equipmentItem.image}`, fetchError);
+                }
+            }
+        }
+    }
 
-client.on('message', async (msg) => {
-    // --- Gestion des groupes ---
-    const chat = await msg.getChat();
-    const isGroup = chat.isGroup;
-    const authorId = msg.author || msg.from;
-    const chatId = msg.from;
-    // --- Fin de la gestion ---
+    try {
+        let image = baseImage;
+        if (composites.length > 0) {
+            image = image.composite(composites);
+        }
+        await image.png().toFile(imagePath);
+        return imagePath;
+    } catch (error) {
+        console.error("Erreur lors de la composition de l'image de profil:", error);
+        // En cas d'erreur, on peut retourner le chemin d'une image de remplacement locale
+        // ou simplement ne rien retourner pour que le message soit envoyé sans image.
+        return null;
+    }
+}
 
-    if (!authorId) return;
+async function connectToWhatsApp() {
+    const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
 
-    const contact = await msg.getContact();
-    const player = getPlayer(authorId);
-    if (!player.name) player.name = contact.pushname || 'Inconnu';
+    const sock = makeWASocket({
+        auth: state,
+        printQRInTerminal: false,
+        browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
+        version: [2, 3000, 1025190524],
+        logger: pino({ level: 'silent' }),
+        getMessage: async key => {
+            console.log('⚠️ Message non déchiffré, retry demandé:', key);
+            return { conversation: '🔄 Réessaye d\'envoyer ton message' };
+        }
+    });
 
-    const messageContent = msg.body;
-
-    if (player.lastDeath) {
-        const timeSinceDeath = Date.now() - player.lastDeath;
-        if (timeSinceDeath < 3600000) { // 1 heure
+    if (!sock.authState.creds.registered) {
+        if (!phoneNumber) {
+            console.error("Veuillez entrer votre numéro de téléphone dans la variable 'phoneNumber' du fichier bot.js");
+            io.emit('connectionError', "Numéro de téléphone manquant.");
             return;
-        } else {
-            player.lastDeath = null;
-            player.health = 100;
-            player.energy = 100;
-            savePlayers();
-            await client.sendMessage(chatId, `🧟‍♂️ Vous êtes de retour parmi les vivants !`);
         }
+        setTimeout(async () => {
+            const code = await sock.requestPairingCode(phoneNumber);
+            console.log(`Votre code de pairage: ${code}`);
+            io.emit('pairingCode', code);
+        }, 3000);
     }
 
-    const args = messageContent.slice(1).trim().split(/ +/);
-    const command = args.shift().toLowerCase();
+    sock.ev.on('creds.update', saveCreds);
 
-    if (messageContent.startsWith('/')) {
-        switch (command) {
-            case 'menu':
-            case 'aide':
-                const menuImagePath = await generateMenuImage();
-                const menuMedia = MessageMedia.fromFilePath(menuImagePath);
-                await client.sendMessage(chatId, menuMedia, { caption: "Voici la liste des commandes disponibles." });
-                break;
-            case 'statut':
-                const statusImagePath = await generateStatusImage(player);
-                const statusMedia = MessageMedia.fromFilePath(statusImagePath);
-                await client.sendMessage(chatId, statusMedia, { caption: `Voici votre statut actuel, ${player.name}.` });
-                break;
-            case 'classes':
-                 const availableClasses = ['simple', 'sniper', 'lourd', 'bomber', 'assassin'];
-                 const selectedClass = args[0];
+    sock.ev.on('connection.update', async (update) => {
+        const { connection, lastDisconnect } = update;
+        if (connection === 'close') {
+            const shouldReconnect = (lastDisconnect.error instanceof Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
+            console.log('Connexion fermée à cause de:', lastDisconnect.error, ', reconnexion:', shouldReconnect);
+            if (shouldReconnect) {
+                connectToWhatsApp();
+            }
+        } else if (connection === 'open') {
+            console.log('✅ Connexion ouverte et réussie !');
+            io.emit('connectionSuccess', 'Bot connecté avec succès !');
+        }
+    });
 
-                 if (!selectedClass) {
-                     let classList = "CHOISISSEZ VOTRE CLASSE:\n\n";
-                     availableClasses.forEach(c => { classList += `➡️ /classes ${c}\n`; });
-                     return await client.sendMessage(chatId, classList);
-                 }
-                 if (!availableClasses.includes(selectedClass)) {
-                     return await client.sendMessage(chatId, "❌ Classe non valide. Veuillez choisir parmi les classes disponibles.");
-                 }
-                 player.class = selectedClass;
-                 savePlayers();
-                 await client.sendMessage(chatId, `✅ Vous avez choisi la classe ${selectedClass}.`);
-                 break;
-            case 'tire':
-                const quotedMsg = await msg.getQuotedMessage();
-                if (!quotedMsg) return await client.sendMessage(chatId, "❌ Pour tirer, vous devez répondre au message d'un adversaire.");
+    sock.ev.on('messages.upsert', async (m) => {
+        const msg = m.messages[0];
+        if (!msg.message) return;
 
-                const targetId = quotedMsg.author || quotedMsg.from;
-                if (targetId === authorId) return await client.sendMessage(chatId, "❌ Vous ne pouvez pas vous tirer dessus !");
+        const chatId = msg.key.remoteJid;
+        const authorId = msg.key.participant || msg.key.remoteJid;
+        const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
 
-                const weapons = JSON.parse(fs.readFileSync('./weapons.json', 'utf8'));
-                const playerWeapon = weapons.find(w => w.name === player.weapon);
-                if (!playerWeapon) return await client.sendMessage(chatId, "❌ Vous n'avez pas d'arme équipée.");
+        if (!authorId) return;
 
-                let damage = playerWeapon.damage;
-                if (player.class === playerWeapon.class) { damage *= 1.2; }
+        const player = getPlayer(authorId);
+        if (!player.name) player.name = msg.pushName || 'Inconnu';
 
-                const target = getPlayer(targetId);
-                target.health -= damage;
-                player.energy -= 5;
-
-                if (target.health <= 0) {
-                    target.health = 0;
-                    target.lastDeath = Date.now();
-                    await client.sendMessage(chatId, `💥 Vous avez abattu ${target.name} !`);
-                    await client.sendMessage(targetId, `☠️ ${player.name} vous a tué. Vous ne pourrez plus parler pendant 1 heure.`);
-                } else {
-                    await client.sendMessage(chatId, `💥 Vous avez touché ${target.name} ! Il lui reste ${target.health}% de vie.`);
-                    await client.sendMessage(targetId, `🤕 ${player.name} vous a tiré dessus ! Il vous reste ${target.health}% de vie.`);
-                }
-                if (player.quests.active) {
-                    const activeQuestId = player.quests.active;
-                    if (!player.quests.progress[activeQuestId]) { player.quests.progress[activeQuestId] = { shotsFired: 0 }; }
-                    player.quests.progress[activeQuestId].shotsFired += 1;
-                }
+        if (player.lastDeath) {
+            const timeSinceDeath = Date.now() - player.lastDeath;
+            if (timeSinceDeath < 3600000) { // 1 heure
+                return;
+            } else {
+                player.lastDeath = null;
+                player.health = 100;
+                player.energy = 100;
                 savePlayers();
+                await sock.sendMessage(chatId, { text: `🧟‍♂️ Vous êtes de retour parmi les vivants !` });
+            }
+        }
+
+        const args = messageContent.slice(1).trim().split(/ +/);
+        const command = args.shift().toLowerCase();
+
+        if (messageContent.startsWith('/')) {
+            switch (command) {
+                case 'menu':
+                case 'aide':
+                    const menuImagePath = await generateMenuImage();
+                    await sock.sendMessage(chatId, { image: { url: menuImagePath }, caption: "Voici la liste des commandes disponibles." });
+                    break;
+                case 'statut':
+                    const statusImagePath = await generateStatusImage(player);
+                    await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption: `Voici votre statut actuel, ${player.name}.` });
+                    break;
+                case 'classement':
+                    const currentRankIndex = ranks.findIndex(r => r.name === player.rank);
+                    const nextRank = ranks[currentRankIndex + 1];
+                    let rankInfo = `*VOTRE CLASSEMENT*\n\n`
+                    rankInfo += `*Rang :* ${player.rank}\n`;
+                    rankInfo += `*XP :* ${player.xp}\n\n`;
+                    if (nextRank) {
+                        rankInfo += `*Prochain rang :* ${nextRank.name} (${nextRank.xp} XP requis)\n`;
+                        rankInfo += `*Progression :* [${"#".repeat(Math.floor(player.xp / nextRank.xp * 10))}${"-".repeat(10 - Math.floor(player.xp / nextRank.xp * 10))}]`;
+                    } else {
+                        rankInfo += `Vous avez atteint le rang maximum !`;
+                    }
+                    await sock.sendMessage(chatId, { text: rankInfo });
+                    break;
+                case 'profil':
+                    const profileImagePath = await generateProfileImage(player);
+                    if (profileImagePath) {
+                        await sock.sendMessage(chatId, { image: { url: profileImagePath }, caption: `Profil de ${player.name}` });
+                    } else {
+                        await sock.sendMessage(chatId, { text: `Impossible de générer l'image de profil pour ${player.name}.` });
+                    }
+                    break;
+                case 'genre':
+                    const selectedGender = args[0];
+                    if (!selectedGender || !['homme', 'femme'].includes(selectedGender)) {
+                        return await sock.sendMessage(chatId, { text: "Veuillez choisir un genre valide : `/genre homme` ou `/genre femme`." });
+                    }
+                    player.gender = selectedGender;
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `✅ Votre personnage est maintenant un(e) ${selectedGender}.` });
+                    break;
+                case 'classes':
+                     const availableClasses = ['simple', 'sniper', 'lourd', 'bomber', 'assassin'];
+                     const selectedClass = args[0];
+
+                     if (!selectedClass) {
+                         let classList = "CHOISISSEZ VOTRE CLASSE:\n\n";
+                         availableClasses.forEach(c => { classList += `➡️ /classes ${c}\n`; });
+                         return await sock.sendMessage(chatId, { text: classList });
+                     }
+                     if (!availableClasses.includes(selectedClass)) {
+                         return await sock.sendMessage(chatId, { text: "❌ Classe non valide. Veuillez choisir parmi les classes disponibles." });
+                     }
+                     player.class = selectedClass;
+                     savePlayers();
+                     await sock.sendMessage(chatId, { text: `✅ Vous avez choisi la classe ${selectedClass}.` });
+                     break;
+                case 'tire':
+                    const contextInfo = msg.message.extendedTextMessage?.contextInfo;
+                    if (!contextInfo || !contextInfo.participant) {
+                        return await sock.sendMessage(chatId, { text: "❌ Pour tirer, vous devez répondre au message d'un adversaire." });
+                    }
+
+                    const targetId = contextInfo.participant;
+                    if (targetId === authorId) return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez pas vous tirer dessus !" });
+
+                    const playerWeapon = weapons.find(w => w.name === player.weapon);
+                    if (!playerWeapon) return await sock.sendMessage(chatId, { text: "❌ Vous n'avez pas d'arme équipée." });
+
+                    let damage = playerWeapon.damage;
+                    if (player.class === playerWeapon.class) { damage *= 1.2; }
+
+                    const target = getPlayer(targetId);
+
+                    let totalProtection = 0;
+                    for (const slot in target.equipment) {
+                        if (target.equipment[slot]) {
+                            const equipmentItem = equipment.find(e => e.name === target.equipment[slot]);
+                            if (equipmentItem) {
+                                totalProtection += equipmentItem.protection;
+                            }
+                        }
+                    }
+                    damage -= totalProtection;
+                    if (damage < 0) damage = 0;
+
+                    target.health -= damage;
+                    player.energy -= 5;
+
+                    if (target.health <= 0) {
+                        target.health = 0;
+                        target.lastDeath = Date.now();
+                        await sock.sendMessage(chatId, { text: `💥 Vous avez abattu ${target.name} !` });
+                        await sock.sendMessage(targetId, { text: `☠️ ${player.name} vous a tué. Vous ne pourrez plus parler pendant 1 heure.` });
+                        if (player.quests.active_main) {
+                            const activeQuestId = player.quests.active_main;
+                            if (!player.quests.progress[activeQuestId]) { player.quests.progress[activeQuestId] = { shotsFired: 0, usedWeaponClasses: [], eliminatedClasses: [] }; }
+                            if (!player.quests.progress[activeQuestId].eliminatedClasses.includes(target.class)) {
+                                player.quests.progress[activeQuestId].eliminatedClasses.push(target.class);
+                            }
+                        }
+                    } else {
+                        await sock.sendMessage(chatId, { text: `💥 Vous avez touché ${target.name} ! Il lui reste ${target.health}% de vie.` });
+                        await sock.sendMessage(targetId, { text: `🤕 ${player.name} vous a tiré dessus ! Il vous reste ${target.health}% de vie.` });
+                    }
+                    if (player.quests.active_main) {
+                        const activeQuestId = player.quests.active_main;
+                        if (!player.quests.progress[activeQuestId]) { player.quests.progress[activeQuestId] = { shotsFired: 0, usedWeaponClasses: [] }; }
+                        player.quests.progress[activeQuestId].shotsFired += 1;
+                        if (!player.quests.progress[activeQuestId].usedWeaponClasses.includes(playerWeapon.class)) {
+                            player.quests.progress[activeQuestId].usedWeaponClasses.push(playerWeapon.class);
+                        }
+                        await checkQuestCompletion(player, sock, chatId);
+                    }
+                    player.quests.active_side.forEach(async (questId) => {
+                        if (!player.quests.progress[questId]) { player.quests.progress[questId] = { shotsFired: 0 }; }
+                        player.quests.progress[questId].shotsFired += 1;
+                        await checkQuestCompletion(player, sock, chatId);
+                    });
+
+                    savePlayers();
+                    break;
+                case 'arme':
+                    const weaponName = args.join(' ');
+                    if (!weaponName) {
+                        return await sock.sendMessage(chatId, { text: "Veuillez spécifier le nom d'une arme. Ex: /arme M4A1" });
+                    }
+                    const weapon = weapons.find(w => w.name.toLowerCase() === weaponName.toLowerCase());
+                    if (!weapon) {
+                        return await sock.sendMessage(chatId, { text: "❌ Arme non trouvée." });
+                    }
+
+                    let weaponInfo = `*${weapon.name}*\n\n`;
+                    weaponInfo += `*Classe :* ${weapon.class}\n`;
+                    weaponInfo += `*Rareté :* ${weapon.rarity}\n`;
+                    weaponInfo += `*Dégâts :* ${weapon.damage}\n`;
+
+                    await sock.sendMessage(chatId, { image: { url: weapon.image }, caption: weaponInfo });
+                    break;
+                case 'quetes':
+                    const questId = args[0];
+
+                    if (!questId) {
+                        let questList = "QUÊTES DISPONIBLES:\n\n";
+                        quests.forEach(q => {
+                            if (!player.quests.completed.includes(q.id)) {
+                                questList += `➡️ *${q.title}* (/quetes ${q.id})\n_${q.description}_\n\n`;
+                            }
+                        });
+                        return await sock.sendMessage(chatId, { text: questList });
+                    }
+
+                    const quest = quests.find(q => q.id == questId);
+                    if (!quest) return await sock.sendMessage(chatId, { text: "❌ Quête non valide." });
+                    if (player.quests.completed.includes(quest.id)) return await sock.sendMessage(chatId, { text: "❌ Vous avez déjà terminé cette quête." });
+
+                    if (quest.questType === 'main') {
+                        if (player.quests.active_main) return await sock.sendMessage(chatId, { text: "❌ Vous avez déjà une quête principale active." });
+                        player.quests.active_main = quest.id;
+                    } else {
+                        if (player.quests.active_side.includes(quest.id)) return await sock.sendMessage(chatId, { text: "❌ Vous avez déjà cette quête secondaire active." });
+                        player.quests.active_side.push(quest.id);
+                    }
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `✅ Quête acceptée: *${quest.title}*` });
+                    break;
+                case 'equip':
+                    const equipmentName = args.join(' ');
+                    if (!equipmentName) {
+                        let inventoryList = "VOTRE INVENTAIRE:\n\n";
+                        player.inventory.forEach(item => { inventoryList += `➡️ ${item}\n`; });
+                        return await sock.sendMessage(chatId, { text: inventoryList });
+                    }
+
+                    const equipmentItem = equipment.find(e => e.name.toLowerCase() === equipmentName.toLowerCase());
+                    if (!equipmentItem) return await sock.sendMessage(chatId, { text: "❌ Équipement non valide." });
+                    if (!player.inventory.includes(equipmentItem.name)) return await sock.sendMessage(chatId, { text: "❌ Vous ne possédez pas cet équipement." });
+
+                    player.equipment[equipmentItem.type] = equipmentItem.name;
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `✅ Vous avez équipé: *${equipmentItem.name}*` });
+                    await checkQuestCompletion(player, sock, chatId);
+                    break;
+                case 'regles':
+                    const rulesText = `
+*--- RÈGLES DU JEU WAZONE ---*
+
+1.  *La Mort :* Lorsque votre santé atteint 0, vous êtes considéré comme "mort". Vous ne pourrez plus envoyer de messages dans le groupe pendant 1 heure.
+
+2.  *Le Combat :* Pour attaquer un joueur, répondez à l'un de ses messages avec la commande /tire.
+
+3.  *Équipement :* Trouvez et équipez des objets (/equip) pour augmenter votre protection et réduire les dégâts subis.
+
+4.  *Progression :* Gagnez de l'XP en combattant et en accomplissant des quêtes (/quetes) pour monter en rang (/classement).
+
+5.  *Respect :* Le jeu est pour le plaisir. Toute insulte ou comportement anti-jeu est interdit.
+
+*Bonne chance, soldat !*
+                    `;
+                    await sock.sendMessage(chatId, { text: rulesText });
+                    break;
+            }
+        }
+    });
+}
+
+connectToWhatsApp().catch(err => {
+    console.error("Erreur lors de la connexion initiale :", err);
+});
+
+async function checkQuestCompletion(player, sock, chatId) {
+    const allActiveQuests = [player.quests.active_main, ...player.quests.active_side].filter(q => q !== null);
+
+    for (const questId of allActiveQuests) {
+        const quest = quests.find(q => q.id === questId);
+        if (!quest) continue;
+
+        const progress = player.quests.progress[questId] || {};
+        let completed = false;
+
+        switch (quest.completion.type) {
+            case 'shotsFired':
+                if (progress.shotsFired >= quest.completion.count) {
+                    completed = true;
+                }
                 break;
-            // ... (le reste des commandes)
+            case 'collect':
+                const collectedCount = player.inventory.filter(item => {
+                    const equipmentItem = equipment.find(e => e.name === item);
+                    return equipmentItem && equipmentItem.type === quest.completion.itemType;
+                }).length;
+                if (collectedCount >= quest.completion.count) {
+                    completed = true;
+                }
+                break;
+            case 'useWeaponClass':
+                if (progress.usedWeaponClasses && progress.usedWeaponClasses.length >= quest.completion.count) {
+                    completed = true;
+                }
+                break;
+            case 'eliminateClass':
+                if (progress.eliminatedClasses && quest.completion.classes.every(c => progress.eliminatedClasses.includes(c))) {
+                    completed = true;
+                }
+                break;
+            case 'rank':
+                if (player.rank === quest.completion.rank) {
+                    completed = true;
+                }
+                break;
+            case 'equip':
+                if (player.weapon === quest.completion.item || Object.values(player.equipment).includes(quest.completion.item)) {
+                    completed = true;
+                }
+                break;
+        }
+
+        if (completed) {
+            player.quests.completed.push(questId);
+            if (quest.questType === 'main') {
+                player.quests.active_main = null;
+            } else {
+                player.quests.active_side = player.quests.active_side.filter(id => id !== questId);
+            }
+            delete player.quests.progress[questId];
+
+            player.xp += quest.reward.xp;
+            updateRank(player);
+            await checkQuestCompletion(player, sock, chatId); // Pour vérifier les quêtes de rang
+            if (quest.reward.item) {
+                player.inventory.push(quest.reward.item);
+            }
+
+            await sock.sendMessage(chatId, { text: `🎉 Quête terminée: *${quest.title}* !\nRécompense: ${quest.reward.xp} XP` });
         }
     }
-});
+}
 
 io.on('connection', (socket) => {
     console.log('Un client est connecté au serveur WebSocket.');
-    // Envoyer le QR code si déjà généré
-    client.initialize().catch(err => {
-        console.error("Erreur lors de l'initialisation de la connexion :", err);
-        io.emit('connectionError', 'Une erreur interne est survenue.');
-    });
 });
