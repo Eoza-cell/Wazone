@@ -1,6 +1,7 @@
 const makeWASocket = require('@whiskeysockets/baileys').default;
 const { useMultiFileAuthState, DisconnectReason, isJidGroup } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
+const { HttpsProxyAgent } = require('https-proxy-agent');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
@@ -59,7 +60,9 @@ function getPlayer(id) {
             name: '',
             health: 100,
             energy: 100,
-            weapon: 'Pistolet simple',
+            money: 100,
+            equippedWeapon: 'Pistolet simple',
+            weaponInventory: ['Pistolet simple'],
             equipment: { helmet: null, vest: null, boots: null, gloves: null },
             inventory: [],
             lastDeath: null,
@@ -71,6 +74,18 @@ function getPlayer(id) {
             quests: { active_main: null, active_side: [], completed: [], progress: {} }
         };
         savePlayers();
+    } else {
+        // Simple migration for existing players
+        if (players[id].money === undefined) {
+            players[id].money = 100;
+        }
+        if (players[id].weaponInventory === undefined) {
+            players[id].weaponInventory = [players[id].weapon || 'Pistolet simple'];
+        }
+        if (players[id].equippedWeapon === undefined) {
+            players[id].equippedWeapon = players[id].weapon || 'Pistolet simple';
+            delete players[id].weapon;
+        }
     }
     return players[id];
 }
@@ -128,7 +143,7 @@ async function generateStatusImage(player) {
         <rect x="30" y="165" width="440" height="25" class="bar-bg" />
         <rect x="30" y="165" width="${player.energy * 4.4}" height="25" fill="${energyColor}" />
         <text x="465" y="183" text-anchor="end" class="value">${player.energy}%</text>
-        <text x="30" y="220" class="label">Arme: <tspan class="value">${player.weapon}</tspan></text>
+        <text x="30" y="220" class="label">Arme: <tspan class="value">${player.equippedWeapon}</tspan></text>
         <text x="30" y="260" class="label">Classe: <tspan class="value">${playerClass}</tspan></text>
         <text x="250" y="260" class="label">Rang: <tspan class="value">${rank}</tspan></text>
         <text x="400" y="260" class="label">XP: <tspan class="value">${xp}</tspan></text>
@@ -258,8 +273,12 @@ async function generateProfileImage(player) {
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
+    const proxyUrl = process.env.PROXY_URL;
+    const agent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined;
 
     const sock = makeWASocket({
+        agent: agent,
+        fetchAgent: agent,
         auth: state,
         printQRInTerminal: false,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
@@ -273,10 +292,11 @@ async function connectToWhatsApp() {
 
     if (!sock.authState.creds.registered) {
         if (!phoneNumber) {
-            console.error("Veuillez entrer votre numéro de téléphone dans la variable 'phoneNumber' du fichier bot.js");
+            console.error("ERREUR: La variable d'environnement PHONE_NUMBER n'est pas définie.");
             io.emit('connectionError', "Numéro de téléphone manquant.");
             return;
         }
+         console.log(`Tentative de connexion avec le numéro : ${phoneNumber}`);
         setTimeout(async () => {
             const code = await sock.requestPairingCode(phoneNumber);
             console.log(`Votre code de pairage: ${code}`);
@@ -372,11 +392,14 @@ async function connectToWhatsApp() {
                     await sock.sendMessage(chatId, { text: `✅ Votre personnage est maintenant un(e) ${selectedGender}.` });
                     break;
                 case 'classes':
+                     if (player.class) {
+                         return await sock.sendMessage(chatId, { text: `❌ Vous avez déjà choisi votre classe: *${player.class}*. Ce choix est définitif.` });
+                     }
                      const availableClasses = ['simple', 'sniper', 'lourd', 'bomber', 'assassin'];
                      const selectedClass = args[0];
 
                      if (!selectedClass) {
-                         let classList = "CHOISISSEZ VOTRE CLASSE:\n\n";
+                         let classList = "CHOISISSEZ VOTRE CLASSE (ce choix est définitif):\n\n";
                          availableClasses.forEach(c => { classList += `➡️ /classes ${c}\n`; });
                          return await sock.sendMessage(chatId, { text: classList });
                      }
@@ -385,8 +408,49 @@ async function connectToWhatsApp() {
                      }
                      player.class = selectedClass;
                      savePlayers();
-                     await sock.sendMessage(chatId, { text: `✅ Vous avez choisi la classe ${selectedClass}.` });
+                     await sock.sendMessage(chatId, { text: `✅ Vous avez choisi la classe ${selectedClass}. Ce choix est maintenant définitif.` });
                      break;
+                case 'acheter':
+                    const weaponToBuyName = args.join(' ');
+                    if (!weaponToBuyName) {
+                        return await sock.sendMessage(chatId, { text: "Veuillez spécifier le nom de l'arme que vous souhaitez acheter." });
+                    }
+
+                    const weaponToBuy = weapons.find(w => w.name.toLowerCase() === weaponToBuyName.toLowerCase());
+                    if (!weaponToBuy) {
+                        return await sock.sendMessage(chatId, { text: "❌ Arme non trouvée." });
+                    }
+
+                    if (player.money < weaponToBuy.price) {
+                        return await sock.sendMessage(chatId, { text: `❌ Vous n'avez pas assez d'argent. Il vous faut ${weaponToBuy.price} $ et vous avez ${player.money} $.` });
+                    }
+
+                    if (player.weaponInventory.includes(weaponToBuy.name)) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous possédez déjà cette arme." });
+                    }
+
+                    player.money -= weaponToBuy.price;
+                    player.weaponInventory.push(weaponToBuy.name);
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `✅ Vous avez acheté: *${weaponToBuy.name}* !` });
+                    break;
+
+                case 'equiper':
+                    const weaponToEquipName = args.join(' ');
+                    if (!weaponToEquipName) {
+                        let inventoryList = "VOTRE INVENTAIRE D'ARMES:\n\n";
+                        player.weaponInventory.forEach(item => { inventoryList += `➡️ ${item}\n`; });
+                        return await sock.sendMessage(chatId, { text: inventoryList });
+                    }
+
+                    if (!player.weaponInventory.includes(weaponToEquipName)) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous ne possédez pas cette arme." });
+                    }
+
+                    player.equippedWeapon = weaponToEquipName;
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `✅ Vous avez équipé: *${weaponToEquipName}* !` });
+                    break;
                 case 'tire':
                     const contextInfo = msg.message.extendedTextMessage?.contextInfo;
                     if (!contextInfo || !contextInfo.participant) {
@@ -396,7 +460,7 @@ async function connectToWhatsApp() {
                     const targetId = contextInfo.participant;
                     if (targetId === authorId) return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez pas vous tirer dessus !" });
 
-                    const playerWeapon = weapons.find(w => w.name === player.weapon);
+                    const playerWeapon = weapons.find(w => w.name === player.equippedWeapon);
                     if (!playerWeapon) return await sock.sendMessage(chatId, { text: "❌ Vous n'avez pas d'arme équipée." });
 
                     let damage = playerWeapon.damage;
@@ -581,7 +645,7 @@ async function checkQuestCompletion(player, sock, chatId) {
                 }
                 break;
             case 'equip':
-                if (player.weapon === quest.completion.item || Object.values(player.equipment).includes(quest.completion.item)) {
+                if (player.equippedWeapon === quest.completion.item || Object.values(player.equipment).includes(quest.completion.item)) {
                     completed = true;
                 }
                 break;

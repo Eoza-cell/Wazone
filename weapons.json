@@ -4,6 +4,7 @@
         "class": "simple",
         "rarity": "Commun",
         "damage": 30,
+        "price": 500,
         "image": "https://www.wazone.dev/images/m4a1.png"
     },
     {
@@ -11,6 +12,7 @@
         "class": "simple",
         "rarity": "Rare",
         "damage": 35,
+        "price": 1000,
         "image": "https://www.wazone.dev/images/ak47.png"
     },
     {
@@ -18,6 +20,7 @@
         "class": "sniper",
         "rarity": "Épique",
         "damage": 75,
+        "price": 2500,
         "image": "https://www.wazone.dev/images/intervention.png"
     },
     {
@@ -25,6 +28,15 @@
         "class": "lourd",
         "rarity": "Légendaire",
         "damage": 200,
+        "price": 10000,
         "image": "https://www.wazone.dev/images/raygun.png"
+    },
+    {
+        "name": "Pistolet simple",
+        "class": "simple",
+        "rarity": "Commun",
+        "damage": 15,
+        "price": 0,
+        "image": "https://www.wazone.dev/images/pistolsimple.png"
     }
 ]
