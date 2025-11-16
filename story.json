@@ -8,6 +8,20 @@
         {
             "id": 2,
             "story": "Excellent travail. Vous avez montré que vous n'êtes pas une recrue ordinaire. Continuez à vous entraîner avec la quête 'Entraînement au tir'. (/quete 2)"
+        },
+        {
+            "id": 6,
+            "story": "Vous êtes devenu une force à ne pas sous-estimer. Il est temps de prouver votre domination. Acceptez la quête 'La Conquête' (/quete 6) et montrez-leur de quoi vous êtes capable."
+        }
+    ],
+    "sideQuests": [
+        {
+            "id": 4,
+            "story": "Un collectionneur local recherche des équipements rares. Il vous récompensera pour vos efforts. Acceptez la quête 'Le Collectionneur' (/quete 4)."
+        },
+        {
+            "id": 5,
+            "story": "Un armurier souhaite tester l'efficacité de différentes classes d'armes. Aidez-le et vous serez récompensé. Acceptez la quête 'L'Armurier' (/quete 5)."
         }
     ]
 }

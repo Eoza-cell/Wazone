@@ -20,9 +20,10 @@
   },
   "homepage": "https://github.com/Eoza-cell/Wazone#readme",
   "dependencies": {
+    "@adiwajshing/keyed-db": "^0.2.4",
+    "@whiskeysockets/baileys": "^6.7.5",
     "express": "^4.19.2",
     "qrcode": "^1.5.3",
-    "whatsapp-web.js": "^1.23.0",
     "sharp": "^0.33.5",
     "socket.io": "^4.7.5"
   }
