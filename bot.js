@@ -262,8 +262,6 @@ async function connectToWhatsApp() {
     const sock = makeWASocket({
         auth: state,
         printQRInTerminal: false,
-        browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
-        version: [2, 3000, 1025190524],
         logger: pino({ level: 'silent' }),
         getMessage: async key => {
             console.log('⚠️ Message non déchiffré, retry demandé:', key);
@@ -273,10 +271,11 @@ async function connectToWhatsApp() {
 
     if (!sock.authState.creds.registered) {
         if (!phoneNumber) {
-            console.error("Veuillez entrer votre numéro de téléphone dans la variable 'phoneNumber' du fichier bot.js");
+            console.error("ERREUR: La variable d'environnement PHONE_NUMBER n'est pas définie.");
             io.emit('connectionError', "Numéro de téléphone manquant.");
             return;
         }
+         console.log(`Tentative de connexion avec le numéro : ${phoneNumber}`);
         setTimeout(async () => {
             const code = await sock.requestPairingCode(phoneNumber);
             console.log(`Votre code de pairage: ${code}`);
