@@ -1,0 +1,6 @@
+[
+    { "id": 1, "name": "Casque de recrue", "type": "helmet", "protection": 5, "image": "https://www.wazone.dev/images/helmet_1.png" },
+    { "id": 2, "name": "Gilet de base", "type": "vest", "protection": 10, "image": "https://www.wazone.dev/images/vest_1.png" },
+    { "id": 3, "name": "Bottes usées", "type": "boots", "protection": 3, "image": "https://www.wazone.dev/images/boots_1.png" },
+    { "id": 4, "name": "Gants en cuir", "type": "gloves", "protection": 2, "image": "https://www.wazone.dev/images/gloves_1.png" }
+]
