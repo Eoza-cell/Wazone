@@ -1,6 +1,7 @@
 const makeWASocket = require('@whiskeysockets/baileys').default;
 const { useMultiFileAuthState, DisconnectReason, isJidGroup } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
+const { HttpsProxyAgent } = require('https-proxy-agent');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
@@ -48,6 +49,11 @@ const weapons = JSON.parse(fs.readFileSync('./weapons.json', 'utf8'));
 const equipment = JSON.parse(fs.readFileSync('./equipment.json', 'utf8'));
 const quests = JSON.parse(fs.readFileSync('./quests.json', 'utf8'));
 
+let game = {
+    duels: {}, // { 'player1_id:player2_id': { turn: 'player1_id' } }
+    invitations: {} // { 'target_id': { from: 'challenger_id', timeout: NodeJS.Timeout } }
+};
+
 function savePlayers() {
     fs.writeFileSync(PLAYERS_FILE, JSON.stringify(players, null, 2));
 }
@@ -59,7 +65,9 @@ function getPlayer(id) {
             name: '',
             health: 100,
             energy: 100,
-            weapon: 'Pistolet simple',
+            money: 100,
+            equippedWeapon: 'Pistolet simple',
+            weaponInventory: ['Pistolet simple'],
             equipment: { helmet: null, vest: null, boots: null, gloves: null },
             inventory: [],
             lastDeath: null,
@@ -71,8 +79,24 @@ function getPlayer(id) {
             quests: { active_main: null, active_side: [], completed: [], progress: {} }
         };
         savePlayers();
+    } else {
+        // Simple migration for existing players
+        if (players[id].money === undefined) {
+            players[id].money = 100;
+        }
+        if (players[id].weaponInventory === undefined) {
+            players[id].weaponInventory = [players[id].weapon || 'Pistolet simple'];
+        }
+        if (players[id].equippedWeapon === undefined) {
+            players[id].equippedWeapon = players[id].weapon || 'Pistolet simple';
+            delete players[id].weapon;
+        }
     }
     return players[id];
+}
+
+function findDuel(playerId) {
+    return Object.keys(game.duels).find(duelId => duelId.split(':').includes(playerId));
 }
 
 const ranks = [
@@ -128,7 +152,7 @@ async function generateStatusImage(player) {
         <rect x="30" y="165" width="440" height="25" class="bar-bg" />
         <rect x="30" y="165" width="${player.energy * 4.4}" height="25" fill="${energyColor}" />
         <text x="465" y="183" text-anchor="end" class="value">${player.energy}%</text>
-        <text x="30" y="220" class="label">Arme: <tspan class="value">${player.weapon}</tspan></text>
+        <text x="30" y="220" class="label">Arme: <tspan class="value">${player.equippedWeapon}</tspan></text>
         <text x="30" y="260" class="label">Classe: <tspan class="value">${playerClass}</tspan></text>
         <text x="250" y="260" class="label">Rang: <tspan class="value">${rank}</tspan></text>
         <text x="400" y="260" class="label">XP: <tspan class="value">${xp}</tspan></text>
@@ -258,8 +282,12 @@ async function generateProfileImage(player) {
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
+    const proxyUrl = process.env.PROXY_URL;
+    const agent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined;
 
     const sock = makeWASocket({
+        agent: agent,
+        fetchAgent: agent,
         auth: state,
         printQRInTerminal: false,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
@@ -273,10 +301,11 @@ async function connectToWhatsApp() {
 
     if (!sock.authState.creds.registered) {
         if (!phoneNumber) {
-            console.error("Veuillez entrer votre numéro de téléphone dans la variable 'phoneNumber' du fichier bot.js");
+            console.error("ERREUR: La variable d'environnement PHONE_NUMBER n'est pas définie.");
             io.emit('connectionError', "Numéro de téléphone manquant.");
             return;
         }
+         console.log(`Tentative de connexion avec le numéro : ${phoneNumber}`);
         setTimeout(async () => {
             const code = await sock.requestPairingCode(phoneNumber);
             console.log(`Votre code de pairage: ${code}`);
@@ -372,11 +401,14 @@ async function connectToWhatsApp() {
                     await sock.sendMessage(chatId, { text: `✅ Votre personnage est maintenant un(e) ${selectedGender}.` });
                     break;
                 case 'classes':
+                     if (player.class) {
+                         return await sock.sendMessage(chatId, { text: `❌ Vous avez déjà choisi votre classe: *${player.class}*. Ce choix est définitif.` });
+                     }
                      const availableClasses = ['simple', 'sniper', 'lourd', 'bomber', 'assassin'];
                      const selectedClass = args[0];
 
                      if (!selectedClass) {
-                         let classList = "CHOISISSEZ VOTRE CLASSE:\n\n";
+                         let classList = "CHOISISSEZ VOTRE CLASSE (ce choix est définitif):\n\n";
                          availableClasses.forEach(c => { classList += `➡️ /classes ${c}\n`; });
                          return await sock.sendMessage(chatId, { text: classList });
                      }
@@ -385,19 +417,139 @@ async function connectToWhatsApp() {
                      }
                      player.class = selectedClass;
                      savePlayers();
-                     await sock.sendMessage(chatId, { text: `✅ Vous avez choisi la classe ${selectedClass}.` });
+                     await sock.sendMessage(chatId, { text: `✅ Vous avez choisi la classe ${selectedClass}. Ce choix est maintenant définitif.` });
                      break;
+                case 'acheter':
+                    const weaponToBuyName = args.join(' ');
+                    if (!weaponToBuyName) {
+                        return await sock.sendMessage(chatId, { text: "Veuillez spécifier le nom de l'arme que vous souhaitez acheter." });
+                    }
+
+                    const weaponToBuy = weapons.find(w => w.name.toLowerCase() === weaponToBuyName.toLowerCase());
+                    if (!weaponToBuy) {
+                        return await sock.sendMessage(chatId, { text: "❌ Arme non trouvée." });
+                    }
+
+                    if (player.money < weaponToBuy.price) {
+                        return await sock.sendMessage(chatId, { text: `❌ Vous n'avez pas assez d'argent. Il vous faut ${weaponToBuy.price} $ et vous avez ${player.money} $.` });
+                    }
+
+                    if (player.weaponInventory.includes(weaponToBuy.name)) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous possédez déjà cette arme." });
+                    }
+
+                    player.money -= weaponToBuy.price;
+                    player.weaponInventory.push(weaponToBuy.name);
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `✅ Vous avez acheté: *${weaponToBuy.name}* !` });
+                    break;
+
+                case 'equiper':
+                    const weaponToEquipName = args.join(' ');
+                    if (!weaponToEquipName) {
+                        let inventoryList = "VOTRE INVENTAIRE D'ARMES:\n\n";
+                        player.weaponInventory.forEach(item => { inventoryList += `➡️ ${item}\n`; });
+                        return await sock.sendMessage(chatId, { text: inventoryList });
+                    }
+
+                    if (!player.weaponInventory.includes(weaponToEquipName)) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous ne possédez pas cette arme." });
+                    }
+
+                    player.equippedWeapon = weaponToEquipName;
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `✅ Vous avez équipé: *${weaponToEquipName}* !` });
+                    break;
+                case 'duel':
+                    const opponentJid = msg.message.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+                    if (!opponentJid) {
+                        return await sock.sendMessage(chatId, { text: "❌ Pour défier quelqu'un, vous devez le mentionner. Ex: `/duel @adversaire`" });
+                    }
+                    if (opponentJid === authorId) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez pas vous défier vous-même." });
+                    }
+                    if (findDuel(authorId)) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous êtes déjà en duel." });
+                    }
+                    if (findDuel(opponentJid)) {
+                        return await sock.sendMessage(chatId, { text: "❌ Ce joueur est déjà en duel." });
+                    }
+                    if (game.invitations[opponentJid] || Object.values(game.invitations).some(inv => inv.from === authorId)) {
+                        return await sock.sendMessage(chatId, { text: "❌ Une invitation est déjà en cours. Veuillez attendre." });
+                    }
+
+                    const timeout = setTimeout(() => {
+                        delete game.invitations[opponentJid];
+                        sock.sendMessage(chatId, { text: `Le défi de ${player.name} à <@${opponentJid.split('@')[0]}> a expiré.`, mentions: [opponentJid] });
+                    }, 60000);
+
+                    game.invitations[opponentJid] = { from: authorId, timeout };
+                    await sock.sendMessage(chatId, {
+                        text: `🗡️ ${player.name} a défié <@${opponentJid.split('@')[0]}> en duel ! L'adversaire a 60 secondes pour répondre avec \`/accepter\` ou \`/refuser\`.`,
+                        mentions: [opponentJid]
+                    });
+                    break;
+                case 'accepter':
+                    const invitation = game.invitations[authorId];
+                    if (!invitation) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous n'avez aucune invitation en attente." });
+                    }
+                    clearTimeout(invitation.timeout);
+
+                    const challengerId = invitation.from;
+                    const duelId = [challengerId, authorId].sort().join(':');
+                    game.duels[duelId] = { turn: challengerId };
+                    delete game.invitations[authorId];
+
+                    await sock.sendMessage(chatId, {
+                        text: `🔥 Le duel entre <@${challengerId.split('@')[0]}> et <@${authorId.split('@')[0]}> commence ! C'est au tour de <@${challengerId.split('@')[0]}> de jouer.`,
+                        mentions: [challengerId, authorId]
+                    });
+                    break;
+
+                case 'refuser':
+                    const inv = game.invitations[authorId];
+                    if (!inv) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous n'avez aucune invitation en attente." });
+                    }
+                    clearTimeout(inv.timeout);
+                    const challenger = inv.from;
+                    delete game.invitations[authorId];
+                    await sock.sendMessage(chatId, {
+                        text: `<@${authorId.split('@')[0]}> a refusé le défi de <@${challenger.split('@')[0]}>.`,
+                        mentions: [authorId, challenger]
+                    });
+                    break;
                 case 'tire':
                     const contextInfo = msg.message.extendedTextMessage?.contextInfo;
                     if (!contextInfo || !contextInfo.participant) {
                         return await sock.sendMessage(chatId, { text: "❌ Pour tirer, vous devez répondre au message d'un adversaire." });
                     }
-
                     const targetId = contextInfo.participant;
                     if (targetId === authorId) return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez pas vous tirer dessus !" });
 
-                    const playerWeapon = weapons.find(w => w.name === player.weapon);
+                    const duelId = findDuel(authorId);
+                    if (duelId) {
+                        const duel = game.duels[duelId];
+                        const opponentId = duelId.split(':').find(id => id !== authorId);
+                        if (targetId !== opponentId) {
+                            return await sock.sendMessage(chatId, { text: "❌ Vous êtes en duel. Vous ne pouvez attaquer que votre adversaire." });
+                        }
+                        if (duel.turn !== authorId) {
+                            return await sock.sendMessage(chatId, { text: "❌ Ce n'est pas votre tour." });
+                        }
+                    } else {
+                        if (findDuel(targetId)) {
+                             return await sock.sendMessage(chatId, { text: "❌ Ce joueur est en duel et ne peut pas être attaqué." });
+                        }
+                    }
+
+                    const playerWeapon = weapons.find(w => w.name === player.equippedWeapon);
                     if (!playerWeapon) return await sock.sendMessage(chatId, { text: "❌ Vous n'avez pas d'arme équipée." });
+
+                    if (Math.random() < 0.1) { // 10% de chance de rater
+                        return await sock.sendMessage(chatId, { text: `💨 Vous avez manqué votre cible !` });
+                    }
 
                     let damage = playerWeapon.damage;
                     if (player.class === playerWeapon.class) { damage *= 1.2; }
@@ -422,8 +574,24 @@ async function connectToWhatsApp() {
                     if (target.health <= 0) {
                         target.health = 0;
                         target.lastDeath = Date.now();
-                        await sock.sendMessage(chatId, { text: `💥 Vous avez abattu ${target.name} !` });
-                        await sock.sendMessage(targetId, { text: `☠️ ${player.name} vous a tué. Vous ne pourrez plus parler pendant 1 heure.` });
+
+                        const duelId = findDuel(authorId);
+                        if (duelId) {
+                            const winner = player;
+                            const loser = target;
+                            const reward = { xp: 50, money: 100 };
+                            winner.xp += reward.xp;
+                            winner.money += reward.money;
+                            updateRank(winner);
+
+                            await sock.sendMessage(chatId, { text: `🏆 Victoire ! Vous avez vaincu ${loser.name} et gagné ${reward.xp} XP et ${reward.money} $.` });
+                             await sock.sendMessage(targetId, { text: `☠️ Vous avez été vaincu par ${winner.name}.` });
+                            delete game.duels[duelId];
+                        } else {
+                            await sock.sendMessage(chatId, { text: `💥 Vous avez abattu ${target.name} !` });
+                            await sock.sendMessage(targetId, { text: `☠️ ${player.name} vous a tué. Vous ne pourrez plus parler pendant 1 heure.` });
+                        }
+
                         if (player.quests.active_main) {
                             const activeQuestId = player.quests.active_main;
                             if (!player.quests.progress[activeQuestId]) { player.quests.progress[activeQuestId] = { shotsFired: 0, usedWeaponClasses: [], eliminatedClasses: [] }; }
@@ -434,6 +602,16 @@ async function connectToWhatsApp() {
                     } else {
                         await sock.sendMessage(chatId, { text: `💥 Vous avez touché ${target.name} ! Il lui reste ${target.health}% de vie.` });
                         await sock.sendMessage(targetId, { text: `🤕 ${player.name} vous a tiré dessus ! Il vous reste ${target.health}% de vie.` });
+
+                        const duelId = findDuel(authorId);
+                        if (duelId) {
+                            const opponentId = duelId.split(':').find(id => id !== authorId);
+                            game.duels[duelId].turn = opponentId;
+                            await sock.sendMessage(chatId, {
+                                text: `C'est maintenant au tour de <@${opponentId.split('@')[0]}>.`,
+                                mentions: [opponentId]
+                            });
+                        }
                     }
                     if (player.quests.active_main) {
                         const activeQuestId = player.quests.active_main;
@@ -531,6 +709,12 @@ async function connectToWhatsApp() {
                     `;
                     await sock.sendMessage(chatId, { text: rulesText });
                     break;
+                case 'battleroyale':
+                    await sock.sendMessage(chatId, { text: "Le mode Battle Royale est en cours de développement et sera bientôt disponible !" });
+                    break;
+                case 'braquage':
+                    await sock.sendMessage(chatId, { text: "Le mode Braquage est en cours de développement et sera bientôt disponible !" });
+                    break;
             }
         }
     });
@@ -581,7 +765,7 @@ async function checkQuestCompletion(player, sock, chatId) {
                 }
                 break;
             case 'equip':
-                if (player.weapon === quest.completion.item || Object.values(player.equipment).includes(quest.completion.item)) {
+                if (player.equippedWeapon === quest.completion.item || Object.values(player.equipment).includes(quest.completion.item)) {
                     completed = true;
                 }
                 break;
