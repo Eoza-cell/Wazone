@@ -1,12 +1,12 @@
 const makeWASocket = require('@whiskeysockets/baileys').default;
 const { useMultiFileAuthState, DisconnectReason, isJidGroup } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
+const { HttpsProxyAgent } = require('https-proxy-agent');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const http = require('http');
 const { Server } = require("socket.io");
-const sharp = require('sharp');
 const qrcode = require('qrcode');
 const pino = require('pino');
 
@@ -48,6 +48,11 @@ const weapons = JSON.parse(fs.readFileSync('./weapons.json', 'utf8'));
 const equipment = JSON.parse(fs.readFileSync('./equipment.json', 'utf8'));
 const quests = JSON.parse(fs.readFileSync('./quests.json', 'utf8'));
 
+let game = {
+    duels: {}, // { 'player1_id:player2_id': { turn: 'player1_id' } }
+    invitations: {} // { 'target_id': { from: 'challenger_id', timeout: NodeJS.Timeout } }
+};
+
 function savePlayers() {
     fs.writeFileSync(PLAYERS_FILE, JSON.stringify(players, null, 2));
 }
@@ -59,7 +64,9 @@ function getPlayer(id) {
             name: '',
             health: 100,
             energy: 100,
-            weapon: 'Pistolet simple',
+            money: 100,
+            equippedWeapon: 'Pistolet simple',
+            weaponInventory: ['Pistolet simple'],
             equipment: { helmet: null, vest: null, boots: null, gloves: null },
             inventory: [],
             lastDeath: null,
@@ -71,8 +78,24 @@ function getPlayer(id) {
             quests: { active_main: null, active_side: [], completed: [], progress: {} }
         };
         savePlayers();
+    } else {
+        // Simple migration for existing players
+        if (players[id].money === undefined) {
+            players[id].money = 100;
+        }
+        if (players[id].weaponInventory === undefined) {
+            players[id].weaponInventory = [players[id].weapon || 'Pistolet simple'];
+        }
+        if (players[id].equippedWeapon === undefined) {
+            players[id].equippedWeapon = players[id].weapon || 'Pistolet simple';
+            delete players[id].weapon;
+        }
     }
     return players[id];
+}
+
+function findDuel(playerId) {
+    return Object.keys(game.duels).find(duelId => duelId.split(':').includes(playerId));
 }
 
 const ranks = [
@@ -95,171 +118,40 @@ function updateRank(player) {
 }
 
 async function generateStatusImage(player) {
-    const imagePath = path.join(GENERATED_IMAGES_DIR, `${player.id}.png`);
-    const healthColor = player.health > 50 ? '#2ecc71' : (player.health > 20 ? '#f1c40f' : '#c0392b');
-    const energyColor = '#3498db';
-    const playerClass = player.class || 'N/A';
-    const rank = player.class ? player.ranks[player.class].rank : 'N/A';
-    const xp = player.class ? player.ranks[player.class].xp : 'N/A';
-
-    const svg = `
-    <svg width="500" height="300" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <style>
-                .background { fill: #1C1C1C; }
-                .name { font-family: monospace; font-size: 28px; fill: #EAEAEA; text-transform: uppercase; }
-                .label { font-family: monospace; font-size: 18px; fill: #f1c40f; text-transform: uppercase; }
-                .value { font-family: monospace; font-size: 16px; fill: #EAEAEA; }
-                .bar-bg { fill: #333; }
-            </style>
-        </defs>
-        <rect width="100%" height="100%" class="background" />
-        <rect x="5" y="5" width="490" height="240" fill="none" stroke="#7f8c8d" stroke-width="1" stroke-opacity="0.5"/>
-        <path d="M15 30 V15 H30" stroke="#f1c40f" stroke-width="2" fill="none"/>
-        <path d="M485 30 V15 H470" stroke="#f1c40f" stroke-width="2" fill="none"/>
-        <path d="M15 220 V235 H30" stroke="#f1c40f" stroke-width="2" fill="none"/>
-        <path d="M485 220 V235 H470" stroke="#f1c40f" stroke-width="2" fill="none"/>
-        <text x="30" y="45" class="name">${player.name}</text>
-        <text x="30" y="90" class="label">Santé</text>
-        <rect x="30" y="100" width="440" height="25" class="bar-bg" />
-        <rect x="30" y="100" width="${player.health * 4.4}" height="25" fill="${healthColor}" />
-        <text x="465" y="118" text-anchor="end" class="value">${player.health}%</text>
-        <text x="30" y="155" class="label">Énergie</text>
-        <rect x="30" y="165" width="440" height="25" class="bar-bg" />
-        <rect x="30" y="165" width="${player.energy * 4.4}" height="25" fill="${energyColor}" />
-        <text x="465" y="183" text-anchor="end" class="value">${player.energy}%</text>
-        <text x="30" y="220" class="label">Arme: <tspan class="value">${player.weapon}</tspan></text>
-        <text x="30" y="260" class="label">Classe: <tspan class="value">${playerClass}</tspan></text>
-        <text x="250" y="260" class="label">Rang: <tspan class="value">${rank}</tspan></text>
-        <text x="400" y="260" class="label">XP: <tspan class="value">${xp}</tspan></text>
-    </svg>
-    `;
-    await sharp(Buffer.from(svg)).png().toFile(imagePath);
-    return imagePath;
+    const prompt = `Call of Duty style HUD, screengrab, realistic, 8k. Player name: ${player.name}. Health: ${player.health}%. Energy: ${player.energy}%. Equipped Weapon: ${player.equippedWeapon}. Rank: ${player.rank}.`;
+    const encodedPrompt = encodeURIComponent(prompt);
+    return `https://image.pollinations.ai/prompt/${encodedPrompt}`;
 }
 
 async function generateMenuImage() {
-    const imagePath = path.join(GENERATED_IMAGES_DIR, `menu.png`);
-    const svg = `
-    <svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#0A0A0A;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#222222;stop-opacity:1" />
-            </linearGradient>
-            <filter id="glow">
-                <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
-                <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            </filter>
-            <style>
-                .font { font-family: 'Orbitron', sans-serif; }
-                .title { font-size: 80px; fill: url(#bg-grad); stroke: #888; stroke-width: 1px; font-weight: 700; text-transform: uppercase; letter-spacing: 10px; filter: url(#glow); }
-                .subtitle { font-size: 24px; fill: #00FF00; text-transform: uppercase; letter-spacing: 5px; opacity: 0.8; }
-                .section-title { font-size: 32px; fill: #FFA500; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; border-bottom: 1px solid #FFA500;}
-                .command { font-size: 24px; fill: #EAEAEA; }
-                .desc { font-size: 18px; fill: #888; }
-                .icon { fill: #FFA500; }
-            </style>
-        </defs>
-
-        <rect width="100%" height="100%" fill="url(#bg-grad)" />
-        <rect x="10" y="10" width="1180" height="780" fill="none" stroke="#555" stroke-width="2" stroke-opacity="0.5"/>
-
-        <text x="600" y="100" text-anchor="middle" class="font title">WAZONE</text>
-        <text x="600" y="140" text-anchor="middle" class="font subtitle">TERMINAL DE COMBAT</text>
-
-        <line x1="50" y1="180" x2="1150" y2="180" stroke="#555" stroke-width="1"/>
-
-        <!-- Colonne 1: Joueur -->
-        <g transform="translate(100, 250)">
-            <text class="font section-title">👤 Joueur</text>
-            <text x="20" y="60" class="font command">/profil</text>
-            <text x="20" y="90" class="font desc">Votre identité et équipement.</text>
-            <text x="20" y="140" class="font command">/statut</text>
-            <text x="20" y="170" class="font desc">Affiche votre état actuel.</text>
-            <text x="20" y="220" class="font command">/classement</text>
-            <text x="20" y="250" class="font desc">Votre rang et progression.</text>
-        </g>
-
-        <!-- Colonne 2: Actions -->
-        <g transform="translate(450, 250)">
-            <text class="font section-title">⚔️ Actions</text>
-            <text x="20" y="60" class="font command">/tire</text>
-            <text x="20" y="90" class="font desc">Engagez un adversaire.</text>
-            <text x="20" y="140" class="font command">/arme [nom]</text>
-            <text x="20" y="170" class="font desc">Consultez l'arsenal.</text>
-            <text x="20" y="220" class="font command">/equip [nom]</text>
-            <text x="20" y="250" class="font desc">Gérez votre équipement.</text>
-        </g>
-
-        <!-- Colonne 3: Monde -->
-        <g transform="translate(800, 250)">
-            <text class="font section-title">🌍 Monde</text>
-            <text x="20" y="60" class="font command">/quetes</text>
-            <text x="20" y="90" class="font desc">Voir les objectifs disponibles.</text>
-            <text x="20" y="140" class="font command">/regles</text>
-            <text x="20" y="170" class="font desc">Consultez les règles du jeu.</text>
-        </g>
-
-        <line x1="50" y1="700" x2="1150" y2="700" stroke="#555" stroke-width="1"/>
-        <text x="600" y="740" text-anchor="middle" class="font desc">VERSION 2.0 - NE PAS DIFFUSER</text>
-    </svg>
-    `;
-    await sharp(Buffer.from(svg)).png().toFile(imagePath);
-    return imagePath;
+    const prompt = `Futuristic military computer terminal, Call of Duty style, screengrab, 8k. The screen displays the main game commands: /profil, /statut, /classement, /tire, /arme, /equip, /quetes, /regles. The title on the screen is WAZONE.`;
+    const encodedPrompt = encodeURIComponent(prompt);
+    return `https://image.pollinations.ai/prompt/${encodedPrompt}`;
 }
 
 async function generateProfileImage(player) {
-    const imagePath = path.join(GENERATED_IMAGES_DIR, `profile_${player.id}.png`);
-    const composites = [];
+    let prompt = `First person view of a Call of Duty soldier, realistic, 8k. The soldier is a ${player.gender}, rank ${player.rank}. `;
 
-    // Utilise l'image de fond
-    const backgroundImagePath = path.join(__dirname, 'assets', 'wazone_background.jpeg');
-    const baseImage = sharp(backgroundImagePath).resize(500, 500);
-
-
-    for (const slot in player.equipment) {
-        if (player.equipment[slot]) {
-            const equipmentItem = equipment.find(e => e.name === player.equipment[slot]);
-            if (equipmentItem && equipmentItem.image) {
-                try {
-                    // Tente de télécharger chaque image d'équipement
-                    const equipmentImageResponse = await fetch(equipmentItem.image);
-                    if (!equipmentImageResponse.ok) {
-                        console.error(`Erreur HTTP ${equipmentImageResponse.status} pour l'image: ${equipmentItem.image}`);
-                        continue; // Passe à l'item suivant si le téléchargement échoue
-                    }
-                    const equipmentImageBuffer = await equipmentImageResponse.arrayBuffer();
-                    composites.push({ input: Buffer.from(equipmentImageBuffer) });
-                } catch (fetchError) {
-                    console.error(`Impossible de télécharger l'image d'équipement: ${equipmentItem.image}`, fetchError);
-                }
-            }
-        }
+    const equippedItems = Object.values(player.equipment).filter(Boolean);
+    if (equippedItems.length > 0) {
+        prompt += `The soldier is wearing ${equippedItems.join(', ')}. `;
+    }
+    if (player.equippedWeapon) {
+        prompt += `The soldier is holding a ${player.equippedWeapon}.`;
     }
 
-    try {
-        let image = baseImage;
-        if (composites.length > 0) {
-            image = image.composite(composites);
-        }
-        await image.png().toFile(imagePath);
-        return imagePath;
-    } catch (error) {
-        console.error("Erreur lors de la composition de l'image de profil:", error);
-        // En cas d'erreur, on peut retourner le chemin d'une image de remplacement locale
-        // ou simplement ne rien retourner pour que le message soit envoyé sans image.
-        return null;
-    }
+    const encodedPrompt = encodeURIComponent(prompt);
+    return `https://image.pollinations.ai/prompt/${encodedPrompt}`;
 }
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
+    const proxyUrl = process.env.PROXY_URL;
+    const agent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined;
 
     const sock = makeWASocket({
+        agent: agent,
+        fetchAgent: agent,
         auth: state,
         printQRInTerminal: false,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
@@ -273,10 +165,11 @@ async function connectToWhatsApp() {
 
     if (!sock.authState.creds.registered) {
         if (!phoneNumber) {
-            console.error("Veuillez entrer votre numéro de téléphone dans la variable 'phoneNumber' du fichier bot.js");
+            console.error("ERREUR: La variable d'environnement PHONE_NUMBER n'est pas définie.");
             io.emit('connectionError', "Numéro de téléphone manquant.");
             return;
         }
+         console.log(`Tentative de connexion avec le numéro : ${phoneNumber}`);
         setTimeout(async () => {
             const code = await sock.requestPairingCode(phoneNumber);
             console.log(`Votre code de pairage: ${code}`);
@@ -333,12 +226,12 @@ async function connectToWhatsApp() {
             switch (command) {
                 case 'menu':
                 case 'aide':
-                    const menuImagePath = await generateMenuImage();
-                    await sock.sendMessage(chatId, { image: { url: menuImagePath }, caption: "Voici la liste des commandes disponibles." });
+                    const menuImageUrl = await generateMenuImage();
+                    await sock.sendMessage(chatId, { image: { url: menuImageUrl }, caption: "Voici la liste des commandes disponibles." });
                     break;
                 case 'statut':
-                    const statusImagePath = await generateStatusImage(player);
-                    await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption: `Voici votre statut actuel, ${player.name}.` });
+                    const statusImageUrl = await generateStatusImage(player);
+                    await sock.sendMessage(chatId, { image: { url: statusImageUrl }, caption: `Voici votre statut actuel, ${player.name}.` });
                     break;
                 case 'classement':
                     const currentRankIndex = ranks.findIndex(r => r.name === player.rank);
@@ -355,12 +248,8 @@ async function connectToWhatsApp() {
                     await sock.sendMessage(chatId, { text: rankInfo });
                     break;
                 case 'profil':
-                    const profileImagePath = await generateProfileImage(player);
-                    if (profileImagePath) {
-                        await sock.sendMessage(chatId, { image: { url: profileImagePath }, caption: `Profil de ${player.name}` });
-                    } else {
-                        await sock.sendMessage(chatId, { text: `Impossible de générer l'image de profil pour ${player.name}.` });
-                    }
+                    const profileImageUrl = await generateProfileImage(player);
+                    await sock.sendMessage(chatId, { image: { url: profileImageUrl }, caption: `Profil de ${player.name}` });
                     break;
                 case 'genre':
                     const selectedGender = args[0];
@@ -372,11 +261,14 @@ async function connectToWhatsApp() {
                     await sock.sendMessage(chatId, { text: `✅ Votre personnage est maintenant un(e) ${selectedGender}.` });
                     break;
                 case 'classes':
+                     if (player.class) {
+                         return await sock.sendMessage(chatId, { text: `❌ Vous avez déjà choisi votre classe: *${player.class}*. Ce choix est définitif.` });
+                     }
                      const availableClasses = ['simple', 'sniper', 'lourd', 'bomber', 'assassin'];
                      const selectedClass = args[0];
 
                      if (!selectedClass) {
-                         let classList = "CHOISISSEZ VOTRE CLASSE:\n\n";
+                         let classList = "CHOISISSEZ VOTRE CLASSE (ce choix est définitif):\n\n";
                          availableClasses.forEach(c => { classList += `➡️ /classes ${c}\n`; });
                          return await sock.sendMessage(chatId, { text: classList });
                      }
@@ -385,19 +277,139 @@ async function connectToWhatsApp() {
                      }
                      player.class = selectedClass;
                      savePlayers();
-                     await sock.sendMessage(chatId, { text: `✅ Vous avez choisi la classe ${selectedClass}.` });
+                     await sock.sendMessage(chatId, { text: `✅ Vous avez choisi la classe ${selectedClass}. Ce choix est maintenant définitif.` });
                      break;
+                case 'acheter':
+                    const weaponToBuyName = args.join(' ');
+                    if (!weaponToBuyName) {
+                        return await sock.sendMessage(chatId, { text: "Veuillez spécifier le nom de l'arme que vous souhaitez acheter." });
+                    }
+
+                    const weaponToBuy = weapons.find(w => w.name.toLowerCase() === weaponToBuyName.toLowerCase());
+                    if (!weaponToBuy) {
+                        return await sock.sendMessage(chatId, { text: "❌ Arme non trouvée." });
+                    }
+
+                    if (player.money < weaponToBuy.price) {
+                        return await sock.sendMessage(chatId, { text: `❌ Vous n'avez pas assez d'argent. Il vous faut ${weaponToBuy.price} $ et vous avez ${player.money} $.` });
+                    }
+
+                    if (player.weaponInventory.includes(weaponToBuy.name)) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous possédez déjà cette arme." });
+                    }
+
+                    player.money -= weaponToBuy.price;
+                    player.weaponInventory.push(weaponToBuy.name);
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `✅ Vous avez acheté: *${weaponToBuy.name}* !` });
+                    break;
+
+                case 'equiper':
+                    const weaponToEquipName = args.join(' ');
+                    if (!weaponToEquipName) {
+                        let inventoryList = "VOTRE INVENTAIRE D'ARMES:\n\n";
+                        player.weaponInventory.forEach(item => { inventoryList += `➡️ ${item}\n`; });
+                        return await sock.sendMessage(chatId, { text: inventoryList });
+                    }
+
+                    if (!player.weaponInventory.includes(weaponToEquipName)) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous ne possédez pas cette arme." });
+                    }
+
+                    player.equippedWeapon = weaponToEquipName;
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `✅ Vous avez équipé: *${weaponToEquipName}* !` });
+                    break;
+                case 'duel':
+                    const opponentJid = msg.message.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+                    if (!opponentJid) {
+                        return await sock.sendMessage(chatId, { text: "❌ Pour défier quelqu'un, vous devez le mentionner. Ex: `/duel @adversaire`" });
+                    }
+                    if (opponentJid === authorId) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez pas vous défier vous-même." });
+                    }
+                    if (findDuel(authorId)) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous êtes déjà en duel." });
+                    }
+                    if (findDuel(opponentJid)) {
+                        return await sock.sendMessage(chatId, { text: "❌ Ce joueur est déjà en duel." });
+                    }
+                    if (game.invitations[opponentJid] || Object.values(game.invitations).some(inv => inv.from === authorId)) {
+                        return await sock.sendMessage(chatId, { text: "❌ Une invitation est déjà en cours. Veuillez attendre." });
+                    }
+
+                    const timeout = setTimeout(() => {
+                        delete game.invitations[opponentJid];
+                        sock.sendMessage(chatId, { text: `Le défi de ${player.name} à <@${opponentJid.split('@')[0]}> a expiré.`, mentions: [opponentJid] });
+                    }, 60000);
+
+                    game.invitations[opponentJid] = { from: authorId, timeout };
+                    await sock.sendMessage(chatId, {
+                        text: `🗡️ ${player.name} a défié <@${opponentJid.split('@')[0]}> en duel ! L'adversaire a 60 secondes pour répondre avec \`/accepter\` ou \`/refuser\`.`,
+                        mentions: [opponentJid]
+                    });
+                    break;
+                case 'accepter':
+                    const invitation = game.invitations[authorId];
+                    if (!invitation) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous n'avez aucune invitation en attente." });
+                    }
+                    clearTimeout(invitation.timeout);
+
+                    const challengerId = invitation.from;
+                    const duelId = [challengerId, authorId].sort().join(':');
+                    game.duels[duelId] = { turn: challengerId };
+                    delete game.invitations[authorId];
+
+                    await sock.sendMessage(chatId, {
+                        text: `🔥 Le duel entre <@${challengerId.split('@')[0]}> et <@${authorId.split('@')[0]}> commence ! C'est au tour de <@${challengerId.split('@')[0]}> de jouer.`,
+                        mentions: [challengerId, authorId]
+                    });
+                    break;
+
+                case 'refuser':
+                    const inv = game.invitations[authorId];
+                    if (!inv) {
+                        return await sock.sendMessage(chatId, { text: "❌ Vous n'avez aucune invitation en attente." });
+                    }
+                    clearTimeout(inv.timeout);
+                    const challenger = inv.from;
+                    delete game.invitations[authorId];
+                    await sock.sendMessage(chatId, {
+                        text: `<@${authorId.split('@')[0]}> a refusé le défi de <@${challenger.split('@')[0]}>.`,
+                        mentions: [authorId, challenger]
+                    });
+                    break;
                 case 'tire':
                     const contextInfo = msg.message.extendedTextMessage?.contextInfo;
                     if (!contextInfo || !contextInfo.participant) {
                         return await sock.sendMessage(chatId, { text: "❌ Pour tirer, vous devez répondre au message d'un adversaire." });
                     }
-
                     const targetId = contextInfo.participant;
                     if (targetId === authorId) return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez pas vous tirer dessus !" });
 
-                    const playerWeapon = weapons.find(w => w.name === player.weapon);
+                    const duelId = findDuel(authorId);
+                    if (duelId) {
+                        const duel = game.duels[duelId];
+                        const opponentId = duelId.split(':').find(id => id !== authorId);
+                        if (targetId !== opponentId) {
+                            return await sock.sendMessage(chatId, { text: "❌ Vous êtes en duel. Vous ne pouvez attaquer que votre adversaire." });
+                        }
+                        if (duel.turn !== authorId) {
+                            return await sock.sendMessage(chatId, { text: "❌ Ce n'est pas votre tour." });
+                        }
+                    } else {
+                        if (findDuel(targetId)) {
+                             return await sock.sendMessage(chatId, { text: "❌ Ce joueur est en duel et ne peut pas être attaqué." });
+                        }
+                    }
+
+                    const playerWeapon = weapons.find(w => w.name === player.equippedWeapon);
                     if (!playerWeapon) return await sock.sendMessage(chatId, { text: "❌ Vous n'avez pas d'arme équipée." });
+
+                    if (Math.random() < 0.1) { // 10% de chance de rater
+                        return await sock.sendMessage(chatId, { text: `💨 Vous avez manqué votre cible !` });
+                    }
 
                     let damage = playerWeapon.damage;
                     if (player.class === playerWeapon.class) { damage *= 1.2; }
@@ -422,8 +434,23 @@ async function connectToWhatsApp() {
                     if (target.health <= 0) {
                         target.health = 0;
                         target.lastDeath = Date.now();
-                        await sock.sendMessage(chatId, { text: `💥 Vous avez abattu ${target.name} !` });
-                        await sock.sendMessage(targetId, { text: `☠️ ${player.name} vous a tué. Vous ne pourrez plus parler pendant 1 heure.` });
+
+                        if (duelId) {
+                            const winner = player;
+                            const loser = target;
+                            const reward = { xp: 50, money: 100 };
+                            winner.xp += reward.xp;
+                            winner.money += reward.money;
+                            updateRank(winner);
+
+                            await sock.sendMessage(chatId, { text: `🏆 Victoire ! Vous avez vaincu ${loser.name} et gagné ${reward.xp} XP et ${reward.money} $.` });
+                             await sock.sendMessage(targetId, { text: `☠️ Vous avez été vaincu par ${winner.name}.` });
+                            delete game.duels[duelId];
+                        } else {
+                            await sock.sendMessage(chatId, { text: `💥 Vous avez abattu ${target.name} !` });
+                            await sock.sendMessage(targetId, { text: `☠️ ${player.name} vous a tué. Vous ne pourrez plus parler pendant 1 heure.` });
+                        }
+
                         if (player.quests.active_main) {
                             const activeQuestId = player.quests.active_main;
                             if (!player.quests.progress[activeQuestId]) { player.quests.progress[activeQuestId] = { shotsFired: 0, usedWeaponClasses: [], eliminatedClasses: [] }; }
@@ -434,6 +461,15 @@ async function connectToWhatsApp() {
                     } else {
                         await sock.sendMessage(chatId, { text: `💥 Vous avez touché ${target.name} ! Il lui reste ${target.health}% de vie.` });
                         await sock.sendMessage(targetId, { text: `🤕 ${player.name} vous a tiré dessus ! Il vous reste ${target.health}% de vie.` });
+
+                        if (duelId) {
+                            const opponentId = duelId.split(':').find(id => id !== authorId);
+                            game.duels[duelId].turn = opponentId;
+                            await sock.sendMessage(chatId, {
+                                text: `C'est maintenant au tour de <@${opponentId.split('@')[0]}>.`,
+                                mentions: [opponentId]
+                            });
+                        }
                     }
                     if (player.quests.active_main) {
                         const activeQuestId = player.quests.active_main;
@@ -531,6 +567,12 @@ async function connectToWhatsApp() {
                     `;
                     await sock.sendMessage(chatId, { text: rulesText });
                     break;
+                case 'battleroyale':
+                    await sock.sendMessage(chatId, { text: "Le mode Battle Royale est en cours de développement et sera bientôt disponible !" });
+                    break;
+                case 'braquage':
+                    await sock.sendMessage(chatId, { text: "Le mode Braquage est en cours de développement et sera bientôt disponible !" });
+                    break;
             }
         }
     });
@@ -581,7 +623,7 @@ async function checkQuestCompletion(player, sock, chatId) {
                 }
                 break;
             case 'equip':
-                if (player.weapon === quest.completion.item || Object.values(player.equipment).includes(quest.completion.item)) {
+                if (player.equippedWeapon === quest.completion.item || Object.values(player.equipment).includes(quest.completion.item)) {
                     completed = true;
                 }
                 break;

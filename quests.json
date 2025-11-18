@@ -3,7 +3,7 @@
       "id": 1,
       "title": "Premiers pas",
       "description": "Tirez sur un autre joueur.",
-      "reward": { "xp": 10, "item": "M4A1" },
+      "reward": { "xp": 10, "item": "M4A1", "money": 50 },
       "completion": { "type": "shotsFired", "count": 1 },
       "questType": "main"
     },
@@ -11,7 +11,7 @@
       "id": 2,
       "title": "Entraînement au tir",
       "description": "Tirez sur 5 joueurs différents.",
-      "reward": { "xp": 50, "item": "AK-47" },
+      "reward": { "xp": 50, "item": "AK-47", "money": 200 },
       "completion": { "type": "shotsFired", "count": 5 },
       "questType": "main"
     },
@@ -19,7 +19,7 @@
         "id": 3,
         "title": "Tireur d'élite",
         "description": "Tirez sur 10 joueurs avec un fusil de précision.",
-        "reward": { "xp": 100, "item": "Intervention" },
+        "reward": { "xp": 100, "item": "Intervention", "money": 500 },
         "completion": { "type": "shotsFired", "count": 10 },
         "questType": "main"
     },
@@ -27,7 +27,7 @@
         "id": 4,
         "title": "Vers la Gloire",
         "description": "Atteignez le rang 'Soldat'.",
-        "reward": { "xp": 150 },
+        "reward": { "xp": 150, "money": 1000 },
         "completion": { "type": "rank", "rank": "Soldat" },
         "questType": "main"
     },
@@ -35,7 +35,7 @@
         "id": 5,
         "title": "Arme de Légende",
         "description": "Trouvez et équipez le 'Ray Gun'.",
-        "reward": { "xp": 500 },
+        "reward": { "xp": 500, "money": 5000 },
         "completion": { "type": "equip", "item": "Ray Gun" },
         "questType": "side"
     }
