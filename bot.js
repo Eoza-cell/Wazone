@@ -349,7 +349,7 @@ async function connectToWhatsApp() {
                         mentions: [opponentJid]
                     });
                     break;
-                case 'accepter':
+                case 'accepter': {
                     const invitation = game.invitations[authorId];
                     if (!invitation) {
                         return await sock.sendMessage(chatId, { text: "❌ Vous n'avez aucune invitation en attente." });
@@ -366,8 +366,9 @@ async function connectToWhatsApp() {
                         mentions: [challengerId, authorId]
                     });
                     break;
+                }
 
-                case 'refuser':
+                case 'refuser': {
                     const inv = game.invitations[authorId];
                     if (!inv) {
                         return await sock.sendMessage(chatId, { text: "❌ Vous n'avez aucune invitation en attente." });
@@ -380,7 +381,8 @@ async function connectToWhatsApp() {
                         mentions: [authorId, challenger]
                     });
                     break;
-                case 'tire':
+                }
+                case 'tire': {
                     const contextInfo = msg.message.extendedTextMessage?.contextInfo;
                     if (!contextInfo || !contextInfo.participant) {
                         return await sock.sendMessage(chatId, { text: "❌ Pour tirer, vous devez répondre au message d'un adversaire." });
@@ -488,6 +490,7 @@ async function connectToWhatsApp() {
 
                     savePlayers();
                     break;
+                }
                 case 'arme':
                     const weaponName = args.join(' ');
                     if (!weaponName) {
