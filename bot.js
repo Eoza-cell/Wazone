@@ -491,7 +491,7 @@ async function connectToWhatsApp() {
                     savePlayers();
                     break;
                 }
-                case 'arme':
+                case 'arme': {
                     const weaponName = args.join(' ');
                     if (!weaponName) {
                         return await sock.sendMessage(chatId, { text: "Veuillez spécifier le nom d'une arme. Ex: /arme M4A1" });
@@ -508,6 +508,7 @@ async function connectToWhatsApp() {
 
                     await sock.sendMessage(chatId, { text: weaponInfo });
                     break;
+                }
                 case 'quetes':
                     const questId = args[0];
 
