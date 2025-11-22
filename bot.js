@@ -8,7 +8,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require("socket.io");
 const qrcode = require('qrcode');
-const pino = require('pino');
+const { connectDB, getDB } = require('./db.js');
 
 // --- CONFIGURATION UTILISATEUR ---
 // Définissez la variable d'environnement PHONE_NUMBER avec votre numéro (ex: "33612345678")
@@ -34,16 +34,13 @@ server.listen(PORT, () => {
 });
 // --- FIN DE LA CONFIGURATION ---
 
-const PLAYERS_FILE = './data/players.json';
 const GENERATED_IMAGES_DIR = './generated_images/';
 const SESSION_DIR = process.env.SESSION_DIR || 'auth_info_baileys';
 
 if (!fs.existsSync(SESSION_DIR)) fs.mkdirSync(SESSION_DIR, { recursive: true });
 if (!fs.existsSync(GENERATED_IMAGES_DIR)) fs.mkdirSync(GENERATED_IMAGES_DIR);
-if (!fs.existsSync(path.dirname(PLAYERS_FILE))) fs.mkdirSync(path.dirname(PLAYERS_FILE), { recursive: true });
-if (!fs.existsSync(PLAYERS_FILE)) fs.writeFileSync(PLAYERS_FILE, JSON.stringify({}));
 
-let players = JSON.parse(fs.readFileSync(PLAYERS_FILE, 'utf8'));
+let playersCollection;
 const weapons = JSON.parse(fs.readFileSync('./weapons.json', 'utf8'));
 const equipment = JSON.parse(fs.readFileSync('./equipment.json', 'utf8'));
 const quests = JSON.parse(fs.readFileSync('./quests.json', 'utf8'));
@@ -53,13 +50,14 @@ let game = {
     invitations: {} // { 'target_id': { from: 'challenger_id', timeout: NodeJS.Timeout } }
 };
 
-function savePlayers() {
-    fs.writeFileSync(PLAYERS_FILE, JSON.stringify(players, null, 2));
+async function updatePlayer(player) {
+    await playersCollection.updateOne({ id: player.id }, { $set: player }, { upsert: true });
 }
 
-function getPlayer(id) {
-    if (!players[id]) {
-        players[id] = {
+async function getPlayer(id) {
+    let player = await playersCollection.findOne({ id: id });
+    if (!player) {
+        player = {
             id: id,
             name: '',
             health: 100,
@@ -77,21 +75,9 @@ function getPlayer(id) {
             rank: 'Recrue',
             quests: { active_main: null, active_side: [], completed: [], progress: {} }
         };
-        savePlayers();
-    } else {
-        // Simple migration for existing players
-        if (players[id].money === undefined) {
-            players[id].money = 100;
-        }
-        if (players[id].weaponInventory === undefined) {
-            players[id].weaponInventory = [players[id].weapon || 'Pistolet simple'];
-        }
-        if (players[id].equippedWeapon === undefined) {
-            players[id].equippedWeapon = players[id].weapon || 'Pistolet simple';
-            delete players[id].weapon;
-        }
+        await playersCollection.insertOne(player);
     }
-    return players[id];
+    return player;
 }
 
 function findDuel(playerId) {
@@ -146,20 +132,17 @@ async function generateProfileImage(player) {
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
-    const proxyUrl = process.env.PROXY_URL;
-    const agent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined;
 
     const sock = makeWASocket({
-        agent: agent,
-        fetchAgent: agent,
         auth: state,
         printQRInTerminal: false,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
         version: [2, 3000, 1025190524],
-        logger: pino({ level: 'silent' }),
         getMessage: async key => {
             console.log('⚠️ Message non déchiffré, retry demandé:', key);
-            return { conversation: '🔄 Réessaye d\'envoyer ton message' };
+            return {
+                conversation: '🔄 Réessaye d\'envoyer ton message'
+            };
         }
     });
 
@@ -203,8 +186,11 @@ async function connectToWhatsApp() {
 
         if (!authorId) return;
 
-        const player = getPlayer(authorId);
-        if (!player.name) player.name = msg.pushName || 'Inconnu';
+        const player = await getPlayer(authorId);
+        if (!player.name) {
+             player.name = msg.pushName || 'Inconnu';
+             await updatePlayer(player);
+        }
 
         if (player.lastDeath) {
             const timeSinceDeath = Date.now() - player.lastDeath;
@@ -214,7 +200,7 @@ async function connectToWhatsApp() {
                 player.lastDeath = null;
                 player.health = 100;
                 player.energy = 100;
-                savePlayers();
+                await updatePlayer(player);
                 await sock.sendMessage(chatId, { text: `🧟‍♂️ Vous êtes de retour parmi les vivants !` });
             }
         }
@@ -257,7 +243,7 @@ async function connectToWhatsApp() {
                         return await sock.sendMessage(chatId, { text: "Veuillez choisir un genre valide : `/genre homme` ou `/genre femme`." });
                     }
                     player.gender = selectedGender;
-                    savePlayers();
+                    await updatePlayer(player);
                     await sock.sendMessage(chatId, { text: `✅ Votre personnage est maintenant un(e) ${selectedGender}.` });
                     break;
                 case 'classes':
@@ -276,7 +262,7 @@ async function connectToWhatsApp() {
                          return await sock.sendMessage(chatId, { text: "❌ Classe non valide. Veuillez choisir parmi les classes disponibles." });
                      }
                      player.class = selectedClass;
-                     savePlayers();
+                     await updatePlayer(player);
                      await sock.sendMessage(chatId, { text: `✅ Vous avez choisi la classe ${selectedClass}. Ce choix est maintenant définitif.` });
                      break;
                 case 'acheter':
@@ -300,7 +286,7 @@ async function connectToWhatsApp() {
 
                     player.money -= weaponToBuy.price;
                     player.weaponInventory.push(weaponToBuy.name);
-                    savePlayers();
+                    await updatePlayer(player);
                     await sock.sendMessage(chatId, { text: `✅ Vous avez acheté: *${weaponToBuy.name}* !` });
                     break;
 
@@ -317,7 +303,7 @@ async function connectToWhatsApp() {
                     }
 
                     player.equippedWeapon = weaponToEquipName;
-                    savePlayers();
+                    await updatePlayer(player);
                     await sock.sendMessage(chatId, { text: `✅ Vous avez équipé: *${weaponToEquipName}* !` });
                     break;
                 case 'duel':
@@ -349,7 +335,7 @@ async function connectToWhatsApp() {
                         mentions: [opponentJid]
                     });
                     break;
-                case 'accepter':
+                case 'accepter': {
                     const invitation = game.invitations[authorId];
                     if (!invitation) {
                         return await sock.sendMessage(chatId, { text: "❌ Vous n'avez aucune invitation en attente." });
@@ -366,8 +352,9 @@ async function connectToWhatsApp() {
                         mentions: [challengerId, authorId]
                     });
                     break;
+                }
 
-                case 'refuser':
+                case 'refuser': {
                     const inv = game.invitations[authorId];
                     if (!inv) {
                         return await sock.sendMessage(chatId, { text: "❌ Vous n'avez aucune invitation en attente." });
@@ -380,7 +367,8 @@ async function connectToWhatsApp() {
                         mentions: [authorId, challenger]
                     });
                     break;
-                case 'tire':
+                }
+                case 'tire': {
                     const contextInfo = msg.message.extendedTextMessage?.contextInfo;
                     if (!contextInfo || !contextInfo.participant) {
                         return await sock.sendMessage(chatId, { text: "❌ Pour tirer, vous devez répondre au message d'un adversaire." });
@@ -414,7 +402,7 @@ async function connectToWhatsApp() {
                     let damage = playerWeapon.damage;
                     if (player.class === playerWeapon.class) { damage *= 1.2; }
 
-                    const target = getPlayer(targetId);
+                    const target = await getPlayer(targetId);
 
                     let totalProtection = 0;
                     for (const slot in target.equipment) {
@@ -486,9 +474,11 @@ async function connectToWhatsApp() {
                         await checkQuestCompletion(player, sock, chatId);
                     });
 
-                    savePlayers();
+                    await updatePlayer(player);
+                    await updatePlayer(target);
                     break;
-                case 'arme':
+                }
+                case 'arme': {
                     const weaponName = args.join(' ');
                     if (!weaponName) {
                         return await sock.sendMessage(chatId, { text: "Veuillez spécifier le nom d'une arme. Ex: /arme M4A1" });
@@ -505,6 +495,7 @@ async function connectToWhatsApp() {
 
                     await sock.sendMessage(chatId, { text: weaponInfo });
                     break;
+                }
                 case 'quetes':
                     const questId = args[0];
 
@@ -529,7 +520,7 @@ async function connectToWhatsApp() {
                         if (player.quests.active_side.includes(quest.id)) return await sock.sendMessage(chatId, { text: "❌ Vous avez déjà cette quête secondaire active." });
                         player.quests.active_side.push(quest.id);
                     }
-                    savePlayers();
+                    await updatePlayer(player);
                     await sock.sendMessage(chatId, { text: `✅ Quête acceptée: *${quest.title}*` });
                     break;
                 case 'equip':
@@ -545,7 +536,7 @@ async function connectToWhatsApp() {
                     if (!player.inventory.includes(equipmentItem.name)) return await sock.sendMessage(chatId, { text: "❌ Vous ne possédez pas cet équipement." });
 
                     player.equipment[equipmentItem.type] = equipmentItem.name;
-                    savePlayers();
+                    await updatePlayer(player);
                     await sock.sendMessage(chatId, { text: `✅ Vous avez équipé: *${equipmentItem.name}*` });
                     await checkQuestCompletion(player, sock, chatId);
                     break;
@@ -577,10 +568,6 @@ async function connectToWhatsApp() {
         }
     });
 }
-
-connectToWhatsApp().catch(err => {
-    console.error("Erreur lors de la connexion initiale :", err);
-});
 
 async function checkQuestCompletion(player, sock, chatId) {
     const allActiveQuests = [player.quests.active_main, ...player.quests.active_side].filter(q => q !== null);
@@ -645,6 +632,7 @@ async function checkQuestCompletion(player, sock, chatId) {
                 player.inventory.push(quest.reward.item);
             }
 
+            await updatePlayer(player);
             await sock.sendMessage(chatId, { text: `🎉 Quête terminée: *${quest.title}* !\nRécompense: ${quest.reward.xp} XP` });
         }
     }
@@ -653,3 +641,11 @@ async function checkQuestCompletion(player, sock, chatId) {
 io.on('connection', (socket) => {
     console.log('Un client est connecté au serveur WebSocket.');
 });
+
+async function start() {
+    const db = await connectDB();
+    playersCollection = db.collection('players');
+    await connectToWhatsApp();
+}
+
+start().catch(console.error);
