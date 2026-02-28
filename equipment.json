@@ -1,0 +1,32 @@
+{
+  "helmets": [
+    {
+      "name": "Casque de combat",
+      "protection": 10
+    },
+    {
+      "name": "Casque tactique",
+      "protection": 15
+    }
+  ],
+  "vests": [
+    {
+      "name": "Gilet pare-balles",
+      "protection": 20
+    },
+    {
+      "name": "Gilet tactique",
+      "protection": 30
+    }
+  ],
+  "boots": [
+    {
+      "name": "Bottes de combat",
+      "protection": 5
+    },
+    {
+      "name": "Bottes tactiques",
+      "protection": 10
+    }
+  ]
+}

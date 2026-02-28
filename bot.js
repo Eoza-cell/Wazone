@@ -30,15 +30,18 @@ server.listen(PORT, () => {
 
 const AUTH_DIR = './auth_info_baileys/';
 const PLAYERS_FILE = './data/players.json';
+const EQUIPMENT_FILE = './equipment.json';
 const GENERATED_IMAGES_DIR = './generated_images/';
 
 if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR);
 if (!fs.existsSync(GENERATED_IMAGES_DIR)) fs.mkdirSync(GENERATED_IMAGES_DIR);
 if (!fs.existsSync(path.dirname(PLAYERS_FILE))) fs.mkdirSync(path.dirname(PLAYERS_FILE), { recursive: true });
 if (!fs.existsSync(PLAYERS_FILE)) fs.writeFileSync(PLAYERS_FILE, JSON.stringify({}));
+if (!fs.existsSync(EQUIPMENT_FILE)) fs.writeFileSync(EQUIPMENT_FILE, JSON.stringify({}));
 
 
 let players = JSON.parse(fs.readFileSync(PLAYERS_FILE, 'utf8'));
+const equipment = JSON.parse(fs.readFileSync(EQUIPMENT_FILE, 'utf8'));
 
 function savePlayers() {
     fs.writeFileSync(PLAYERS_FILE, JSON.stringify(players, null, 2));
@@ -48,7 +51,12 @@ function getPlayer(id) {
     if (!players[id]) {
         players[id] = {
             id: id, name: '', health: 100, energy: 100,
-            weapon: 'Pistolet simple', lastDeath: null, messageCount: 0
+            weapon: 'Pistolet simple', lastDeath: null, messageCount: 0,
+            equipment: {
+                helmet: null,
+                vest: null,
+                boots: null
+            }
         };
         savePlayers();
     }
@@ -257,7 +265,8 @@ async function connectToWhatsApp() {
                     break;
                 case 'statut':
                     const statusImagePath = await generateStatusImage(player);
-                    await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption: `Voici votre statut actuel, ${player.name}.`});
+                    let equipmentText = `\n\n*Équipement:*\nCasque: ${player.equipment.helmet || 'Aucun'}\nGilet: ${player.equipment.vest || 'Aucun'}\nBottes: ${player.equipment.boots || 'Aucun'}`;
+                    await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption: `Voici votre statut actuel, ${player.name}.${equipmentText}`});
                     break;
                 case 'tire':
                     const targetId = msg.message.extendedTextMessage?.contextInfo?.participant;
@@ -265,7 +274,25 @@ async function connectToWhatsApp() {
                     if (targetId === senderId) return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez pas vous tirer dessus !" });
 
                     const target = getPlayer(targetId);
-                    target.health -= 15;
+
+                    let totalProtection = 0;
+                    if (target.equipment.helmet) {
+                        const helmet = equipment.helmets.find(h => h.name === target.equipment.helmet);
+                        if (helmet) totalProtection += helmet.protection;
+                    }
+                    if (target.equipment.vest) {
+                        const vest = equipment.vests.find(v => v.name === target.equipment.vest);
+                        if (vest) totalProtection += vest.protection;
+                    }
+                    if (target.equipment.boots) {
+                        const boots = equipment.boots.find(b => b.name === target.equipment.boots);
+                        if (boots) totalProtection += boots.protection;
+                    }
+
+                    const baseDamage = 15;
+                    const damageDealt = Math.max(0, baseDamage - totalProtection);
+
+                    target.health -= damageDealt;
                     player.energy -= 5;
 
                     if (target.health <= 0) {
@@ -274,8 +301,8 @@ async function connectToWhatsApp() {
                         await sock.sendMessage(chatId, { text: `💥 Vous avez abattu ${target.name} !` });
                         await sock.sendMessage(targetId, { text: `☠️ ${player.name} vous a tué. Vous ne pourrez plus parler pendant 1 heure.` });
                     } else {
-                        await sock.sendMessage(chatId, { text: `💥 Vous avez touché ${target.name} ! Il lui reste ${target.health}% de vie.` });
-                        await sock.sendMessage(targetId, { text: `🤕 ${player.name} vous a tiré dessus ! Il vous reste ${target.health}% de vie.` });
+                        await sock.sendMessage(chatId, { text: `💥 Vous avez infligé ${damageDealt} points de dégâts à ${target.name} ! Il lui reste ${target.health}% de vie.` });
+                        await sock.sendMessage(targetId, { text: `🤕 ${player.name} vous a tiré dessus et vous a infligé ${damageDealt} points de dégâts ! Il vous reste ${target.health}% de vie.` });
                     }
                     savePlayers();
                     break;
@@ -284,6 +311,35 @@ async function connectToWhatsApp() {
                 case 'lieux': await sock.sendMessage(chatId, { text: "🗺️ Lieux explorables : ... (à définir)" }); break;
                 case 'events': await sock.sendMessage(chatId, { text: "🎉 Événements en cours : ... (à définir)" }); break;
                 case 'armes': await sock.sendMessage(chatId, { text: "🔫 Catalogue d'armes : Pistolet simple (dégâts: 15)" }); break;
+                case 'equiper':
+                    const equipmentName = args.join(' ');
+                    if (!equipmentName) return await sock.sendMessage(chatId, { text: "❌ Veuillez spécifier le nom de l'équipement. Exemple : /equiper Casque de combat" });
+
+                    let itemFound = false;
+                    for (const category in equipment) {
+                        const item = equipment[category].find(i => i.name.toLowerCase() === equipmentName.toLowerCase());
+                        if (item) {
+                            player.equipment[category.slice(0, -1)] = item.name;
+                            itemFound = true;
+                            break;
+                        }
+                    }
+
+                    if (itemFound) {
+                        savePlayers();
+                        await sock.sendMessage(chatId, { text: `✅ Vous avez équipé : ${equipmentName}` });
+                    } else {
+                        await sock.sendMessage(chatId, { text: "❌ Équipement non trouvé." });
+                    }
+                    break;
+                case 'inventaire':
+                    const inventory = player.equipment;
+                    let inventoryMessage = `🎒 Votre inventaire :\n`;
+                    inventoryMessage += `Casque : ${inventory.helmet || 'Aucun'}\n`;
+                    inventoryMessage += `Gilet : ${inventory.vest || 'Aucun'}\n`;
+                    inventoryMessage += `Bottes : ${inventory.boots || 'Aucun'}`;
+                    await sock.sendMessage(chatId, { text: inventoryMessage });
+                    break;
             }
         }
     });
