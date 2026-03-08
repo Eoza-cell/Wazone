@@ -30,18 +30,15 @@ server.listen(PORT, () => {
 
 const AUTH_DIR = './auth_info_baileys/';
 const PLAYERS_FILE = './data/players.json';
-const EQUIPMENT_FILE = './equipment.json';
 const GENERATED_IMAGES_DIR = './generated_images/';
 
 if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR);
 if (!fs.existsSync(GENERATED_IMAGES_DIR)) fs.mkdirSync(GENERATED_IMAGES_DIR);
 if (!fs.existsSync(path.dirname(PLAYERS_FILE))) fs.mkdirSync(path.dirname(PLAYERS_FILE), { recursive: true });
 if (!fs.existsSync(PLAYERS_FILE)) fs.writeFileSync(PLAYERS_FILE, JSON.stringify({}));
-if (!fs.existsSync(EQUIPMENT_FILE)) fs.writeFileSync(EQUIPMENT_FILE, JSON.stringify({}));
 
 
 let players = JSON.parse(fs.readFileSync(PLAYERS_FILE, 'utf8'));
-const equipment = JSON.parse(fs.readFileSync(EQUIPMENT_FILE, 'utf8'));
 
 function savePlayers() {
     fs.writeFileSync(PLAYERS_FILE, JSON.stringify(players, null, 2));
@@ -50,23 +47,37 @@ function savePlayers() {
 function getPlayer(id) {
     if (!players[id]) {
         players[id] = {
-            id: id, name: '', health: 100, energy: 100,
-            weapon: 'Pistolet simple', lastDeath: null, messageCount: 0,
-            equipment: {
-                helmet: null,
-                vest: null,
-                boots: null
-            }
+            id: id,
+            name: '',
+            points: 1000,
+            role: 'élève',
+            status: 'inscrit',
+            lastExam: 0,
+            lastGoodAction: 0,
+            messageCount: 0
         };
         savePlayers();
     }
     return players[id];
 }
 
+function updatePoints(player, amount) {
+    player.points += amount;
+    if (player.points <= 0) {
+        player.points = 0;
+        player.status = 'expulsé';
+        return true; // Expulsé
+    }
+    if (player.points > 0 && player.status === 'expulsé') {
+        player.status = 'inscrit';
+    }
+    return false;
+}
+
 async function generateStatusImage(player) {
     const imagePath = path.join(GENERATED_IMAGES_DIR, `${player.id}.png`);
-    const healthColor = player.health > 50 ? '#2ecc71' : (player.health > 20 ? '#f1c40f' : '#c0392b');
-    const energyColor = '#3498db';
+    const pointPercent = Math.min(100, (player.points / 2000) * 100);
+    const pointColor = player.points > 500 ? '#2ecc71' : (player.points > 100 ? '#f1c40f' : '#c0392b');
 
     const svg = `
     <svg width="500" height="250" xmlns="http://www.w3.org/2000/svg">
@@ -90,21 +101,16 @@ async function generateStatusImage(player) {
         <path d="M485 220 V235 H470" stroke="#f1c40f" stroke-width="2" fill="none"/>
 
         <text x="30" y="45" class="name">${player.name}</text>
+        <text x="470" y="45" text-anchor="end" class="label" style="fill: #7f8c8d; font-size: 14px;">[ ${player.role.toUpperCase()} ]</text>
 
-        <!-- Barre de vie -->
-        <text x="30" y="90" class="label">Santé</text>
-        <rect x="30" y="100" width="440" height="25" class="bar-bg" />
-        <rect x="30" y="100" width="${player.health * 4.4}" height="25" fill="${healthColor}" />
-        <text x="465" y="118" text-anchor="end" class="value">${player.health}%</text>
+        <!-- Barre de points -->
+        <text x="30" y="100" class="label">Points Privés</text>
+        <rect x="30" y="110" width="440" height="25" class="bar-bg" />
+        <rect x="30" y="110" width="${pointPercent * 4.4}" height="25" fill="${pointColor}" />
+        <text x="465" y="128" text-anchor="end" class="value">${player.points} pts</text>
 
-        <!-- Barre d'énergie -->
-        <text x="30" y="155" class="label">Énergie</text>
-        <rect x="30" y="165" width="440" height="25" class="bar-bg" />
-        <rect x="30" y="165" width="${player.energy * 4.4}" height="25" fill="${energyColor}" />
-        <text x="465" y="183" text-anchor="end" class="value">${player.energy}%</text>
-
-        <!-- Arme équipée -->
-        <text x="30" y="220" class="label">Arme: <tspan class="value">${player.weapon}</tspan></text>
+        <!-- Statut -->
+        <text x="30" y="170" class="label">Statut: <tspan class="value" style="fill: ${player.status === 'expulsé' ? '#c0392b' : '#2ecc71'}">${player.status.toUpperCase()}</tspan></text>
     </svg>
     `;
     await sharp(Buffer.from(svg)).png().toFile(imagePath);
@@ -114,12 +120,13 @@ async function generateStatusImage(player) {
 async function generateMenuImage() {
     const imagePath = path.join(GENERATED_IMAGES_DIR, `menu.png`);
     const svg = `
-    <svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+    <svg width="600" height="500" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <style>
           .title { font-family: monospace; font-size: 32px; fill: #f1c40f; text-transform: uppercase; }
           .command { font-family: monospace; font-size: 20px; fill: #e0e0e0; }
           .desc { font-family: monospace; font-size: 14px; fill: #7f8c8d; }
+          .category { font-family: monospace; font-size: 18px; fill: #c0392b; text-transform: uppercase; font-weight: bold; }
         </style>
       </defs>
 
@@ -128,33 +135,32 @@ async function generateMenuImage() {
       <!-- Cadre stylisé -->
       <path d="M10 20 V10 H20" stroke="#c0392b" stroke-width="2" fill="none"/>
       <path d="M590 20 V10 H580" stroke="#c0392b" stroke-width="2" fill="none"/>
-      <path d="M10 380 V390 H20" stroke="#c0392b" stroke-width="2" fill="none"/>
-      <path d="M590 380 V390 H580" stroke="#c0392b" stroke-width="2" fill="none"/>
+      <path d="M10 480 V490 H20" stroke="#c0392b" stroke-width="2" fill="none"/>
+      <path d="M590 480 V490 H580" stroke="#c0392b" stroke-width="2" fill="none"/>
 
-      <text x="300" y="50" text-anchor="middle" class="title">WAZONE BOT // COMMANDES</text>
+      <text x="300" y="50" text-anchor="middle" class="title">COTE RP // COMMANDES</text>
 
-      <!-- Colonne 1 -->
-      <text x="50" y="110" class="command">/statut</text>
-      <text x="50" y="130" class="desc">Affiche votre état actuel (vie, énergie).</text>
+      <!-- ÉLÈVES -->
+      <text x="40" y="100" class="category">>> ÉLÈVES</text>
+      <text x="50" y="130" class="command">/statut</text>
+      <text x="50" y="145" class="desc">Affiche vos points et votre rôle.</text>
 
-      <text x="50" y="180" class="command">/tire</text>
-      <text x="50" y="200" class="desc">Tire sur un adversaire (en réponse).</text>
+      <text x="50" y="180" class="command">/examen</text>
+      <text x="50" y="195" class="desc">Passez un examen pour gagner des points.</text>
 
-      <text x="50" y="250" class="command">/armes</text>
-      <text x="50" y="270" class="desc">Affiche le catalogue des armes.</text>
+      <text x="50" y="230" class="command">/bonneaction</text>
+      <text x="50" y="245" class="desc">Aidez un camarade pour +10 pts.</text>
 
-      <text x="50" y="320" class="command">/regles</text>
-      <text x="50" y="340" class="desc">Voir les règles du jeu.</text>
+      <!-- STAFF -->
+      <text x="40" y="300" class="category">>> ADMINISTRATION</text>
+      <text x="50" y="330" class="command">/donnerpoints [mention/réponse] [montant]</text>
+      <text x="50" y="345" class="desc">Accorder des points à un élève.</text>
 
-      <!-- Colonne 2 -->
-      <text x="320" y="110" class="command">/missions</text>
-      <text x="320" y="130" class="desc">Liste des missions disponibles.</text>
+      <text x="50" y="380" class="command">/enleverpoints [mention/réponse] [montant]</text>
+      <text x="50" y="395" class="desc">Sanctionner un élève par un retrait de points.</text>
 
-      <text x="320" y="180" class="command">/lieux</text>
-      <text x="320" y="200" class="desc">Explorez les lieux connus.</text>
-
-      <text x="320" y="250" class="command">/events</text>
-      <text x="320" y="270" class="desc">Consultez les événements en cours.</text>
+      <text x="50" y="430" class="command">/expulser [mention/réponse]</text>
+      <text x="50" y="445" class="desc">Renvoyer définitivement un élève.</text>
 
     </svg>
     `;
@@ -240,17 +246,8 @@ async function connectToWhatsApp() {
 
         const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
 
-        if (player.lastDeath) {
-            const timeSinceDeath = Date.now() - player.lastDeath;
-            if (timeSinceDeath < 3600000) { // 1 heure
-                return;
-            } else {
-                player.lastDeath = null;
-                player.health = 100;
-                player.energy = 100;
-                savePlayers();
-                await sock.sendMessage(chatId, { text: `🧟‍♂️ Vous êtes de retour parmi les vivants !` });
-            }
+        if (player.status === 'expulsé') {
+            return; // Les élèves expulsés ne peuvent plus interagir avec le bot
         }
 
         const args = messageContent.slice(1).trim().split(/ +/);
@@ -261,85 +258,101 @@ async function connectToWhatsApp() {
                 case 'menu':
                 case 'aide':
                     const menuImagePath = await generateMenuImage();
-                    await sock.sendMessage(chatId, { image: { url: menuImagePath }, caption: "Voici la liste des commandes disponibles."});
+                    await sock.sendMessage(chatId, { image: { url: menuImagePath }, caption: "Bienvenue sur l'interface du Lycée Kōdo Ikusei."});
                     break;
                 case 'statut':
                     const statusImagePath = await generateStatusImage(player);
-                    let equipmentText = `\n\n*Équipement:*\nCasque: ${player.equipment.helmet || 'Aucun'}\nGilet: ${player.equipment.vest || 'Aucun'}\nBottes: ${player.equipment.boots || 'Aucun'}`;
-                    await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption: `Voici votre statut actuel, ${player.name}.${equipmentText}`});
+                    await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption: `Profil de l'élève ${player.name}.`});
                     break;
-                case 'tire':
-                    const targetId = msg.message.extendedTextMessage?.contextInfo?.participant;
-                    if (!targetId) return await sock.sendMessage(chatId, { text: "❌ Pour tirer, vous devez répondre au message d'un adversaire." });
-                    if (targetId === senderId) return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez pas vous tirer dessus !" });
+                case 'examen': {
+                    const now = Date.now();
+                    if (now - player.lastExam < 3600000) {
+                        const remaining = Math.ceil((3600000 - (now - player.lastExam)) / 60000);
+                        return await sock.sendMessage(chatId, { text: `⏳ Vous avez déjà passé un examen récemment. Réessayez dans ${remaining} minutes.` });
+                    }
+                    const grade = Math.floor(Math.random() * 100) + 1;
+                    const pointsEarned = grade * 2;
+                    updatePoints(player, pointsEarned);
+                    player.lastExam = now;
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `📝 *EXAMEN:* Vous avez obtenu la note de ${grade}/100 !\n📈 +${pointsEarned} points privés.` });
+                    break;
+                }
+                case 'bonneaction': {
+                    const now = Date.now();
+                    if (now - player.lastGoodAction < 1800000) {
+                        const remaining = Math.ceil((1800000 - (now - player.lastGoodAction)) / 60000);
+                        return await sock.sendMessage(chatId, { text: `⏳ L'altruisme a ses limites. Réessayez dans ${remaining} minutes.` });
+                    }
+                    updatePoints(player, 10);
+                    player.lastGoodAction = now;
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `🤝 *BONNE ACTION:* Vous avez aidé un camarade.\n📈 +10 points privés.` });
+                    break;
+                }
+                case 'donnerpoints': {
+                    if (player.role === 'élève') return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut distribuer des points." });
+                    const targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
+                    const amount = parseInt(msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? args[1] : args[0]);
+                    if (!targetId || isNaN(amount)) return await sock.sendMessage(chatId, { text: "❌ Usage: /donnerpoints [mention/réponse] [montant]" });
 
                     const target = getPlayer(targetId);
-
-                    let totalProtection = 0;
-                    if (target.equipment.helmet) {
-                        const helmet = equipment.helmets.find(h => h.name === target.equipment.helmet);
-                        if (helmet) totalProtection += helmet.protection;
-                    }
-                    if (target.equipment.vest) {
-                        const vest = equipment.vests.find(v => v.name === target.equipment.vest);
-                        if (vest) totalProtection += vest.protection;
-                    }
-                    if (target.equipment.boots) {
-                        const boots = equipment.boots.find(b => b.name === target.equipment.boots);
-                        if (boots) totalProtection += boots.protection;
-                    }
-
-                    const baseDamage = 15;
-                    const damageDealt = Math.max(0, baseDamage - totalProtection);
-
-                    target.health -= damageDealt;
-                    player.energy -= 5;
-
-                    if (target.health <= 0) {
-                        target.health = 0;
-                        target.lastDeath = Date.now();
-                        await sock.sendMessage(chatId, { text: `💥 Vous avez abattu ${target.name} !` });
-                        await sock.sendMessage(targetId, { text: `☠️ ${player.name} vous a tué. Vous ne pourrez plus parler pendant 1 heure.` });
-                    } else {
-                        await sock.sendMessage(chatId, { text: `💥 Vous avez infligé ${damageDealt} points de dégâts à ${target.name} ! Il lui reste ${target.health}% de vie.` });
-                        await sock.sendMessage(targetId, { text: `🤕 ${player.name} vous a tiré dessus et vous a infligé ${damageDealt} points de dégâts ! Il vous reste ${target.health}% de vie.` });
-                    }
+                    const wasExpelled = target.status === 'expulsé';
+                    updatePoints(target, amount);
                     savePlayers();
+                    let msgText = `✅ ${player.role} ${player.name} a accordé ${amount} points à ${target.name}.`;
+                    if (wasExpelled && target.status === 'inscrit') {
+                        msgText += `\n🎓 *RÉINTÉGRATION:* L'élève a été réintégré.`;
+                    }
+                    await sock.sendMessage(chatId, { text: msgText });
                     break;
-                case 'regles': await sock.sendMessage(chatId, { text: "📜 Règles du jeu : ... (à définir)" }); break;
-                case 'missions': await sock.sendMessage(chatId, { text: "📋 Missions disponibles : ... (à définir)" }); break;
-                case 'lieux': await sock.sendMessage(chatId, { text: "🗺️ Lieux explorables : ... (à définir)" }); break;
-                case 'events': await sock.sendMessage(chatId, { text: "🎉 Événements en cours : ... (à définir)" }); break;
-                case 'armes': await sock.sendMessage(chatId, { text: "🔫 Catalogue d'armes : Pistolet simple (dégâts: 15)" }); break;
-                case 'equiper':
-                    const equipmentName = args.join(' ');
-                    if (!equipmentName) return await sock.sendMessage(chatId, { text: "❌ Veuillez spécifier le nom de l'équipement. Exemple : /equiper Casque de combat" });
+                }
+                case 'enleverpoints': {
+                    if (player.role === 'élève') return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut retirer des points." });
+                    const targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
+                    const amount = parseInt(msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? args[1] : args[0]);
+                    if (!targetId || isNaN(amount)) return await sock.sendMessage(chatId, { text: "❌ Usage: /enleverpoints [mention/réponse] [montant]" });
 
-                    let itemFound = false;
-                    for (const category in equipment) {
-                        const item = equipment[category].find(i => i.name.toLowerCase() === equipmentName.toLowerCase());
-                        if (item) {
-                            player.equipment[category.slice(0, -1)] = item.name;
-                            itemFound = true;
-                            break;
-                        }
+                    const target = getPlayer(targetId);
+                    const isExpelled = updatePoints(target, -amount);
+
+                    let expulsionMsg = "";
+                    if (isExpelled) {
+                        expulsionMsg = `\n🚫 *EXPULSION:* ${target.name} a atteint 0 point et est expulsé de l'établissement.`;
                     }
 
-                    if (itemFound) {
-                        savePlayers();
-                        await sock.sendMessage(chatId, { text: `✅ Vous avez équipé : ${equipmentName}` });
-                    } else {
-                        await sock.sendMessage(chatId, { text: "❌ Équipement non trouvé." });
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `⚠️ ${player.role} ${player.name} a retiré ${amount} points à ${target.name}.${expulsionMsg}` });
+                    break;
+                }
+                case 'expulser': {
+                    if (player.role === 'élève') return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut expulser un élève." });
+                    const targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
+                    if (!targetId) return await sock.sendMessage(chatId, { text: "❌ Usage: /expulser [mention/réponse]" });
+
+                    const target = getPlayer(targetId);
+                    target.points = 0;
+                    target.status = 'expulsé';
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `🚫 *EXPULSION:* ${target.name} a été expulsé par ${player.role} ${player.name}.` });
+                    break;
+                }
+                case 'promouvoir': {
+                    // Seul le numéro configuré ou le premier admin peut promouvoir
+                    if (player.role !== 'principal' && senderId !== process.env.PHONE_NUMBER + '@s.whatsapp.net') {
+                        return await sock.sendMessage(chatId, { text: "❌ Seul le Principal peut promouvoir quelqu'un." });
                     }
+                    const targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
+                    const newRole = msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? args[1] : args[0];
+                    if (!targetId || !['professeur', 'principal'].includes(newRole)) return await sock.sendMessage(chatId, { text: "❌ Usage: /promouvoir [mention/réponse] [professeur/principal]" });
+
+                    const target = getPlayer(targetId);
+                    target.role = newRole;
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `🎓 ${target.name} a été promu au rang de ${newRole}.` });
                     break;
-                case 'inventaire':
-                    const inventory = player.equipment;
-                    let inventoryMessage = `🎒 Votre inventaire :\n`;
-                    inventoryMessage += `Casque : ${inventory.helmet || 'Aucun'}\n`;
-                    inventoryMessage += `Gilet : ${inventory.vest || 'Aucun'}\n`;
-                    inventoryMessage += `Bottes : ${inventory.boots || 'Aucun'}`;
-                    await sock.sendMessage(chatId, { text: inventoryMessage });
-                    break;
+                }
+                case 'regles': await sock.sendMessage(chatId, { text: "📜 Lycée Kōdo Ikusei - Règlement :\n1. Le mérite est la seule valeur.\n2. Si vos points tombent à zéro, vous êtes expulsé.\n3. Le respect du staff est obligatoire." }); break;
             }
         }
     });
