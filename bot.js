@@ -19,6 +19,7 @@ const io = new Server(server, {
     }
 });
 const PORT = process.env.PORT || 3000;
+const SUPER_ADMIN = '22663685468@s.whatsapp.net';
 
 app.set('trust proxy', 1); // Indispensable pour les environnements avec proxy comme Render
 app.use(express.static(path.join(__dirname, 'public')));
@@ -40,6 +41,19 @@ if (!fs.existsSync(PLAYERS_FILE)) fs.writeFileSync(PLAYERS_FILE, JSON.stringify(
 
 let players = JSON.parse(fs.readFileSync(PLAYERS_FILE, 'utf8'));
 
+const EXAM_QUESTIONS = [
+    { q: "Dans 'One Piece', quel est le vrai nom de Barbe Noire ?", a: "Marshall D. Teach", type: "manga" },
+    { q: "Quel manga met en scène un carnet capable de tuer ?", a: "Death Note", type: "manga" },
+    { q: "Qui est l'auteur de 'Dragon Ball' ?", a: "Akira Toriyama", type: "manga" },
+    { q: "Dans 'Naruto', qui est le sensei de l'équipe 7 ?", a: "Kakashi Hatake", type: "manga" },
+    { q: "Quel est le nom du protagoniste de 'Solo Leveling' ?", a: "Sung Jin-woo", type: "manga" },
+    { q: "En JavaScript, comment déclare-t-on une variable constante ?", a: "const", type: "prog" },
+    { q: "Quel langage est principalement utilisé pour le style d'une page web ?", a: "CSS", type: "prog" },
+    { q: "Que signifie HTML ?", a: "HyperText Markup Language", type: "prog" },
+    { q: "Quel symbole est utilisé pour les commentaires sur une seule ligne en Java ?", a: "//", type: "prog" },
+    { q: "Dans quel langage Python a-t-il été écrit ?", a: "C", type: "prog" }
+];
+
 function savePlayers() {
     fs.writeFileSync(PLAYERS_FILE, JSON.stringify(players, null, 2));
 }
@@ -52,9 +66,11 @@ function getPlayer(id) {
             points: 1000,
             role: 'élève',
             status: 'inscrit',
+            classe: null,
             lastExam: 0,
             lastGoodAction: 0,
-            messageCount: 0
+            messageCount: 0,
+            pendingExam: null
         };
         savePlayers();
     }
@@ -101,7 +117,7 @@ async function generateStatusImage(player) {
         <path d="M485 220 V235 H470" stroke="#f1c40f" stroke-width="2" fill="none"/>
 
         <text x="30" y="45" class="name">${player.name}</text>
-        <text x="470" y="45" text-anchor="end" class="label" style="fill: #7f8c8d; font-size: 14px;">[ ${player.role.toUpperCase()} ]</text>
+        <text x="470" y="45" text-anchor="end" class="label" style="fill: #7f8c8d; font-size: 14px;">[ ${player.role.toUpperCase()} | CLASSE ${player.classe || '?' } ]</text>
 
         <!-- Barre de points -->
         <text x="30" y="100" class="label">Points Privés</text>
@@ -142,25 +158,28 @@ async function generateMenuImage() {
 
       <!-- ÉLÈVES -->
       <text x="40" y="100" class="category">>> ÉLÈVES</text>
-      <text x="50" y="130" class="command">/statut</text>
-      <text x="50" y="145" class="desc">Affiche vos points et votre rôle.</text>
+      <text x="50" y="130" class="command">/inscription [A/B/C/D]</text>
+      <text x="50" y="145" class="desc">Inscrivez-vous dans une classe.</text>
 
-      <text x="50" y="180" class="command">/examen</text>
-      <text x="50" y="195" class="desc">Passez un examen pour gagner des points.</text>
+      <text x="50" y="180" class="command">/statut</text>
+      <text x="50" y="195" class="desc">Affiche vos points et votre rôle.</text>
 
-      <text x="50" y="230" class="command">/bonneaction</text>
-      <text x="50" y="245" class="desc">Aidez un camarade pour +10 pts.</text>
+      <text x="50" y="230" class="command">/examen</text>
+      <text x="50" y="245" class="desc">Passez un examen pour gagner des points.</text>
+
+      <text x="50" y="280" class="command">/bonneaction</text>
+      <text x="50" y="295" class="desc">Aidez un camarade pour +10 pts.</text>
 
       <!-- STAFF -->
-      <text x="40" y="300" class="category">>> ADMINISTRATION</text>
-      <text x="50" y="330" class="command">/donnerpoints [mention/réponse] [montant]</text>
-      <text x="50" y="345" class="desc">Accorder des points à un élève.</text>
+      <text x="40" y="350" class="category">>> ADMINISTRATION</text>
+      <text x="50" y="380" class="command">/donnerpoints [mention/réponse] [montant]</text>
+      <text x="50" y="395" class="desc">Accorder des points à un élève.</text>
 
-      <text x="50" y="380" class="command">/enleverpoints [mention/réponse] [montant]</text>
-      <text x="50" y="395" class="desc">Sanctionner un élève par un retrait de points.</text>
+      <text x="50" y="430" class="command">/enleverpoints [mention/réponse] [montant]</text>
+      <text x="50" y="445" class="desc">Sanctionner un élève par un retrait de points.</text>
 
-      <text x="50" y="430" class="command">/expulser [mention/réponse]</text>
-      <text x="50" y="445" class="desc">Renvoyer définitivement un élève.</text>
+      <text x="50" y="480" class="command">/expulser [mention/réponse]</text>
+      <text x="50" y="495" class="desc">Renvoyer définitivement un élève.</text>
 
     </svg>
     `;
@@ -177,7 +196,7 @@ async function connectToWhatsApp() {
         auth: state,
         printQRInTerminal: true,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
-        version,
+        version: [2, 3000, 1027934701],
         getMessage: async key => {
             console.log('⚠️ Message non déchiffré, retry demandé:', key);
             return { conversation: '🔄 Réessaye d\'envoyer ton message' };
@@ -246,6 +265,25 @@ async function connectToWhatsApp() {
 
         const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
 
+        // --- Gestion des Réponses aux Examens ---
+        if (player.pendingExam && msg.message.extendedTextMessage?.contextInfo?.stanzaId === player.pendingExam.msgId) {
+            const userAnswer = messageContent.trim().toLowerCase();
+            const correctAnswer = player.pendingExam.answer.toLowerCase();
+
+            if (userAnswer === correctAnswer) {
+                const reward = 200;
+                updatePoints(player, reward);
+                await sock.sendMessage(chatId, { text: `✅ *EXCELLENT:* Bonne réponse ! Vous gagnez ${reward} points privés.` });
+            } else {
+                const penalty = 100;
+                updatePoints(player, -penalty);
+                await sock.sendMessage(chatId, { text: `❌ *ÉCHEC:* La bonne réponse était: ${player.pendingExam.answer}. Vous perdez ${penalty} points.` });
+            }
+            player.pendingExam = null;
+            savePlayers();
+            return;
+        }
+
         if (player.status === 'expulsé') {
             return; // Les élèves expulsés ne peuvent plus interagir avec le bot
         }
@@ -254,7 +292,21 @@ async function connectToWhatsApp() {
         const command = args.shift().toLowerCase();
 
         if (messageContent.startsWith('/')) {
+            if (!player.classe && command !== 'inscription' && command !== 'menu' && command !== 'aide') {
+                return await sock.sendMessage(chatId, { text: "⚠️ Vous n'êtes pas encore inscrit. Utilisez */inscription [A/B/C/D]* pour rejoindre une classe." });
+            }
+
             switch(command) {
+                case 'inscription': {
+                    if (player.classe) return await sock.sendMessage(chatId, { text: `✅ Vous êtes déjà inscrit en classe ${player.classe}.` });
+                    const choice = args[0]?.toUpperCase();
+                    if (!['A', 'B', 'C', 'D'].includes(choice)) return await sock.sendMessage(chatId, { text: "❌ Veuillez choisir une classe valide : A, B, C ou D.\nExemple: /inscription A" });
+
+                    player.classe = choice;
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `🎓 Félicitations ! Vous avez été affecté à la *Classe ${choice}*.\nUtilisez /menu pour voir vos options.` });
+                    break;
+                }
                 case 'menu':
                 case 'aide':
                     const menuImagePath = await generateMenuImage();
@@ -262,20 +314,25 @@ async function connectToWhatsApp() {
                     break;
                 case 'statut':
                     const statusImagePath = await generateStatusImage(player);
-                    await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption: `Profil de l'élève ${player.name}.`});
+                    await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption: `Profil de l'élève ${player.name} (Classe ${player.classe}).`});
                     break;
                 case 'examen': {
                     const now = Date.now();
-                    if (now - player.lastExam < 3600000) {
-                        const remaining = Math.ceil((3600000 - (now - player.lastExam)) / 60000);
+                    if (now - player.lastExam < 1800000) {
+                        const remaining = Math.ceil((1800000 - (now - player.lastExam)) / 60000);
                         return await sock.sendMessage(chatId, { text: `⏳ Vous avez déjà passé un examen récemment. Réessayez dans ${remaining} minutes.` });
                     }
-                    const grade = Math.floor(Math.random() * 100) + 1;
-                    const pointsEarned = grade * 2;
-                    updatePoints(player, pointsEarned);
+
+                    const question = EXAM_QUESTIONS[Math.floor(Math.random() * EXAM_QUESTIONS.length)];
+                    const sentMsg = await sock.sendMessage(chatId, { text: `📝 *EXAMEN [${question.type.toUpperCase()}]*\n\nQuestion: ${question.q}\n\n_Répondez à ce message avec la bonne réponse._` });
+
+                    player.pendingExam = {
+                        msgId: sentMsg.key.id,
+                        answer: question.a,
+                        timestamp: now
+                    };
                     player.lastExam = now;
                     savePlayers();
-                    await sock.sendMessage(chatId, { text: `📝 *EXAMEN:* Vous avez obtenu la note de ${grade}/100 !\n📈 +${pointsEarned} points privés.` });
                     break;
                 }
                 case 'bonneaction': {
@@ -338,9 +395,9 @@ async function connectToWhatsApp() {
                     break;
                 }
                 case 'promouvoir': {
-                    // Seul le numéro configuré ou le premier admin peut promouvoir
-                    if (player.role !== 'principal' && senderId !== process.env.PHONE_NUMBER + '@s.whatsapp.net') {
-                        return await sock.sendMessage(chatId, { text: "❌ Seul le Principal peut promouvoir quelqu'un." });
+                    // Seul le numéro configuré ou le super admin peut promouvoir
+                    if (player.role !== 'principal' && senderId !== SUPER_ADMIN) {
+                        return await sock.sendMessage(chatId, { text: "❌ Seul le Principal ou le Super Admin peut promouvoir quelqu'un." });
                     }
                     const targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
                     const newRole = msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? args[1] : args[0];
