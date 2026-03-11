@@ -1,5 +1,6 @@
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
+const { HttpsProxyAgent } = require('https-proxy-agent');
 const pino = require('pino');
 const fs = require('fs');
 const path = require('path');
@@ -70,7 +71,9 @@ function getPlayer(id) {
             lastExam: 0,
             lastGoodAction: 0,
             messageCount: 0,
-            pendingExam: null
+            pendingExam: null,
+            stellarBalance: 0, // Positif = Stellars, Négatif = Tonitos
+            advantages: []
         };
         savePlayers();
     }
@@ -90,13 +93,35 @@ function updatePoints(player, amount) {
     return false;
 }
 
+function updateStellarBalance(player, amount) {
+    player.stellarBalance += amount;
+
+    // Vérification des transformations
+    if (player.stellarBalance >= 13 && player.status !== 'VIP') {
+        player.status = 'VIP';
+    } else if (player.stellarBalance <= -10 && player.status !== 'ENG') {
+        player.status = 'ENG';
+    } else if (player.stellarBalance > -10 && player.stellarBalance < 13) {
+        if (player.status === 'VIP' || player.status === 'ENG') {
+            player.status = 'inscrit';
+        }
+    }
+}
+
 async function generateStatusImage(player) {
     const imagePath = path.join(GENERATED_IMAGES_DIR, `${player.id}.png`);
     const pointPercent = Math.min(100, (player.points / 2000) * 100);
     const pointColor = player.points > 500 ? '#2ecc71' : (player.points > 100 ? '#f1c40f' : '#c0392b');
 
+    const stellarCount = player.stellarBalance > 0 ? player.stellarBalance : 0;
+    const tonitoCount = player.stellarBalance < 0 ? Math.abs(player.stellarBalance) : 0;
+
+    let statusColor = '#2ecc71';
+    if (player.status === 'expulsé' || player.status === 'ENG') statusColor = '#c0392b';
+    if (player.status === 'VIP') statusColor = '#f1c40f';
+
     const svg = `
-    <svg width="500" height="250" xmlns="http://www.w3.org/2000/svg">
+    <svg width="500" height="300" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <style>
                 .background { fill: #1C1C1C; }
@@ -104,17 +129,17 @@ async function generateStatusImage(player) {
                 .label { font-family: monospace; font-size: 18px; fill: #f1c40f; text-transform: uppercase; }
                 .value { font-family: monospace; font-size: 16px; fill: #EAEAEA; }
                 .bar-bg { fill: #333; }
+                .stellar { fill: #f1c40f; font-weight: bold; }
+                .tonito { fill: #e74c3c; font-weight: bold; }
             </style>
         </defs>
 
         <rect width="100%" height="100%" class="background" />
 
-        <!-- Cadre et lignes de style -->
-        <rect x="5" y="5" width="490" height="240" fill="none" stroke="#7f8c8d" stroke-width="1" stroke-opacity="0.5"/>
+        <!-- Cadre -->
+        <rect x="5" y="5" width="490" height="290" fill="none" stroke="#7f8c8d" stroke-width="1" stroke-opacity="0.5"/>
         <path d="M15 30 V15 H30" stroke="#f1c40f" stroke-width="2" fill="none"/>
         <path d="M485 30 V15 H470" stroke="#f1c40f" stroke-width="2" fill="none"/>
-        <path d="M15 220 V235 H30" stroke="#f1c40f" stroke-width="2" fill="none"/>
-        <path d="M485 220 V235 H470" stroke="#f1c40f" stroke-width="2" fill="none"/>
 
         <text x="30" y="45" class="name">${player.name}</text>
         <text x="470" y="45" text-anchor="end" class="label" style="fill: #7f8c8d; font-size: 14px;">[ ${player.role.toUpperCase()} | CLASSE ${player.classe || '?' } ]</text>
@@ -125,8 +150,13 @@ async function generateStatusImage(player) {
         <rect x="30" y="110" width="${pointPercent * 4.4}" height="25" fill="${pointColor}" />
         <text x="465" y="128" text-anchor="end" class="value">${player.points} pts</text>
 
+        <!-- Stellars & Tonitos -->
+        <text x="30" y="170" class="label">Récompenses:</text>
+        <text x="30" y="195" class="value stellar">⭐ STELLARS: ${stellarCount}</text>
+        <text x="250" y="195" class="value tonito">👿 TONITOS: ${tonitoCount}</text>
+
         <!-- Statut -->
-        <text x="30" y="170" class="label">Statut: <tspan class="value" style="fill: ${player.status === 'expulsé' ? '#c0392b' : '#2ecc71'}">${player.status.toUpperCase()}</tspan></text>
+        <text x="30" y="250" class="label">Statut: <tspan class="value" style="fill: ${statusColor}">${player.status.toUpperCase()}</tspan></text>
     </svg>
     `;
     await sharp(Buffer.from(svg)).png().toFile(imagePath);
@@ -136,7 +166,7 @@ async function generateStatusImage(player) {
 async function generateMenuImage() {
     const imagePath = path.join(GENERATED_IMAGES_DIR, `menu.png`);
     const svg = `
-    <svg width="600" height="500" xmlns="http://www.w3.org/2000/svg">
+    <svg width="600" height="600" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <style>
           .title { font-family: monospace; font-size: 32px; fill: #f1c40f; text-transform: uppercase; }
@@ -151,8 +181,8 @@ async function generateMenuImage() {
       <!-- Cadre stylisé -->
       <path d="M10 20 V10 H20" stroke="#c0392b" stroke-width="2" fill="none"/>
       <path d="M590 20 V10 H580" stroke="#c0392b" stroke-width="2" fill="none"/>
-      <path d="M10 480 V490 H20" stroke="#c0392b" stroke-width="2" fill="none"/>
-      <path d="M590 480 V490 H580" stroke="#c0392b" stroke-width="2" fill="none"/>
+      <path d="M10 580 V590 H20" stroke="#c0392b" stroke-width="2" fill="none"/>
+      <path d="M590 580 V590 H580" stroke="#c0392b" stroke-width="2" fill="none"/>
 
       <text x="300" y="50" text-anchor="middle" class="title">COTE RP // COMMANDES</text>
 
@@ -167,19 +197,24 @@ async function generateMenuImage() {
       <text x="50" y="230" class="command">/examen</text>
       <text x="50" y="245" class="desc">Passez un examen pour gagner des points.</text>
 
-      <text x="50" y="280" class="command">/bonneaction</text>
-      <text x="50" y="295" class="desc">Aidez un camarade pour +10 pts.</text>
+      <text x="320" y="130" class="command">/bonneaction</text>
+      <text x="320" y="145" class="desc">Aidez un camarade pour +10 pts.</text>
+
+      <text x="320" y="180" class="command">/ordre [mention] [texte]</text>
+      <text x="320" y="195" class="desc">VIP: Donner un ordre à un ENG.</text>
 
       <!-- STAFF -->
-      <text x="40" y="350" class="category">>> ADMINISTRATION</text>
-      <text x="50" y="380" class="command">/donnerpoints [mention/réponse] [montant]</text>
-      <text x="50" y="395" class="desc">Accorder des points à un élève.</text>
+      <text x="40" y="320" class="category">>> ADMINISTRATION</text>
+      <text x="50" y="350" class="command">/donnerpoints</text>
+      <text x="50" y="400" class="command">/enleverpoints</text>
+      <text x="50" y="450" class="command">/expulser</text>
+      <text x="50" y="500" class="command">/promouvoir</text>
 
-      <text x="50" y="430" class="command">/enleverpoints [mention/réponse] [montant]</text>
-      <text x="50" y="445" class="desc">Sanctionner un élève par un retrait de points.</text>
+      <text x="320" y="350" class="command">/stellar [n]</text>
+      <text x="320" y="365" class="desc">Attribuer des Stellars.</text>
 
-      <text x="50" y="480" class="command">/expulser [mention/réponse]</text>
-      <text x="50" y="495" class="desc">Renvoyer définitivement un élève.</text>
+      <text x="320" y="400" class="command">/tonito [n]</text>
+      <text x="320" y="415" class="desc">Attribuer des Tonitos.</text>
 
     </svg>
     `;
@@ -192,11 +227,14 @@ async function connectToWhatsApp() {
     const { version, isLatest } = await fetchLatestBaileysVersion();
     console.log(`Utilisation de Baileys v${version.join('.')}, dernière version: ${isLatest}`);
 
+    const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
+
     const sock = makeWASocket({
         auth: state,
         printQRInTerminal: true,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
         version: [2, 3000, 1027934701],
+        agent,
         getMessage: async key => {
             console.log('⚠️ Message non déchiffré, retry demandé:', key);
             return { conversation: '🔄 Réessaye d\'envoyer ton message' };
@@ -273,7 +311,8 @@ async function connectToWhatsApp() {
             if (userAnswer === correctAnswer) {
                 const reward = 200;
                 updatePoints(player, reward);
-                await sock.sendMessage(chatId, { text: `✅ *EXCELLENT:* Bonne réponse ! Vous gagnez ${reward} points privés.` });
+                updateStellarBalance(player, 1);
+                await sock.sendMessage(chatId, { text: `✅ *EXCELLENT:* Bonne réponse ! Vous gagnez ${reward} points privés et +1 ⭐ Stellar.` });
             } else {
                 const penalty = 100;
                 updatePoints(player, -penalty);
@@ -407,6 +446,43 @@ async function connectToWhatsApp() {
                     target.role = newRole;
                     savePlayers();
                     await sock.sendMessage(chatId, { text: `🎓 ${target.name} a été promu au rang de ${newRole}.` });
+                    break;
+                }
+                case 'stellar': {
+                    if (player.role === 'élève' && senderId !== SUPER_ADMIN) return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut attribuer des Stellars." });
+                    const targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
+                    const amount = parseInt(msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? args[1] : args[0]) || 1;
+                    if (!targetId) return await sock.sendMessage(chatId, { text: "❌ Usage: /stellar [mention/réponse] [quantité]" });
+
+                    const target = getPlayer(targetId);
+                    updateStellarBalance(target, amount);
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `⭐ ${player.name} a attribué ${amount} Stellar(s) à ${target.name}. Statut actuel: ${target.status}` });
+                    break;
+                }
+                case 'tonito': {
+                    if (player.role === 'élève' && senderId !== SUPER_ADMIN) return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut attribuer des Tonitos." });
+                    const targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
+                    const amount = parseInt(msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? args[1] : args[0]) || 1;
+                    if (!targetId) return await sock.sendMessage(chatId, { text: "❌ Usage: /tonito [mention/réponse] [quantité]" });
+
+                    const target = getPlayer(targetId);
+                    updateStellarBalance(target, -amount);
+                    savePlayers();
+                    await sock.sendMessage(chatId, { text: `👿 ${player.name} a attribué ${amount} Tonito(s) à ${target.name}. Statut actuel: ${target.status}` });
+                    break;
+                }
+                case 'ordre': {
+                    if (player.status !== 'VIP' && senderId !== SUPER_ADMIN) return await sock.sendMessage(chatId, { text: "❌ Seuls les VIP peuvent donner des ordres." });
+                    const targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
+                    const orderText = msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? args.slice(1).join(' ') : args.join(' ');
+
+                    if (!targetId || !orderText) return await sock.sendMessage(chatId, { text: "❌ Usage: /ordre [mention/réponse] [texte]" });
+
+                    const target = getPlayer(targetId);
+                    if (target.status !== 'ENG') return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez donner des ordres qu'aux ENG." });
+
+                    await sock.sendMessage(chatId, { text: `📢 *ORDRE DE VIP:* @${senderId.split('@')[0]} donne un ordre à @${targetId.split('@')[0]}\n\n📜 *ORDRE:* ${orderText}`, mentions: [senderId, targetId] });
                     break;
                 }
                 case 'regles': await sock.sendMessage(chatId, { text: "📜 Lycée Kōdo Ikusei - Règlement :\n1. Le mérite est la seule valeur.\n2. Si vos points tombent à zéro, vous êtes expulsé.\n3. Le respect du staff est obligatoire." }); break;
