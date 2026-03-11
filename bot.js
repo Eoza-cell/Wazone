@@ -233,7 +233,7 @@ async function connectToWhatsApp() {
         auth: state,
         printQRInTerminal: true,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
-        version: [2, 3000, 1027934701],
+        version,
         agent,
         getMessage: async key => {
             console.log('⚠️ Message non déchiffré, retry demandé:', key);
