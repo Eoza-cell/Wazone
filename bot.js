@@ -1,4 +1,4 @@
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const pino = require('pino');
@@ -224,8 +224,7 @@ async function generateMenuImage() {
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-    const { version, isLatest } = await fetchLatestBaileysVersion();
-    console.log(`Utilisation de Baileys v${version.join('.')}, dernière version: ${isLatest}`);
+    const version = [2, 3000, 1027934701];
 
     const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
 
