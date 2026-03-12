@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/Eoza-cell/Wazone#readme",
   "dependencies": {
-    "@whiskeysockets/baileys": "^6.7.2",
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "express": "^4.19.2",
     "https-proxy-agent": "^7.0.6",
     "qrcode": "^1.5.4",
