@@ -22,6 +22,8 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3000;
 const SUPER_ADMIN = '22663685468@s.whatsapp.net';
 const WHATSAPP_VERSION = [2, 3000, 1027934701];
+const waSocketLogOption = pino({ level: 'info' });
+const WaSockQrTimeout = 60000;
 
 app.set('trust proxy', 1); // Indispensable pour les environnements avec proxy comme Render
 app.use(express.static(path.join(__dirname, 'public')));
@@ -229,11 +231,16 @@ async function connectToWhatsApp() {
     const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
 
     const sock = makeWASocket({
+        logger: waSocketLogOption,
+        printQRInTerminal: false,
         auth: state,
-        printQRInTerminal: true,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
         version: WHATSAPP_VERSION,
         agent,
+        shouldSyncHistoryMessage: (m) => false,
+        syncFullHistory: false,
+        qrTimeout: WaSockQrTimeout,
+        defaultQueryTimeoutMs: undefined,
         getMessage: async key => {
             console.log('⚠️ Message non déchiffré, retry demandé:', key);
             return { conversation: '🔄 Réessaye d\'envoyer ton message' };
