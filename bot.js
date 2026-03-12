@@ -21,6 +21,7 @@ const io = new Server(server, {
 });
 const PORT = process.env.PORT || 3000;
 const SUPER_ADMIN = '22663685468@s.whatsapp.net';
+const WHATSAPP_VERSION = [2, 3000, 1027934701];
 
 app.set('trust proxy', 1); // Indispensable pour les environnements avec proxy comme Render
 app.use(express.static(path.join(__dirname, 'public')));
@@ -224,7 +225,6 @@ async function generateMenuImage() {
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-    const version = [2, 3000, 1027934701];
 
     const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
 
@@ -232,7 +232,7 @@ async function connectToWhatsApp() {
         auth: state,
         printQRInTerminal: true,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
-        version,
+        version: WHATSAPP_VERSION,
         agent,
         getMessage: async key => {
             console.log('⚠️ Message non déchiffré, retry demandé:', key);
