@@ -232,7 +232,7 @@ async function connectToWhatsApp() {
 
     const sock = makeWASocket({
         logger: waSocketLogOption,
-        printQRInTerminal: false,
+        printQRInTerminal: true,
         auth: state,
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
         version: WHATSAPP_VERSION,
@@ -247,34 +247,18 @@ async function connectToWhatsApp() {
         }
     });
 
-    // Logique de Jumelage (Pairing Code)
-    // Si nous ne sommes pas déjà authentifiés, nous demandons un code de jumelage.
-    if (!sock.authState.creds.registered) {
-        setTimeout(async () => {
-            // Le numéro de téléphone est récupéré depuis les variables d'environnement pour des raisons de sécurité.
-            const phoneNumber = process.env.PHONE_NUMBER;
-
-            if (!phoneNumber) {
-                const message = 'ERREUR CRITIQUE: La variable d\'environnement PHONE_NUMBER n\'est pas définie. Le bot ne peut pas demander de code de jumelage.';
-                console.error(message);
-                io.emit('error', message);
-                return;
-            }
-
-            try {
-                const code = await sock.requestPairingCode(phoneNumber);
-                console.log(`Votre code de jumelage est: ${code}`);
-                // Nous envoyons le code au frontend pour qu'il puisse l'afficher.
-                io.emit('pairingCode', { code });
-            } catch (error) {
-                console.error('Erreur lors de la demande du code de jumelage:', error);
-                io.emit('error', 'Impossible de générer le code de jumelage. Vérifiez le numéro de téléphone dans bot.js.');
-            }
-        }, 3000); // Petit délai pour s'assurer que tout est initialisé.
-    }
-
     sock.ev.on('connection.update', async (update) => {
-        const { connection, lastDisconnect } = update;
+        const { connection, lastDisconnect, qr } = update;
+
+        if (qr) {
+            console.log('QR reçu:', qr);
+            try {
+                const qrDataURL = await qrcode.toDataURL(qr);
+                io.emit('qrCode', { qr: qrDataURL });
+            } catch (err) {
+                console.error('Erreur génération QR:', err);
+            }
+        }
 
         if (connection === 'close') {
             const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;

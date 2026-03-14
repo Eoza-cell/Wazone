@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
         randomizationFactor: 0.5
     });
 
-    const pairingCodeContainer = document.getElementById('pairing-code-container');
+    const qrContainer = document.getElementById('qr-container');
+    const qrImage = document.getElementById('qr-image');
     const pairingCodeElement = document.getElementById('pairing-code');
     const statusText = document.querySelector('.status-text');
 
@@ -15,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('connect', () => {
         console.log('Connecté au serveur !');
-        statusText.textContent = 'En attente du code de jumelage...';
+        statusText.textContent = 'En attente du QR Code...';
     });
 
     socket.on('disconnect', (reason) => {
@@ -33,20 +34,22 @@ document.addEventListener('DOMContentLoaded', () => {
         statusText.textContent = '❌ Impossible de se reconnecter. Veuillez vérifier votre connexion et rafraîchir la page.';
     });
 
-    socket.on('pairingCode', (data) => {
-        if (data && data.code) {
-            console.log(`Code de jumelage reçu: ${data.code}`);
-            pairingCodeElement.textContent = data.code;
-            statusText.textContent = 'Utilisez ce code sur WhatsApp pour vous connecter.';
+    socket.on('qrCode', (data) => {
+        if (data && data.qr) {
+            console.log(`QR Code reçu`);
+            qrImage.src = data.qr;
+            qrImage.style.display = 'block';
+            pairingCodeElement.style.display = 'none';
+            statusText.textContent = 'Scannez ce QR Code sur WhatsApp pour vous connecter.';
         } else {
-             console.error("Données du code de jumelage invalides reçues.");
-             statusText.textContent = "Erreur: Données du code invalides."
+             console.error("Données du QR Code invalides reçues.");
+             statusText.textContent = "Erreur: Données du QR invalides."
         }
     });
 
     socket.on('connectionSuccess', () => {
         console.log('Connexion du bot réussie !');
-        pairingCodeContainer.style.display = 'none';
+        qrContainer.style.display = 'none';
         statusText.textContent = '✅ Bot connecté avec succès !';
     });
 

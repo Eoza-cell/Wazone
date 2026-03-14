@@ -9,11 +9,12 @@
 <body>
     <div id="connection-container">
         <h1>Wazone Bot</h1>
-        <p>Entrez ce code de jumelage sur votre téléphone :</p>
-        <div id="pairing-code-container">
-            <p id="pairing-code">En attente du code...</p>
+        <p>Scannez le QR Code avec votre téléphone :</p>
+        <div id="qr-container">
+            <img id="qr-image" src="" alt="QR Code" style="display: none; max-width: 300px;">
+            <p id="pairing-code">En attente du QR Code...</p>
         </div>
-        <p class="status-text">Demande d'un code de jumelage au serveur...</p>
+        <p class="status-text">Demande du QR Code au serveur...</p>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
