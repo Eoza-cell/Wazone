@@ -1,4 +1,4 @@
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const pino = require('pino');
@@ -24,12 +24,20 @@ const SUPER_ADMIN = '22663685468@s.whatsapp.net';
 const WHATSAPP_VERSION = [2, 3000, 1027934701];
 const waSocketLogOption = pino({ level: 'info' });
 const WaSockQrTimeout = 60000;
+let lastQR = null;
 
 app.set('trust proxy', 1); // Indispensable pour les environnements avec proxy comme Render
 app.use(express.static(path.join(__dirname, 'public')));
 
 server.listen(PORT, () => {
     console.log(`Le serveur web est en écoute sur http://localhost:${PORT}`);
+});
+
+io.on('connection', (socket) => {
+    console.log('Client Socket.IO connecté');
+    if (lastQR) {
+        socket.emit('qrCode', { qr: lastQR });
+    }
 });
 // --- FIN DE LA CONFIGURATION ---
 
@@ -228,14 +236,24 @@ async function generateMenuImage() {
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
 
+    // On récupère la dernière version pour éviter l'erreur 405 (Method Not Allowed)
+    let waVersion = WHATSAPP_VERSION;
+    try {
+        const { version } = await fetchLatestBaileysVersion();
+        waVersion = version;
+        console.log(`Utilisation de la version WhatsApp : ${waVersion.join('.')}`);
+    } catch (e) {
+        console.error("Erreur lors de la récupération de la version WA, utilisation de la version par défaut.");
+    }
+
     const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
 
     const sock = makeWASocket({
         logger: waSocketLogOption,
-        printQRInTerminal: true,
+        printQRInTerminal: false,
         auth: state,
-        browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
-        version: WHATSAPP_VERSION,
+        browser: Browsers.ubuntu('Chrome'),
+        version: waVersion,
         agent,
         shouldSyncHistoryMessage: (m) => false,
         syncFullHistory: false,
@@ -249,22 +267,33 @@ async function connectToWhatsApp() {
 
     sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update;
+        console.log('Update de connexion:', { connection, lastDisconnect: lastDisconnect?.error?.message, qr: qr ? 'Reçu' : 'Non reçu' });
 
         if (qr) {
-            console.log('QR reçu:', qr);
+            console.log('QR reçu, envoi au client via Socket.IO');
             try {
-                const qrDataURL = await qrcode.toDataURL(qr);
-                io.emit('qrCode', { qr: qrDataURL });
+                lastQR = await qrcode.toDataURL(qr);
+                io.emit('qrCode', { qr: lastQR });
             } catch (err) {
                 console.error('Erreur génération QR:', err);
             }
         }
 
         if (connection === 'close') {
-            const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;
-            console.log('Connexion fermée:', lastDisconnect.error, ', reconnexion:', shouldReconnect);
+            const error = lastDisconnect?.error;
+            const statusCode = error?.output?.statusCode;
+            const shouldReconnect = (error instanceof Boom) && statusCode !== DisconnectReason.loggedOut;
+
+            console.log('Connexion fermée:', error, ', reconnexion:', shouldReconnect);
+
+            if (statusCode === 405) {
+                io.emit('error', "WhatsApp a rejeté la connexion (Erreur 405). Cela arrive souvent sur les hébergeurs cloud. Vérifiez votre configuration de proxy ou la version de WhatsApp.");
+            } else if (!shouldReconnect) {
+                io.emit('error', `Connexion fermée : ${error?.message || 'Erreur inconnue'}`);
+            }
+
             if (shouldReconnect) {
-                connectToWhatsApp();
+                setTimeout(() => connectToWhatsApp(), 5000); // Délai avant reconnexion
             }
         } else if (connection === 'open') {
             console.log('✅ Connexion ouverte et réussie !');
@@ -337,14 +366,28 @@ async function connectToWhatsApp() {
                     break;
                 }
                 case 'menu':
-                case 'aide':
+                case 'aide': {
                     const menuImagePath = await generateMenuImage();
                     await sock.sendMessage(chatId, { image: { url: menuImagePath }, caption: "Bienvenue sur l'interface du Lycée Kōdo Ikusei."});
                     break;
-                case 'statut':
+                }
+                case 'statut': {
                     const statusImagePath = await generateStatusImage(player);
-                    await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption: `Profil de l'élève ${player.name} (Classe ${player.classe}).`});
+                    const stellarCount = player.stellarBalance > 0 ? player.stellarBalance : 0;
+                    const tonitoCount = player.stellarBalance < 0 ? Math.abs(player.stellarBalance) : 0;
+
+                    const caption = `📊 *PROFIL ÉLÈVE*\n\n` +
+                                   `👤 Nom: ${player.name}\n` +
+                                   `🎓 Classe: ${player.classe}\n` +
+                                   `🛡️ Rôle: ${player.role.toUpperCase()}\n` +
+                                   `💰 Points: ${player.points}\n` +
+                                   `⭐ Stellars: ${stellarCount}\n` +
+                                   `👿 Tonitos: ${tonitoCount}\n` +
+                                   `🚩 Statut: ${player.status.toUpperCase()}`;
+
+                    await sock.sendMessage(chatId, { image: { url: statusImagePath }, caption });
                     break;
+                }
                 case 'examen': {
                     const now = Date.now();
                     if (now - player.lastExam < 1800000) {
