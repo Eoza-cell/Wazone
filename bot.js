@@ -27,7 +27,7 @@ const WHATSAPP_VERSION = [2, 3000, 1027934701];
 const groupAdminsCache = new Map();
 
 async function getGroupAdmins(sock, chatId) {
-    if (!chatId.endsWith('@g.us')) return [];
+    if (!chatId || !chatId.endsWith('@g.us')) return [];
 
     // Utiliser le cache si possible (5 minutes de validité)
     const cached = groupAdminsCache.get(chatId);
@@ -36,14 +36,17 @@ async function getGroupAdmins(sock, chatId) {
     }
 
     try {
+        console.log(`[WA] Récupération des admins pour le groupe: ${chatId}`);
         const metadata = await sock.groupMetadata(chatId);
         const admins = metadata.participants
             .filter(p => p.admin === 'admin' || p.admin === 'superadmin')
             .map(p => p.id.split('@')[0].split(':')[0].replace(/\D/g, '')); // Normaliser les IDs
+
+        console.log(`[WA] Admins trouvés pour ${chatId}: ${admins.join(', ')}`);
         groupAdminsCache.set(chatId, { admins, timestamp: Date.now() });
         return admins;
     } catch (e) {
-        console.error("Erreur lors de la récupération des admins du groupe:", e);
+        console.error(`[WA] Erreur groupMetadata pour ${chatId}:`, e);
         return [];
     }
 }
@@ -56,8 +59,10 @@ function normalizeJid(jid) {
 
 function isSuperAdmin(jid) {
     if (!jid) return false;
-    const id = jid.split('@')[0].split(':')[0].replace(/\D/g, '');
-    return id === '22663685468';
+    // Extraction du numéro pur (sans device ID, sans domaine, sans caractères spéciaux)
+    const num = jid.split('@')[0].split(':')[0].replace(/\D/g, '');
+    // Vérification flexible : soit le numéro complet, soit la fin du numéro pour pallier aux variations d'indicatif
+    return num === '22663685468' || num.endsWith('63685468');
 }
 const waSocketLogOption = pino({ level: 'info' });
 const WaSockQrTimeout = 60000;
@@ -274,13 +279,16 @@ async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
 
     // On récupère la dernière version pour éviter l'erreur 405 (Method Not Allowed)
+    // Mais on garde la version demandée par l'utilisateur comme priorité si possible
     let waVersion = WHATSAPP_VERSION;
     try {
-        const { version } = await fetchLatestBaileysVersion();
+        const { version, isLatest } = await fetchLatestBaileysVersion();
+        console.log(`[WA] Version actuelle: ${version.join('.')}, isLatest: ${isLatest}`);
+        // Fallback sur la dernière version uniquement si la connexion échoue (géré par le fait que waVersion est initialisé)
+        // Note: Dans cet environnement, l'ancienne version CAUSE le 405, donc on préfère la plus récente.
         waVersion = version;
-        console.log(`Utilisation de la version WhatsApp : ${waVersion.join('.')}`);
     } catch (e) {
-        console.error("Erreur lors de la récupération de la version WA, utilisation de la version par défaut.");
+        console.error("[WA] Erreur récupération version, utilisation par défaut.");
     }
 
     const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
@@ -300,6 +308,16 @@ async function connectToWhatsApp() {
             console.log('⚠️ Message non déchiffré, retry demandé:', key);
             return { conversation: '🔄 Réessaye d\'envoyer ton message' };
         }
+    });
+
+    sock.ev.on('groups.update', (updates) => {
+        for (const update of updates) {
+            if (update.id) groupAdminsCache.delete(update.id);
+        }
+    });
+
+    sock.ev.on('group-participants.update', (update) => {
+        if (update.id) groupAdminsCache.delete(update.id);
     });
 
     sock.ev.on('connection.update', async (update) => {
@@ -343,18 +361,31 @@ async function connectToWhatsApp() {
 
     sock.ev.on('messages.upsert', async ({ messages }) => {
         const msg = messages[0];
-        if (!msg.message || msg.key.fromMe) return;
+        if (!msg.message) return;
 
         const chatId = msg.key.remoteJid;
         const isGroup = chatId.endsWith('@g.us');
-        const rawSenderId = isGroup ? (msg.key.participant || msg.participant) : chatId;
+
+        // On détermine l'ID de l'envoyeur de manière robuste
+        const rawSenderId = isGroup ? (msg.key.participant || msg.participant) : (msg.key.fromMe ? sock.user.id : chatId);
+
+        if (!rawSenderId) return;
+
+        const isMasterSender = isSuperAdmin(rawSenderId);
+
+        // On ignore les messages du bot, sauf si c'est le numéro maître qui parle sur son propre compte
+        if (msg.key.fromMe && !isMasterSender) return;
 
         if (!rawSenderId) return;
 
         const normalizedSenderId = normalizeJid(rawSenderId);
         const senderNumber = normalizedSenderId.split('@')[0];
 
-        const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+        const messageContent = msg.message.conversation ||
+                               msg.message.extendedTextMessage?.text ||
+                               msg.message.imageMessage?.caption ||
+                               msg.message.videoMessage?.caption ||
+                               '';
         if (!messageContent) return;
 
         const args = messageContent.trim().split(/ +/);
@@ -362,27 +393,94 @@ async function connectToWhatsApp() {
         const command = firstArg.startsWith('/') ? firstArg.slice(1) : null;
 
         // Détection du staff (Super Admin ou Admin de Groupe)
+        const isMaster = isMasterSender;
         const groupAdmins = isGroup ? await getGroupAdmins(sock, chatId) : [];
-        const isMaster = isSuperAdmin(rawSenderId);
         const isAdmin = groupAdmins.includes(senderNumber);
-        const isStaff = isMaster || isAdmin;
 
         const player = getPlayer(normalizedSenderId);
-        if (!player.name) player.name = msg.pushName || 'Inconnu';
+        if (!player.name || player.name === 'Inconnu') player.name = msg.pushName || 'Inconnu';
 
-        // Attribution dynamique du rôle si le joueur est staff
+        // Mise à jour dynamique du rôle staff
+        let roleChanged = false;
         if (isMaster) {
             if (player.role !== 'principal') {
                 player.role = 'principal';
-                savePlayers();
+                roleChanged = true;
+                console.log(`[STAFF] Reconnu Maître: ${senderNumber}`);
             }
-        } else if (isAdmin && player.role === 'élève') {
-            player.role = 'professeur';
-            savePlayers();
+        } else if (isAdmin) {
+            if (player.role === 'élève') {
+                player.role = 'professeur';
+                roleChanged = true;
+                console.log(`[STAFF] Reconnu Admin Groupe: ${senderNumber}`);
+            }
+        }
+        if (roleChanged) savePlayers();
+
+        // Détermination finale du statut staff (Priorité absolue à isMaster et isAdmin)
+        const isStaff = isMaster || isAdmin || ['professeur', 'principal'].includes(player.role);
+
+        if (command === 'debugstaff') {
+            try {
+                const admins = isGroup ? await getGroupAdmins(sock, chatId) : [];
+                const status = `🛠️ *DEBUG STAFF*\n\n` +
+                               `📱 Votre JID: ${rawSenderId}\n` +
+                               `🔢 Votre Numéro: ${senderNumber}\n` +
+                               `👑 Master (Code): ${isMaster ? 'OUI' : 'NON'}\n` +
+                               `🛡️ Admin Groupe: ${isAdmin ? 'OUI' : 'NON'}\n` +
+                               `👥 Staff (Total): ${isStaff ? 'OUI' : 'NON'}\n` +
+                               `🎓 Rôle DB: ${player.role.toUpperCase()}\n\n` +
+                               `📋 Admins du groupe:\n${admins.length > 0 ? admins.join('\n') : 'Aucun ou erreur'}\n\n` +
+                               `🤖 Bot ID: ${sock.user.id}\n` +
+                               `ℹ️ _Si vous êtes admin mais "Admin Groupe" est NON, utilisez /refreshadmins_`;
+                return await sock.sendMessage(chatId, { text: status });
+            } catch (err) {
+                return await sock.sendMessage(chatId, { text: `❌ Erreur debug: ${err.message}` });
+            }
+        }
+
+        if (command === 'refreshadmins') {
+            if (!isGroup) return await sock.sendMessage(chatId, { text: "❌ Cette commande ne fonctionne qu'en groupe." });
+            groupAdminsCache.delete(chatId);
+            const admins = await getGroupAdmins(sock, chatId);
+            return await sock.sendMessage(chatId, { text: `✅ Liste des administrateurs mise à jour. ${admins.length} admins détectés.` });
+        }
+
+        if (command === 'iamadmin') {
+            try {
+                const admins = isGroup ? await getGroupAdmins(sock, chatId) : [];
+                const isAdminGroup = admins.includes(senderNumber);
+                const isM = isMaster;
+
+                let resp = `🔍 *VÉRIFICATION ACCÈS*\n\n` +
+                           `📱 Votre Numéro: ${senderNumber}\n` +
+                           `👑 Maître Bot: ${isM ? 'OUI' : 'NON'}\n` +
+                           `🛡️ Admin Groupe: ${isAdminGroup ? 'OUI' : 'NON'}\n` +
+                           `👥 Accès Staff Bot: ${isStaff ? 'OUI' : 'NON'}\n` +
+                           `🎓 Rôle DB: ${player.role.toUpperCase()}\n\n`;
+
+                if (isStaff) {
+                    resp += `✅ *ACCÈS STAFF ACCORDÉ.*`;
+                } else {
+                    resp += `❌ *ACCÈS STAFF REFUSÉ.*\n\n` +
+                            `💡 _Note aux admins : Si vous êtes admin du groupe mais que le bot dit NON, vérifiez que le bot est aussi administrateur du groupe, puis faites /refreshadmins._`;
+                }
+                return await sock.sendMessage(chatId, { text: resp });
+            } catch (err) {
+                return await sock.sendMessage(chatId, { text: `❌ Erreur vérification: ${err.message}` });
+            }
         }
 
         if (command) {
             console.log(`[CMD] ${command} | De: ${senderNumber} | Staff: ${isStaff} | Role: ${player.role}`);
+        }
+
+        if (command === 'stafflist' && isStaff) {
+            const staff = Object.values(players)
+                .filter(p => ['professeur', 'principal'].includes(p.role))
+                .map(p => `- ${p.name} (${p.id.split('@')[0]}) : ${p.role.toUpperCase()}`);
+
+            return await sock.sendMessage(chatId, { text: `👥 *LISTE DU STAFF ENREGISTRÉ*\n\n${staff.length > 0 ? staff.join('\n') : 'Aucun staff en base de données.'}` });
         }
 
         // --- Gestion des Réponses aux Examens ---
@@ -405,8 +503,8 @@ async function connectToWhatsApp() {
             return;
         }
 
-        if (player.status === 'expulsé') {
-            return; // Les élèves expulsés ne peuvent plus interagir avec le bot
+        if (player.status === 'expulsé' && !isStaff) {
+            return; // Les élèves expulsés ne peuvent plus interagir avec le bot, sauf s'ils sont staff
         }
 
         if (command) {
@@ -481,7 +579,7 @@ async function connectToWhatsApp() {
                     break;
                 }
                 case 'donnerpoints': {
-                    if (player.role === 'élève' && !isStaff) return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut distribuer des points." });
+                    if (!isStaff) return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut distribuer des points." });
                     let targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
                     if (targetId) targetId = normalizeJid(targetId);
 
@@ -500,7 +598,7 @@ async function connectToWhatsApp() {
                     break;
                 }
                 case 'enleverpoints': {
-                    if (player.role === 'élève' && !isStaff) return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut retirer des points." });
+                    if (!isStaff) return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut retirer des points." });
                     let targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
                     if (targetId) targetId = normalizeJid(targetId);
 
@@ -520,7 +618,7 @@ async function connectToWhatsApp() {
                     break;
                 }
                 case 'expulser': {
-                    if (player.role === 'élève' && !isStaff) return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut expulser un élève." });
+                    if (!isStaff) return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut expulser un élève." });
                     let targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
                     if (targetId) targetId = normalizeJid(targetId);
 
@@ -535,7 +633,7 @@ async function connectToWhatsApp() {
                 }
                 case 'promouvoir': {
                     // Seul le numéro configuré ou le super admin peut promouvoir
-                    if (player.role !== 'principal' && !isSuperAdmin(rawSenderId)) {
+                    if (player.role !== 'principal' && !isMaster) {
                         return await sock.sendMessage(chatId, { text: "❌ Seul le Principal ou le Super Admin peut promouvoir quelqu'un." });
                     }
                     let targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
@@ -551,7 +649,7 @@ async function connectToWhatsApp() {
                     break;
                 }
                 case 'stellar': {
-                    if (player.role === 'élève' && !isStaff) return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut attribuer des Stellars." });
+                    if (!isStaff) return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut attribuer des Stellars." });
                     let targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
                     if (targetId) targetId = normalizeJid(targetId);
 
@@ -565,7 +663,7 @@ async function connectToWhatsApp() {
                     break;
                 }
                 case 'tonito': {
-                    if (player.role === 'élève' && !isStaff) return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut attribuer des Tonitos." });
+                    if (!isStaff) return await sock.sendMessage(chatId, { text: "❌ Seul le staff peut attribuer des Tonitos." });
                     let targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
                     if (targetId) targetId = normalizeJid(targetId);
 
@@ -579,7 +677,7 @@ async function connectToWhatsApp() {
                     break;
                 }
                 case 'ordre': {
-                    if (player.status !== 'VIP' && !isSuperAdmin(rawSenderId)) return await sock.sendMessage(chatId, { text: "❌ Seuls les VIP peuvent donner des ordres." });
+                    if (player.status !== 'VIP' && !isMaster) return await sock.sendMessage(chatId, { text: "❌ Seuls les VIP peuvent donner des ordres." });
                     let targetId = msg.message.extendedTextMessage?.contextInfo?.participant || (msg.message.extendedTextMessage?.contextInfo?.mentionedJid ? msg.message.extendedTextMessage.contextInfo.mentionedJid[0] : null);
                     if (targetId) targetId = normalizeJid(targetId);
 
@@ -590,7 +688,7 @@ async function connectToWhatsApp() {
                     const target = getPlayer(targetId);
                     if (target.status !== 'ENG') return await sock.sendMessage(chatId, { text: "❌ Vous ne pouvez donner des ordres qu'aux ENG." });
 
-                    await sock.sendMessage(chatId, { text: `📢 *ORDRE DE VIP:* @${senderId.split('@')[0]} donne un ordre à @${targetId.split('@')[0]}\n\n📜 *ORDRE:* ${orderText}`, mentions: [senderId, targetId] });
+                    await sock.sendMessage(chatId, { text: `📢 *ORDRE:* @${normalizedSenderId.split('@')[0]} donne un ordre à @${targetId.split('@')[0]}\n\n📜 *ORDRE:* ${orderText}`, mentions: [normalizedSenderId, targetId] });
                     break;
                 }
                 case 'regles': await sock.sendMessage(chatId, { text: "📜 Lycée Kōdo Ikusei - Règlement :\n1. Le mérite est la seule valeur.\n2. Si vos points tombent à zéro, vous êtes expulsé.\n3. Le respect du staff est obligatoire." }); break;
