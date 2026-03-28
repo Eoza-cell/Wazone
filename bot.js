@@ -85,6 +85,7 @@ io.on('connection', (socket) => {
 
 const AUTH_DIR = './auth_info_baileys/';
 const PLAYERS_FILE = './data/players.json';
+const NEOVERSE_FILE = './data/neoverse.json';
 const GENERATED_IMAGES_DIR = './generated_images/';
 
 if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR);
@@ -92,6 +93,190 @@ if (!fs.existsSync(GENERATED_IMAGES_DIR)) fs.mkdirSync(GENERATED_IMAGES_DIR);
 if (!fs.existsSync(path.dirname(PLAYERS_FILE))) fs.mkdirSync(path.dirname(PLAYERS_FILE), { recursive: true });
 if (!fs.existsSync(PLAYERS_FILE)) fs.writeFileSync(PLAYERS_FILE, JSON.stringify({}));
 
+// IA NeoVerse
+class NeoVerseBot {
+    constructor() {
+        this.load();
+        this.regles = {
+            maxActions: 4,
+            vitesseMax: { C: 5, B: 6, A: 7 }
+        }
+        this.synonymes = {
+            ajouter: ["ajoute", "crée", "inscrire"],
+            combat: ["combat", "fight", "duel"],
+            stats: ["stats", "profil", "niveau"],
+            attaque: ["attaque", "frappe", "coup", "tape"],
+            deplacement: ["avance", "recule", "sprint", "fonce", "esquive"]
+        }
+    }
+
+    load() {
+        if (fs.existsSync(NEOVERSE_FILE)) {
+            try {
+                const data = JSON.parse(fs.readFileSync(NEOVERSE_FILE, 'utf8'));
+                this.joueurs = data.joueurs || {};
+                this.combats = data.combats || {};
+            } catch (e) {
+                this.joueurs = {};
+                this.combats = {};
+            }
+        } else {
+            this.joueurs = {};
+            this.combats = {};
+        }
+    }
+
+    save() {
+        fs.writeFileSync(NEOVERSE_FILE, JSON.stringify({ joueurs: this.joueurs, combats: this.combats }, null, 2));
+    }
+
+    interpret(message) {
+        const original = message;
+        message = message.toLowerCase();
+
+        if (this.has(message, "ajouter")) {
+            const nom = this.getNames(original)[0];
+            const rang = this.getRank(message);
+            return this.addPlayer(nom, rang);
+        }
+
+        if (this.has(message, "stats")) {
+            return this.getStats(this.getNames(original)[0]);
+        }
+
+        if (this.has(message, "combat")) {
+            const noms = this.getNames(original);
+            return this.startFight(noms[0], noms[1]);
+        }
+
+        if (this.has(message, "attaque") || this.has(message, "deplacement")) {
+            return this.handleAction(original);
+        }
+
+        return "🤖 Je ne comprends pas.";
+    }
+
+    has(msg, type) {
+        return this.synonymes[type].some(w => msg.includes(w));
+    }
+
+    getNames(msg) {
+        return msg.match(/[A-Z][a-z]+/g) || [];
+    }
+
+    getRank(msg) {
+        const r = msg.match(/rang\s?(a|b|c)/);
+        return r ? r[1].toUpperCase() : "C";
+    }
+
+    getDistance(msg) {
+        const m = msg.match(/(\d+)\s?m/);
+        return m ? parseInt(m[1]) : 1;
+    }
+
+    getSpeed(msg) {
+        const m = msg.match(/(\d+)\s?m\/s/);
+        return m ? parseInt(m[1]) : 1;
+    }
+
+    getZone(msg) {
+        if (msg.includes("tête")) return "tête";
+        if (msg.includes("bras")) return "bras";
+        if (msg.includes("jambe")) return "jambe";
+        return "torse";
+    }
+
+    getMembre(msg) {
+        if (msg.includes("main droite")) return "main droite";
+        if (msg.includes("main gauche")) return "main gauche";
+        if (msg.includes("pied")) return "pied";
+        return null;
+    }
+
+    addPlayer(nom, rang) {
+        if (!nom) return "❌ Nom manquant";
+        this.joueurs[nom] = {
+            rang,
+            vie: 100,
+            energie: 100,
+            derniereAction: null
+        };
+        this.save();
+        return `✅ ${nom} ajouté (rang ${rang})`;
+    }
+
+    getStats(nom) {
+        const j = this.joueurs[nom];
+        if (!j) return "❌ Joueur introuvable";
+        return `📊 ${nom}\n❤️ ${j.vie}% | ⚡ ${j.energie}% | Rang ${j.rang}`;
+    }
+
+    startFight(j1, j2) {
+        if (!this.joueurs[j1] || !this.joueurs[j2]) {
+            return "❌ Joueurs invalides";
+        }
+        this.combats[j1] = j2;
+        this.combats[j2] = j1;
+        this.save();
+        return `⚔️ Combat lancé entre ${j1} et ${j2}`;
+    }
+
+    handleAction(message) {
+        const noms = this.getNames(message);
+        const joueur = noms[0];
+        const cible = this.combats[joueur];
+        if (!joueur || !this.joueurs[joueur]) return "❌ Joueur inconnu";
+        if (!cible) return "❌ Pas en combat";
+        const action = {
+            type: this.has(message.toLowerCase(), "attaque") ? "attaque" : "deplacement",
+            distance: this.getDistance(message),
+            vitesse: this.getSpeed(message),
+            zone: this.getZone(message),
+            membre: this.getMembre(message)
+        };
+        return this.resolveAction(joueur, cible, action);
+    }
+
+    calcDamage(action) {
+        if (action.zone === "tête") return 100;
+        if (["bras", "jambe"].includes(action.zone)) return 25;
+        return 10;
+    }
+
+    resolveAction(joueur, cible, action) {
+        const j = this.joueurs[joueur];
+        const ennemi = this.joueurs[cible];
+        let erreurs = [];
+        const vmax = this.regles.vitesseMax[j.rang];
+        if (action.vitesse > vmax) erreurs.push("Vitesse trop élevée");
+        if (action.distance > 10) erreurs.push("Distance irréaliste");
+        if (!action.membre && action.type === "attaque") erreurs.push("Membre manquant");
+
+        if (erreurs.length > 0) {
+            let degats = 10;
+            if (ennemi.derniereAction && ennemi.derniereAction.type === "attaque") {
+                degats = this.calcDamage(ennemi.derniereAction);
+            }
+            j.vie -= degats;
+            if (j.vie < 0) j.vie = 0;
+            this.save();
+            return `⚖️ REFUSÉ ❌\n- ${erreurs.join("\n- ")}\n\n🚫 ${joueur} IMMOBILE\n💥 ${cible} attaque\n\n💢 ${degats}% dégâts\n❤️ ${joueur}: ${j.vie}%`;
+        }
+
+        j.derniereAction = action;
+        if (action.type === "attaque") {
+            const degats = this.calcDamage(action);
+            ennemi.vie -= degats;
+            if (ennemi.vie < 0) ennemi.vie = 0;
+            this.save();
+            return `⚔️ ACTION VALIDÉE\n👊 ${joueur} → ${cible}\n📍 ${action.zone}\n💥 ${degats}%\n\n❤️ ${cible}: ${ennemi.vie}%`;
+        }
+        this.save();
+        return `⚖️ Déplacement validé`;
+    }
+}
+
+const neoBot = new NeoVerseBot();
 
 let players = JSON.parse(fs.readFileSync(PLAYERS_FILE, 'utf8'));
 
@@ -473,6 +658,15 @@ async function connectToWhatsApp() {
 
         if (command) {
             console.log(`[CMD] ${command} | De: ${senderNumber} | Staff: ${isStaff} | Role: ${player.role}`);
+        }
+
+        // --- IA NeoVerse (Déclenchement naturel ou commande /neo) ---
+        if (messageContent.toLowerCase().startsWith('neo,') || command === 'neo') {
+            const input = command === 'neo' ? args.join(' ') : messageContent.slice(4).trim();
+            if (!input) return await sock.sendMessage(chatId, { text: "🤖 Oui ? Je vous écoute." });
+
+            const response = neoBot.interpret(input);
+            return await sock.sendMessage(chatId, { text: response });
         }
 
         if (command === 'stafflist' && isStaff) {
