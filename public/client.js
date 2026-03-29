@@ -11,48 +11,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const pairingCodeElement = document.getElementById('pairing-code');
     const statusText = document.querySelector('.status-text');
 
-    statusText.textContent = 'Connexion au serveur...';
+    statusText.textContent = 'INITIALISATION DES PROTOCOLES...';
 
     socket.on('connect', () => {
-        console.log('Connecté au serveur !');
-        statusText.textContent = 'En attente du code de jumelage...';
+        console.log('Connecté au serveur Neoverse !');
+        statusText.textContent = 'RECHERCHE DE LIAISON...';
     });
 
     socket.on('disconnect', (reason) => {
         console.log(`Déconnecté : ${reason}`);
-        statusText.textContent = '❌ Déconnecté. Tentative de reconnexion...';
-    });
-
-    socket.on('reconnecting', (attemptNumber) => {
-        console.log(`Tentative de reconnexion n°${attemptNumber}...`);
-        statusText.textContent = `⏳ Tentative de reconnexion (${attemptNumber})...`;
-    });
-
-    socket.on('reconnect_failed', () => {
-        console.error('La reconnexion a échoué définitivement.');
-        statusText.textContent = '❌ Impossible de se reconnecter. Veuillez vérifier votre connexion et rafraîchir la page.';
+        statusText.textContent = '❌ LIAISON INTERROMPUE. RECONNEXION...';
     });
 
     socket.on('pairingCode', (data) => {
         if (data && data.code) {
             console.log(`Code de jumelage reçu: ${data.code}`);
             pairingCodeElement.textContent = data.code;
-            statusText.textContent = 'Utilisez ce code sur WhatsApp pour vous connecter.';
-        } else {
-             console.error("Données du code de jumelage invalides reçues.");
-             statusText.textContent = "Erreur: Données du code invalides."
+            statusText.textContent = 'PROTOCOLE DE LIAISON PRÊT';
         }
     });
 
+    socket.on('statusUpdate', (status) => {
+        statusText.textContent = status.toUpperCase();
+    });
+
     socket.on('connectionSuccess', () => {
-        console.log('Connexion du bot réussie !');
-        pairingCodeContainer.style.display = 'none';
-        statusText.textContent = '✅ Bot connecté avec succès !';
+        console.log('Liaison Neoverse établie !');
+        document.getElementById('connection-container').innerHTML = `
+            <div class="logo-container">
+                <span class="glitch" data-text="LIAISON ÉTABLIE">LIAISON ÉTABLIE</span>
+            </div>
+            <p>Neox est maintenant opérationnel dans le Neoverse.</p>
+            <p class="status-text">VOUS POUVEZ FERMER CETTE FENÊTRE</p>
+        `;
     });
 
     socket.on('error', (errorMessage) => {
-        console.error(`Erreur du serveur: ${errorMessage}`);
-        pairingCodeElement.textContent = "ERREUR";
-        statusText.textContent = errorMessage;
+        console.error(`Erreur critique: ${errorMessage}`);
+        pairingCodeElement.textContent = "ÉCHEC";
+        statusText.textContent = errorMessage.toUpperCase();
     });
 });

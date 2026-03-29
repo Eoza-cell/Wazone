@@ -182,33 +182,48 @@ async function connectToWhatsApp() {
     });
 
     if (!sock.authState.creds.registered) {
-        setTimeout(async () => {
+        const requestPairingCodeWithRetry = async (retryCount = 0) => {
             const phoneNumber = process.env.PHONE_NUMBER;
             if (!phoneNumber) {
-                const message = 'ERREUR CRITIQUE: La variable d\'environnement PHONE_NUMBER n\'est pas définie.';
+                const message = 'ERREUR CRITIQUE: PHONE_NUMBER manquant.';
                 console.error(message);
                 io.emit('error', message);
                 return;
             }
+
             try {
                 const code = await sock.requestPairingCode(phoneNumber);
-                console.log(`Votre code de jumelage est: ${code}`);
+                console.log(`[Neox Liaison] Code de jumelage: ${code}`);
                 io.emit('pairingCode', { code });
             } catch (error) {
-                console.error('Erreur lors de la demande du code de jumelage:', error);
-                io.emit('error', 'Impossible de générer le code de jumelage.');
+                console.error(`[Neox Liaison Error] Tentative ${retryCount + 1} échouée:`, error);
+                if (retryCount < 5) {
+                    const delay = Math.pow(2, retryCount) * 1000;
+                    console.log(`[Neox Liaison] Nouvelle tentative dans ${delay/1000}s...`);
+                    setTimeout(() => requestPairingCodeWithRetry(retryCount + 1), delay);
+                } else {
+                    io.emit('error', 'Échec critique de la génération du code. Redémarrez le serveur.');
+                }
             }
-        }, 3000);
+        };
+
+        setTimeout(() => requestPairingCodeWithRetry(), 5000);
     }
 
     sock.ev.on('connection.update', async (update) => {
-        const { connection, lastDisconnect } = update;
+        const { connection, lastDisconnect, qr } = update;
+
         if (connection === 'close') {
             const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;
+            console.log(`[Neox Liaison] Connexion fermée. Reconnexion: ${shouldReconnect}`);
+            io.emit('statusUpdate', 'Connexion interrompue. Tentative de reconnexion...');
             if (shouldReconnect) connectToWhatsApp();
         } else if (connection === 'open') {
-            console.log('✅ Connexion ouverte et réussie !');
+            console.log('✅ [Neox Liaison] Liaison Neoverse établie avec succès !');
             io.emit('connectionSuccess');
+            io.emit('statusUpdate', 'Liaison Neoverse établie avec succès !');
+        } else if (connection === 'connecting') {
+            io.emit('statusUpdate', 'Initialisation des protocoles de liaison...');
         }
     });
 

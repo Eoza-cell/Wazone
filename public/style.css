@@ -1,57 +1,87 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+:root {
+    --primary-color: #ff4d4d;
+    --bg-color: #0d0d0d;
+    --text-color: #e0e0e0;
+    --container-bg: #1a1a1a;
+    --accent-color: #ff0000;
+}
 
 body {
-    background-color: #0a0a0a;
-    color: #e0e0e0;
-    font-family: 'Roboto Mono', monospace;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'JetBrains Mono', monospace;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
+    overflow: hidden;
 }
 
 #connection-container {
-    background-color: #1a1a1a;
-    border: 2px solid #f1c40f;
-    padding: 30px;
-    border-radius: 10px;
+    background-color: var(--container-bg);
+    padding: 3rem;
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(255, 77, 77, 0.2);
     text-align: center;
+    border: 1px solid #333;
+    max-width: 450px;
     width: 90%;
-    max-width: 400px;
-    box-shadow: 0 0 20px rgba(241, 196, 15, 0.2);
 }
 
-h1 {
-    text-transform: uppercase;
+.logo-container {
+    margin-bottom: 1.5rem;
+}
+
+.glitch {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    position: relative;
+    letter-spacing: 5px;
+    text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                 0.025em 0.04em 0 #fffc00;
+    animation: glitch 1s infinite;
+}
+
+@keyframes glitch {
+    0% { text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff, 0.025em 0.04em 0 #fffc00; }
+    15% { text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff, 0.025em 0.04em 0 #fffc00; }
+    16% { text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff, -0.05em -0.05em 0 #fffc00; }
+    49% { text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff, -0.05em -0.05em 0 #fffc00; }
+    50% { text-shadow: 0.03em 0.05em 0 #00fffc, 0.05em 0 0 #fc00ff, 0 -0.05em 0 #fffc00; }
+    99% { text-shadow: 0.03em 0.05em 0 #00fffc, 0.05em 0 0 #fc00ff, 0 -0.05em 0 #fffc00; }
+    100% { text-shadow: -0.025em 0 0 #00fffc, -0.025em -0.025em 0 #fc00ff, -0.025em -0.05em 0 #fffc00; }
+}
+
+.subtitle {
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 2rem;
     letter-spacing: 3px;
-    border-bottom: 2px solid #c0392b;
-    padding-bottom: 5px;
-    margin-bottom: 20px;
 }
 
 #pairing-code-container {
-    background-color: #0a0a0a;
-    border: 1px dashed #f1c40f;
-    padding: 20px;
-    margin-top: 20px;
-    border-radius: 5px;
+    background-color: #000;
+    margin: 2rem 0;
+    padding: 1.5rem;
+    border: 1px dashed var(--primary-color);
 }
 
 #pairing-code {
-    font-size: 2em;
+    font-size: 2.5rem;
     font-weight: bold;
-    letter-spacing: 5px;
-    color: #ffffff;
+    color: #fff;
     margin: 0;
+    letter-spacing: 8px;
 }
 
 .status-text {
-    margin-top: 20px;
-    font-style: italic;
-    color: #7f8c8d;
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    margin-top: 1.5rem;
 }
 
-.hidden {
-    display: none;
+p {
+    line-height: 1.6;
 }
