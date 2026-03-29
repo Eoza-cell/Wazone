@@ -53,4 +53,11 @@ document.addEventListener('DOMContentLoaded', () => {
         qrPlaceholder.textContent = "ÉCHEC";
         statusText.textContent = errorMessage.toUpperCase();
     });
+
+    document.getElementById('clear-session-btn').addEventListener('click', () => {
+        if (confirm('Voulez-vous vraiment réinitialiser la session ? Cela redémarrera le bot.')) {
+            socket.emit('clearSession');
+            statusText.textContent = 'RÉINITIALISATION... VEUILLEZ PATIENTER.';
+        }
+    });
 });

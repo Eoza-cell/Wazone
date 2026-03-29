@@ -35,6 +35,19 @@ io.on('connection', (socket) => {
     console.log('[Socket.IO] Client connecté.');
     if (lastQR) socket.emit('qrCode', { url: lastQR });
     socket.emit('statusUpdate', currentStatus);
+
+    socket.on('clearSession', () => {
+        console.log('[Neox Liaison] Demande de réinitialisation de session.');
+        try {
+            if (fs.existsSync(AUTH_DIR)) {
+                fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+                console.log('[Neox Liaison] Session supprimée. Redémarrage...');
+                process.exit(0); // Le serveur doit être redémarré (par exemple via PM2 ou Render)
+            }
+        } catch (e) {
+            console.error('[Neox Liaison Error] Échec de la suppression:', e);
+        }
+    });
 });
 // --- FIN DE LA CONFIGURATION ---
 
@@ -177,15 +190,15 @@ async function generateMenuImage() {
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
     const { version, isLatest } = await fetchLatestBaileysVersion();
-    console.log(`Utilisation de Baileys v${version.join('.')}, dernière version: ${isLatest}`);
+    console.log(`[Neox] Baileys v${version.join('.')}, latest: ${isLatest}`);
 
     const sock = makeWASocket({
         auth: state,
-        printQRInTerminal: false,
+        printQRInTerminal: true, // Log in console for debug
         browser: ['Ubuntu', 'Chrome', '128.0.6613.86'],
-        version: [2, 3000, 1025190524],
+        version: version, // Use latest version
+        logger: pino({ level: 'silent' }),
         getMessage: async key => {
-            console.log('⚠️ Message non déchiffré, retry demandé:', key);
             return { conversation: '🔄 Réessaye d\'envoyer ton message' };
         }
     });
