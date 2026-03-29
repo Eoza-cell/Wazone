@@ -289,7 +289,7 @@ async function connectToWhatsApp() {
                         { role: "system", content: contextInfo + "\nRéponds toujours en français fluide. Cache les balises ACTION." },
                         ...chatHistory[chatId]
                     ],
-                    model: "claude-3-5-sonnet"
+                    model: "glm-4.5-air"
                 }, {
                     headers: { 'Authorization': `Bearer ${CLOD_API_KEY}` }
                 });
