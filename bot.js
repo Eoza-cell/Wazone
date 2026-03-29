@@ -57,6 +57,7 @@ const EQUIPMENT_FILE = './equipment.json';
 const GENERATED_IMAGES_DIR = './generated_images/';
 const CHAT_HISTORY_FILE = './data/chat_history.json';
 const OWNER_ID = process.env.OWNER_ID || '22663685468@s.whatsapp.net';
+const CLOD_API_KEY = process.env.CLOD_API_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyQmZYOWM1ejhxVTZpNThEQWVNOWt4ZWNGN3oxIiwidXNlcklkIjoiMkJmWDljNXo4cVU2aTU4REFlTTlreGVjRjd6MSIsInRlYW1JZCI6ImIwMjdiYzNmLWVhM2MtNDUwMC1hNWViLWIwODhjODMzZDk4NSIsInRlYW1Sb2xlIjoib3duZXIiLCJwcm9qZWN0SWQiOiI3MTU0NzgwZi1iODkxLTQ1MzAtODdlZS1jZTdhOTMwNDllZGYiLCJpYXQiOjE3NzQ4MjIyMTAsImV4cCI6MTgyNDgyMjIxMH0.SScFul42RqW706Lof_F0aS_Y9eiRtU-TVFQW0zvT1xk';
 
 if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR);
 if (!fs.existsSync(GENERATED_IMAGES_DIR)) fs.mkdirSync(GENERATED_IMAGES_DIR);
@@ -283,57 +284,58 @@ async function connectToWhatsApp() {
                 - Expéditeur: ${senderId}
                 - Est un groupe: ${isGroup ? 'Oui' : 'Non'}`;
 
-                const response = await axios.post('https://gen.pollinations.ai/v1/chat/completions', {
+                const response = await axios.post('https://api.clod.io/v1/chat/completions', {
                     messages: [
                         { role: "system", content: contextInfo + "\nRéponds toujours en français fluide. Cache les balises ACTION." },
                         ...chatHistory[chatId]
                     ],
-                    model: "claude-fast"
+                    model: "claude-3-5-sonnet"
+                }, {
+                    headers: { 'Authorization': `Bearer ${CLOD_API_KEY}` }
                 });
 
                 let aiReply = response.data.choices[0].message.content;
 
                 // --- Logique d'Exécution d'Actions par l'IA ---
-                if (aiReply.includes("[ACTION:")) {
-                    const actionMatch = aiReply.match(/\[ACTION:\s*(\w+)\s*(.*?)\]/);
-                    if (actionMatch) {
-                        const action = actionMatch[1].toLowerCase();
-                        const param = actionMatch[2].trim();
+                const actionRegex = /\[ACTION:\s*(\w+)\s*(.*?)\]/g;
+                let match;
+                while ((match = actionRegex.exec(aiReply)) !== null) {
+                    const action = match[1].toLowerCase();
+                    const param = match[2].trim();
 
-                        try {
-                            if (action === 'setname') {
-                                await sock.updateProfileName(param);
-                                console.log(`[Neox Action] Nom mis à jour: ${param}`);
-                            } else if (action === 'setbio') {
-                                await sock.updateProfileStatus(param);
-                                console.log(`[Neox Action] Bio mise à jour: ${param}`);
-                            } else if (action === 'setpp' && param.startsWith('http')) {
-                                const ppRes = await axios.get(param, { responseType: 'arraybuffer' });
-                                await sock.updateProfilePicture(sock.user.id, ppRes.data);
-                                console.log(`[Neox Action] Photo mise à jour via URL: ${param}`);
-                            } else if (action === 'kick' && isGroup) {
-                                await sock.groupParticipantsUpdate(chatId, [param], "remove");
-                                console.log(`[Neox Action] Kick: ${param}`);
-                            } else if (action === 'add' && isGroup) {
-                                await sock.groupParticipantsUpdate(chatId, [param.includes('@') ? param : param + '@s.whatsapp.net'], "add");
-                                console.log(`[Neox Action] Add: ${param}`);
-                            } else if (action === 'promote' && isGroup) {
-                                await sock.groupParticipantsUpdate(chatId, [param], "promote");
-                                console.log(`[Neox Action] Promote: ${param}`);
-                            } else if (action === 'demote' && isGroup) {
-                                await sock.groupParticipantsUpdate(chatId, [param], "demote");
-                                console.log(`[Neox Action] Demote: ${param}`);
-                            } else if (action === 'link' && isGroup) {
-                                const code = await sock.groupInviteCode(chatId);
-                                await sock.sendMessage(chatId, { text: `🔗 Voici le lien d'accès : https://chat.whatsapp.com/${code}` });
-                            }
-                        } catch (e) {
-                            console.error(`[Neox Action Error] Échec de l'action ${action}:`, e);
+                    try {
+                        if (action === 'setname') {
+                            await sock.updateProfileName(param);
+                            console.log(`[Neox Action] Nom mis à jour: ${param}`);
+                        } else if (action === 'setbio') {
+                            await sock.updateProfileStatus(param);
+                            console.log(`[Neox Action] Bio mise à jour: ${param}`);
+                        } else if (action === 'setpp' && param.startsWith('http')) {
+                            const ppRes = await axios.get(param, { responseType: 'arraybuffer' });
+                            await sock.updateProfilePicture(sock.user.id, ppRes.data);
+                            console.log(`[Neox Action] Photo mise à jour via URL: ${param}`);
+                        } else if (action === 'kick' && isGroup) {
+                            await sock.groupParticipantsUpdate(chatId, [param], "remove");
+                            console.log(`[Neox Action] Kick: ${param}`);
+                        } else if (action === 'add' && isGroup) {
+                            await sock.groupParticipantsUpdate(chatId, [param.includes('@') ? param : param + '@s.whatsapp.net'], "add");
+                            console.log(`[Neox Action] Add: ${param}`);
+                        } else if (action === 'promote' && isGroup) {
+                            await sock.groupParticipantsUpdate(chatId, [param], "promote");
+                            console.log(`[Neox Action] Promote: ${param}`);
+                        } else if (action === 'demote' && isGroup) {
+                            await sock.groupParticipantsUpdate(chatId, [param], "demote");
+                            console.log(`[Neox Action] Demote: ${param}`);
+                        } else if (action === 'link' && isGroup) {
+                            const code = await sock.groupInviteCode(chatId);
+                            await sock.sendMessage(chatId, { text: `🔗 Voici le lien d'accès : https://chat.whatsapp.com/${code}` });
                         }
-                        // On retire la balise de la réponse finale
-                        aiReply = aiReply.replace(/\[ACTION:.*?\]/g, "").trim();
+                    } catch (e) {
+                        console.error(`[Neox Action Error] Échec de l'action ${action}:`, e);
                     }
                 }
+                // On retire toutes les balises de la réponse finale
+                aiReply = aiReply.replace(/\[ACTION:.*?\]/g, "").trim();
                 // --- Fin de la logique d'action ---
 
                 chatHistory[chatId].push({ role: "assistant", content: aiReply });
@@ -341,8 +343,12 @@ async function connectToWhatsApp() {
 
                 if (aiReply) await sock.sendMessage(chatId, { text: aiReply });
             } catch (error) {
-                console.error("Erreur avec Pollinations AI:", error);
-                await sock.sendMessage(chatId, { text: "Désolé, mes circuits de communication sont temporairement surchargés." });
+                console.error("[Neox AI Error]:", error.response?.data || error.message);
+                const isQuotaError = error.response?.status === 403;
+                const errorMsg = isQuotaError
+                    ? "Mes serveurs de réflexion indiquent que le quota est dépassé. Veuillez vérifier votre clé API Clod.io."
+                    : "Désolé, mes circuits de communication sont temporairement surchargés.";
+                await sock.sendMessage(chatId, { text: errorMsg });
             }
             return;
         }
