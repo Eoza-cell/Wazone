@@ -258,11 +258,40 @@ async function connectToWhatsApp() {
                     model: "openai"
                 });
 
-                const aiReply = response.data;
+                let aiReply = response.data;
+
+                // --- Logique d'Exécution d'Actions par l'IA ---
+                if (aiReply.includes("[ACTION:")) {
+                    const actionMatch = aiReply.match(/\[ACTION:\s*(\w+)\s*(.*?)\]/);
+                    if (actionMatch) {
+                        const action = actionMatch[1].toLowerCase();
+                        const param = actionMatch[2].trim();
+
+                        try {
+                            if (action === 'setname') {
+                                await sock.updateProfileName(param);
+                                console.log(`[Neox Action] Nom mis à jour: ${param}`);
+                            } else if (action === 'setbio') {
+                                await sock.updateProfileStatus(param);
+                                console.log(`[Neox Action] Bio mise à jour: ${param}`);
+                            } else if (action === 'setpp' && param.startsWith('http')) {
+                                const ppRes = await axios.get(param, { responseType: 'arraybuffer' });
+                                await sock.updateProfilePicture(sock.user.id, ppRes.data);
+                                console.log(`[Neox Action] Photo mise à jour via URL: ${param}`);
+                            }
+                        } catch (e) {
+                            console.error(`[Neox Action Error] Échec de l'action ${action}:`, e);
+                        }
+                        // On retire la balise de la réponse finale
+                        aiReply = aiReply.replace(/\[ACTION:.*?\]/g, "").trim();
+                    }
+                }
+                // --- Fin de la logique d'action ---
+
                 chatHistory[chatId].push({ role: "assistant", content: aiReply });
                 saveChatHistory();
 
-                await sock.sendMessage(chatId, { text: aiReply });
+                if (aiReply) await sock.sendMessage(chatId, { text: aiReply });
             } catch (error) {
                 console.error("Erreur avec Pollinations AI:", error);
                 await sock.sendMessage(chatId, { text: "Désolé, mes circuits de communication sont temporairement surchargés." });
