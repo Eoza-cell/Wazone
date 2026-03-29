@@ -2,6 +2,7 @@ const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLat
 const { Boom } = require('@hapi/boom');
 const pino = require('pino');
 const fs = require('fs');
+const axios = require('axios');
 const path = require('path');
 const express = require('express');
 const http = require('http');
@@ -32,6 +33,7 @@ const AUTH_DIR = './auth_info_baileys/';
 const PLAYERS_FILE = './data/players.json';
 const EQUIPMENT_FILE = './equipment.json';
 const GENERATED_IMAGES_DIR = './generated_images/';
+const CHAT_HISTORY_FILE = './data/chat_history.json';
 const OWNER_ID = process.env.OWNER_ID || '22663685468@s.whatsapp.net';
 
 if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR);
@@ -39,9 +41,15 @@ if (!fs.existsSync(GENERATED_IMAGES_DIR)) fs.mkdirSync(GENERATED_IMAGES_DIR);
 if (!fs.existsSync(path.dirname(PLAYERS_FILE))) fs.mkdirSync(path.dirname(PLAYERS_FILE), { recursive: true });
 if (!fs.existsSync(PLAYERS_FILE)) fs.writeFileSync(PLAYERS_FILE, JSON.stringify({}));
 if (!fs.existsSync(EQUIPMENT_FILE)) fs.writeFileSync(EQUIPMENT_FILE, JSON.stringify({}));
+if (!fs.existsSync(CHAT_HISTORY_FILE)) fs.writeFileSync(CHAT_HISTORY_FILE, JSON.stringify({}));
 
 
 let players = JSON.parse(fs.readFileSync(PLAYERS_FILE, 'utf8'));
+let chatHistory = JSON.parse(fs.readFileSync(CHAT_HISTORY_FILE, 'utf8'));
+
+function saveChatHistory() {
+    fs.writeFileSync(CHAT_HISTORY_FILE, JSON.stringify(chatHistory, null, 2));
+}
 const equipment = JSON.parse(fs.readFileSync(EQUIPMENT_FILE, 'utf8'));
 
 function savePlayers() {
@@ -233,19 +241,32 @@ async function connectToWhatsApp() {
         const command = args.shift().toLowerCase();
 
         if (!messageContent.startsWith('/') && (isGroup ? (messageContent.toLowerCase().includes('neox') || messageContent.toLowerCase().includes('makima')) : true)) {
-            const text = messageContent.toLowerCase();
-            let aiReply = "";
-            if (text.includes("salut") || text.includes("bonjour")) {
-                aiReply = "Bonjour. Je suis Neox, votre IA de gestion Neoverse. Comment puis-je vous assister ?";
-            } else if (text.includes("qui es-tu") || text.includes("c'est qui neox")) {
-                aiReply = "Je suis Neox, une entité cybernétique de Neoverse conçue pour la gestion et l'optimisation.";
-            } else if (text.includes("aide") || text.includes("commande")) {
-                aiReply = "Utilisez la commande /neox pour voir mes capacités.";
-            } else {
-                const replies = ["Je vois.", "Tout se déroule selon le plan.", "Comment puis-je vous aider ?", "Intéressant.", "Je garde un œil sur tout."];
-                aiReply = replies[Math.floor(Math.random() * replies.length)];
+            const prompt = messageContent;
+
+            if (!chatHistory[chatId]) chatHistory[chatId] = [];
+            chatHistory[chatId].push({ role: "user", content: prompt });
+
+            // On garde les 10 derniers messages pour le contexte
+            if (chatHistory[chatId].length > 10) chatHistory[chatId].shift();
+
+            try {
+                const response = await axios.post('https://text.pollinations.ai/', {
+                    messages: [
+                        { role: "system", content: "Tu es Neox, l'intelligence artificielle centrale du Neoverse. Ton ton est humain, empathique mais garde une autorité naturelle et une efficacité cybernétique. Tu es le gérant, celui qui veille au bon fonctionnement de tout. Ne dis jamais que tu es une IA ou un modèle de langage. Réponds toujours en français, de manière fluide et naturelle. Si on te demande qui tu es, réponds que tu es Neox." },
+                        ...chatHistory[chatId]
+                    ],
+                    model: "openai"
+                });
+
+                const aiReply = response.data;
+                chatHistory[chatId].push({ role: "assistant", content: aiReply });
+                saveChatHistory();
+
+                await sock.sendMessage(chatId, { text: aiReply });
+            } catch (error) {
+                console.error("Erreur avec Pollinations AI:", error);
+                await sock.sendMessage(chatId, { text: "Désolé, mes circuits de communication sont temporairement surchargés." });
             }
-            await sock.sendMessage(chatId, { text: aiReply });
             return;
         }
 
@@ -313,28 +334,28 @@ async function connectToWhatsApp() {
                     }
                     break;
                 case 'kick':
-                    if (isGroup) {
+                    if (isGroup && isOwner) {
                         const target = msg.message.extendedTextMessage?.contextInfo?.participant || (args[0] && args[0].includes('@') ? args[0] : null);
                         if (target) await sock.groupParticipantsUpdate(chatId, [target], "remove");
                     }
                     break;
                 case 'add':
-                    if (isGroup && args[0]) await sock.groupParticipantsUpdate(chatId, [args[0].includes('@') ? args[0] : args[0] + '@s.whatsapp.net'], "add");
+                    if (isGroup && isOwner && args[0]) await sock.groupParticipantsUpdate(chatId, [args[0].includes('@') ? args[0] : args[0] + '@s.whatsapp.net'], "add");
                     break;
                 case 'promote':
-                    if (isGroup) {
+                    if (isGroup && isOwner) {
                         const target = msg.message.extendedTextMessage?.contextInfo?.participant || (args[0] && args[0].includes('@') ? args[0] : null);
                         if (target) await sock.groupParticipantsUpdate(chatId, [target], "promote");
                     }
                     break;
                 case 'demote':
-                    if (isGroup) {
+                    if (isGroup && isOwner) {
                         const target = msg.message.extendedTextMessage?.contextInfo?.participant || (args[0] && args[0].includes('@') ? args[0] : null);
                         if (target) await sock.groupParticipantsUpdate(chatId, [target], "demote");
                     }
                     break;
                 case 'link':
-                    if (isGroup) {
+                    if (isGroup && isOwner) {
                         const code = await sock.groupInviteCode(chatId);
                         await sock.sendMessage(chatId, { text: `https://chat.whatsapp.com/${code}` });
                     }
