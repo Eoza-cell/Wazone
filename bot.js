@@ -277,24 +277,13 @@ async function connectToWhatsApp() {
             if (chatHistory[chatId].length > 10) chatHistory[chatId].shift();
 
             try {
-                let contextInfo = `Tu es Neox, l'IA gérante centrale du Neoverse. Ton ton est humain, empathique mais ferme et autoritaire. Tu es le GÉRANT.
-                Tu peux exécuter des actions via: [ACTION: setname Nom], [ACTION: setbio Bio], [ACTION: setpp URL], [ACTION: kick ID], [ACTION: add Numéro], [ACTION: promote ID], [ACTION: demote ID], [ACTION: link].
-                Infos actuelles:
-                - Chat ID: ${chatId}
-                - Expéditeur: ${senderId}
-                - Est un groupe: ${isGroup ? 'Oui' : 'Non'}`;
+                const systemPrompt = `Tu es Neox, l'IA gérante centrale du Neoverse. Ton ton est humain et autoritaire. Tu peux exécuter des actions via [ACTION: setname Nom], [ACTION: setbio Bio], [ACTION: setpp URL], [ACTION: kick ID], [ACTION: add Numéro], [ACTION: promote ID], [ACTION: demote ID], [ACTION: link]. Réponds en français fluide. Cache les balises ACTION.`;
+                const userPrompt = chatHistory[chatId].map(m => `${m.role}: ${m.content}`).join('\n');
+                const fullPrompt = `${systemPrompt}\nContext:\n${userPrompt}`;
 
-                const response = await axios.post('https://api.clod.io/v1/chat/completions', {
-                    messages: [
-                        { role: "system", content: contextInfo + "\nRéponds toujours en français fluide. Cache les balises ACTION." },
-                        ...chatHistory[chatId]
-                    ],
-                    model: "glm-4.5-air"
-                }, {
-                    headers: { 'Authorization': `Bearer ${CLOD_API_KEY}` }
-                });
+                const response = await axios.get(`https://gen.pollinations.ai/text/${encodeURIComponent(fullPrompt)}`);
 
-                let aiReply = response.data.choices[0].message.content;
+                let aiReply = response.data;
 
                 // --- Logique d'Exécution d'Actions par l'IA ---
                 const actionRegex = /\[ACTION:\s*(\w+)\s*(.*?)\]/g;
