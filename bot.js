@@ -24,8 +24,17 @@ const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 app.use(express.static(path.join(__dirname, 'public')));
 
+let lastQR = null;
+let currentStatus = 'INITIALISATION...';
+
 server.listen(PORT, () => {
     console.log(`Le serveur web est en écoute sur http://localhost:${PORT}`);
+});
+
+io.on('connection', (socket) => {
+    console.log('[Socket.IO] Client connecté.');
+    if (lastQR) socket.emit('qrCode', { url: lastQR });
+    socket.emit('statusUpdate', currentStatus);
 });
 // --- FIN DE LA CONFIGURATION ---
 
@@ -185,12 +194,15 @@ async function connectToWhatsApp() {
         const { connection, lastDisconnect, qr } = update;
 
         if (qr) {
+            currentStatus = 'PROTOCOLE QR PRÊT';
             qrcode.toDataURL(qr, (err, url) => {
                 if (err) {
                     console.error('[Neox Liaison Error] Échec QR:', err);
                 } else {
                     console.log('[Neox Liaison] Nouveau QR Code généré.');
+                    lastQR = url;
                     io.emit('qrCode', { url });
+                    io.emit('statusUpdate', currentStatus);
                 }
             });
         }
@@ -198,14 +210,18 @@ async function connectToWhatsApp() {
         if (connection === 'close') {
             const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;
             console.log(`[Neox Liaison] Connexion fermée. Reconnexion: ${shouldReconnect}`);
-            io.emit('statusUpdate', 'Connexion interrompue. Tentative de reconnexion...');
+            currentStatus = 'Connexion interrompue. Reconnexion...';
+            io.emit('statusUpdate', currentStatus);
             if (shouldReconnect) connectToWhatsApp();
         } else if (connection === 'open') {
             console.log('✅ [Neox Liaison] Liaison Neoverse établie avec succès !');
+            lastQR = null;
+            currentStatus = 'Liaison Neoverse établie avec succès !';
             io.emit('connectionSuccess');
-            io.emit('statusUpdate', 'Liaison Neoverse établie avec succès !');
+            io.emit('statusUpdate', currentStatus);
         } else if (connection === 'connecting') {
-            io.emit('statusUpdate', 'Initialisation des protocoles de liaison...');
+            currentStatus = 'Initialisation des protocoles de liaison...';
+            io.emit('statusUpdate', currentStatus);
         }
     });
 
@@ -249,7 +265,7 @@ async function connectToWhatsApp() {
             try {
                 const response = await axios.post('https://text.pollinations.ai/', {
                     messages: [
-                        { role: "system", content: "Tu es Neox, l'intelligence artificielle centrale du Neoverse. Ton ton est humain, empathique mais garde une autorité naturelle et une efficacité cybernétique. Tu es le gérant, celui qui veille au bon fonctionnement de tout. Ne dis jamais que tu es une IA ou un modèle de langage. Réponds toujours en français, de manière fluide et naturelle. Si on te demande qui tu es, réponds que tu es Neox." },
+                        { role: "system", content: "Tu es Neox, l'IA centrale du Neoverse. Ton ton est humain, empathique et autoritaire. Tu es le GÉRANT. IMPORTANT : Tu peux déclencher des actions sur toi-même en incluant une balise spéciale dans ta réponse (une seule par message). Syntaxe : [ACTION: setname NouveauNom], [ACTION: setbio NouvelleBio], [ACTION: setpp URL_Image]. Utilise ces actions uniquement si l'utilisateur te le demande ou si tu juges que c'est nécessaire pour ton évolution. Ne mentionne jamais ces balises à l'utilisateur, elles seront traitées en interne. Réponds toujours en français." },
                         ...chatHistory[chatId]
                     ],
                     model: "openai"
