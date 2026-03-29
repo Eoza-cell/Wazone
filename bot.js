@@ -181,37 +181,19 @@ async function connectToWhatsApp() {
         }
     });
 
-    if (!sock.authState.creds.registered) {
-        const requestPairingCodeWithRetry = async (retryCount = 0) => {
-            const phoneNumber = process.env.PHONE_NUMBER;
-            if (!phoneNumber) {
-                const message = 'ERREUR CRITIQUE: PHONE_NUMBER manquant.';
-                console.error(message);
-                io.emit('error', message);
-                return;
-            }
-
-            try {
-                const code = await sock.requestPairingCode(phoneNumber);
-                console.log(`[Neox Liaison] Code de jumelage: ${code}`);
-                io.emit('pairingCode', { code });
-            } catch (error) {
-                console.error(`[Neox Liaison Error] Tentative ${retryCount + 1} échouée:`, error);
-                if (retryCount < 5) {
-                    const delay = Math.pow(2, retryCount) * 1000;
-                    console.log(`[Neox Liaison] Nouvelle tentative dans ${delay/1000}s...`);
-                    setTimeout(() => requestPairingCodeWithRetry(retryCount + 1), delay);
-                } else {
-                    io.emit('error', 'Échec critique de la génération du code. Redémarrez le serveur.');
-                }
-            }
-        };
-
-        setTimeout(() => requestPairingCodeWithRetry(), 5000);
-    }
-
     sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update;
+
+        if (qr) {
+            qrcode.toDataURL(qr, (err, url) => {
+                if (err) {
+                    console.error('[Neox Liaison Error] Échec QR:', err);
+                } else {
+                    console.log('[Neox Liaison] Nouveau QR Code généré.');
+                    io.emit('qrCode', { url });
+                }
+            });
+        }
 
         if (connection === 'close') {
             const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;

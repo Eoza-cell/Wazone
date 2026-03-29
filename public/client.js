@@ -7,27 +7,29 @@ document.addEventListener('DOMContentLoaded', () => {
         randomizationFactor: 0.5
     });
 
-    const pairingCodeContainer = document.getElementById('pairing-code-container');
-    const pairingCodeElement = document.getElementById('pairing-code');
+    const qrCodeImage = document.getElementById('qr-code');
+    const qrPlaceholder = document.getElementById('qr-placeholder');
     const statusText = document.querySelector('.status-text');
 
     statusText.textContent = 'INITIALISATION DES PROTOCOLES...';
 
     socket.on('connect', () => {
         console.log('Connecté au serveur Neoverse !');
-        statusText.textContent = 'RECHERCHE DE LIAISON...';
+        statusText.textContent = 'RECHERCHE DE FLUX...';
     });
 
     socket.on('disconnect', (reason) => {
         console.log(`Déconnecté : ${reason}`);
-        statusText.textContent = '❌ LIAISON INTERROMPUE. RECONNEXION...';
+        statusText.textContent = '❌ FLUX INTERROMPU. RECONNEXION...';
     });
 
-    socket.on('pairingCode', (data) => {
-        if (data && data.code) {
-            console.log(`Code de jumelage reçu: ${data.code}`);
-            pairingCodeElement.textContent = data.code;
-            statusText.textContent = 'PROTOCOLE DE LIAISON PRÊT';
+    socket.on('qrCode', (data) => {
+        if (data && data.url) {
+            console.log('Nouveau QR Code reçu.');
+            qrCodeImage.src = data.url;
+            qrCodeImage.style.display = 'block';
+            qrPlaceholder.style.display = 'none';
+            statusText.textContent = 'PROTOCOLE QR PRÊT';
         }
     });
 
@@ -48,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('error', (errorMessage) => {
         console.error(`Erreur critique: ${errorMessage}`);
-        pairingCodeElement.textContent = "ÉCHEC";
+        qrPlaceholder.textContent = "ÉCHEC";
         statusText.textContent = errorMessage.toUpperCase();
     });
 });
