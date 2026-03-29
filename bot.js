@@ -276,15 +276,22 @@ async function connectToWhatsApp() {
             if (chatHistory[chatId].length > 10) chatHistory[chatId].shift();
 
             try {
-                const response = await axios.post('https://text.pollinations.ai/', {
+                let contextInfo = `Tu es Neox, l'IA gérante centrale du Neoverse. Ton ton est humain, empathique mais ferme et autoritaire. Tu es le GÉRANT.
+                Tu peux exécuter des actions via: [ACTION: setname Nom], [ACTION: setbio Bio], [ACTION: setpp URL], [ACTION: kick ID], [ACTION: add Numéro], [ACTION: promote ID], [ACTION: demote ID], [ACTION: link].
+                Infos actuelles:
+                - Chat ID: ${chatId}
+                - Expéditeur: ${senderId}
+                - Est un groupe: ${isGroup ? 'Oui' : 'Non'}`;
+
+                const response = await axios.post('https://gen.pollinations.ai/v1/chat/completions', {
                     messages: [
-                        { role: "system", content: "Tu es Neox, l'IA centrale du Neoverse. Ton ton est humain, empathique et autoritaire. Tu es le GÉRANT. IMPORTANT : Tu peux déclencher des actions sur toi-même en incluant une balise spéciale dans ta réponse (une seule par message). Syntaxe : [ACTION: setname NouveauNom], [ACTION: setbio NouvelleBio], [ACTION: setpp URL_Image]. Utilise ces actions uniquement si l'utilisateur te le demande ou si tu juges que c'est nécessaire pour ton évolution. Ne mentionne jamais ces balises à l'utilisateur, elles seront traitées en interne. Réponds toujours en français." },
+                        { role: "system", content: contextInfo + "\nRéponds toujours en français fluide. Cache les balises ACTION." },
                         ...chatHistory[chatId]
                     ],
-                    model: "openai"
+                    model: "claude-fast"
                 });
 
-                let aiReply = response.data;
+                let aiReply = response.data.choices[0].message.content;
 
                 // --- Logique d'Exécution d'Actions par l'IA ---
                 if (aiReply.includes("[ACTION:")) {
@@ -304,6 +311,21 @@ async function connectToWhatsApp() {
                                 const ppRes = await axios.get(param, { responseType: 'arraybuffer' });
                                 await sock.updateProfilePicture(sock.user.id, ppRes.data);
                                 console.log(`[Neox Action] Photo mise à jour via URL: ${param}`);
+                            } else if (action === 'kick' && isGroup) {
+                                await sock.groupParticipantsUpdate(chatId, [param], "remove");
+                                console.log(`[Neox Action] Kick: ${param}`);
+                            } else if (action === 'add' && isGroup) {
+                                await sock.groupParticipantsUpdate(chatId, [param.includes('@') ? param : param + '@s.whatsapp.net'], "add");
+                                console.log(`[Neox Action] Add: ${param}`);
+                            } else if (action === 'promote' && isGroup) {
+                                await sock.groupParticipantsUpdate(chatId, [param], "promote");
+                                console.log(`[Neox Action] Promote: ${param}`);
+                            } else if (action === 'demote' && isGroup) {
+                                await sock.groupParticipantsUpdate(chatId, [param], "demote");
+                                console.log(`[Neox Action] Demote: ${param}`);
+                            } else if (action === 'link' && isGroup) {
+                                const code = await sock.groupInviteCode(chatId);
+                                await sock.sendMessage(chatId, { text: `🔗 Voici le lien d'accès : https://chat.whatsapp.com/${code}` });
                             }
                         } catch (e) {
                             console.error(`[Neox Action Error] Échec de l'action ${action}:`, e);
