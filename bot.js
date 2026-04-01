@@ -57,7 +57,6 @@ const EQUIPMENT_FILE = './equipment.json';
 const GENERATED_IMAGES_DIR = './generated_images/';
 const CHAT_HISTORY_FILE = './data/chat_history.json';
 const OWNER_ID = process.env.OWNER_ID || '22663685468@s.whatsapp.net';
-const CLOD_API_KEY = process.env.CLOD_API_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyQmZYOWM1ejhxVTZpNThEQWVNOWt4ZWNGN3oxIiwidXNlcklkIjoiMkJmWDljNXo4cVU2aTU4REFlTTlreGVjRjd6MSIsInRlYW1JZCI6ImIwMjdiYzNmLWVhM2MtNDUwMC1hNWViLWIwODhjODMzZDk4NSIsInRlYW1Sb2xlIjoib3duZXIiLCJwcm9qZWN0SWQiOiI3MTU0NzgwZi1iODkxLTQ1MzAtODdlZS1jZTdhOTMwNDllZGYiLCJpYXQiOjE3NzQ4MjIyMTAsImV4cCI6MTgyNDgyMjIxMH0.SScFul42RqW706Lof_F0aS_Y9eiRtU-TVFQW0zvT1xk';
 
 if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR);
 if (!fs.existsSync(GENERATED_IMAGES_DIR)) fs.mkdirSync(GENERATED_IMAGES_DIR);
@@ -243,13 +242,14 @@ async function connectToWhatsApp() {
 
     sock.ev.on('messages.upsert', async ({ messages }) => {
         const msg = messages[0];
-        if (!msg.message) return;
+        if (!msg.message || msg.key.fromMe) return;
 
         const isGroup = msg.key.remoteJid.endsWith('@g.us');
         const senderId = isGroup ? (msg.key.participant || msg.participant) : msg.key.remoteJid;
         const chatId = msg.key.remoteJid;
 
         if (!senderId) return;
+        console.log(`[Neox] Message reçu de ${senderId} dans ${chatId}: ${msg.message.conversation || msg.message.extendedTextMessage?.text || '(média)'}`);
 
         const player = getPlayer(senderId);
         if (!player.name) player.name = msg.pushName || 'Inconnu';
@@ -277,13 +277,19 @@ async function connectToWhatsApp() {
             if (chatHistory[chatId].length > 10) chatHistory[chatId].shift();
 
             try {
-                const systemPrompt = `Tu es Neox, l'IA gérante centrale du Neoverse. Ton ton est humain et autoritaire. Tu peux exécuter des actions via [ACTION: setname Nom], [ACTION: setbio Bio], [ACTION: setpp URL], [ACTION: kick ID], [ACTION: add Numéro], [ACTION: promote ID], [ACTION: demote ID], [ACTION: link]. Réponds en français fluide. Cache les balises ACTION.`;
-                const userPrompt = chatHistory[chatId].map(m => `${m.role}: ${m.content}`).join('\n');
-                const fullPrompt = `${systemPrompt}\nContext:\n${userPrompt}`;
+                const response = await axios.post('https://gen.pollinations.ai/v1/chat/completions', {
+                    messages: [
+                        { role: "system", content: "Tu es Neox, l'IA gérante centrale du Neoverse. Ton ton est humain et autoritaire. Tu peux exécuter des actions via [ACTION: setname Nom], [ACTION: setbio Bio], [ACTION: setpp URL], [ACTION: kick ID], [ACTION: add Numéro], [ACTION: promote ID], [ACTION: demote ID], [ACTION: link]. Réponds en français fluide. Cache les balises ACTION." },
+                        ...chatHistory[chatId]
+                    ],
+                    model: "claude-fast"
+                });
 
-                const response = await axios.get(`https://gen.pollinations.ai/text/${encodeURIComponent(fullPrompt)}`);
+                if (!response.data || !response.data.choices) {
+                    throw new Error("Réponse invalide de l'API AI");
+                }
 
-                let aiReply = response.data;
+                let aiReply = response.data.choices[0].message.content;
 
                 // --- Logique d'Exécution d'Actions par l'IA ---
                 const actionRegex = /\[ACTION:\s*(\w+)\s*(.*?)\]/g;
@@ -333,11 +339,7 @@ async function connectToWhatsApp() {
                 if (aiReply) await sock.sendMessage(chatId, { text: aiReply });
             } catch (error) {
                 console.error("[Neox AI Error]:", error.response?.data || error.message);
-                const isQuotaError = error.response?.status === 403;
-                const errorMsg = isQuotaError
-                    ? "Mes serveurs de réflexion indiquent que le quota est dépassé. Veuillez vérifier votre clé API Clod.io."
-                    : "Désolé, mes circuits de communication sont temporairement surchargés.";
-                await sock.sendMessage(chatId, { text: errorMsg });
+                await sock.sendMessage(chatId, { text: "Désolé, mes circuits de communication sont temporairement surchargés." });
             }
             return;
         }
@@ -345,6 +347,18 @@ async function connectToWhatsApp() {
         if (messageContent.startsWith('/')) {
             const isOwner = senderId === OWNER_ID;
             switch(command) {
+                case 'testai':
+                    await sock.sendMessage(chatId, { text: "⏳ Test de l'IA en cours..." });
+                    try {
+                        const res = await axios.post('https://gen.pollinations.ai/v1/chat/completions', {
+                            messages: [{ role: "user", content: "Dis 'LIA FONCTIONNE'" }],
+                            model: "openai"
+                        });
+                        await sock.sendMessage(chatId, { text: `✅ Réponse IA: ${res.data.choices[0].message.content}` });
+                    } catch (e) {
+                        await sock.sendMessage(chatId, { text: `❌ Erreur IA: ${e.message}` });
+                    }
+                    break;
                 case 'menu':
                 case 'aide':
                     const menuImagePath = await generateMenuImage();
