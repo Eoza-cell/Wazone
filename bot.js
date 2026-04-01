@@ -221,11 +221,14 @@ async function connectToWhatsApp() {
         }
 
         if (connection === 'close') {
-            const shouldReconnect = (lastDisconnect.error instanceof Boom) && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut;
-            console.log(`[Neox Liaison] Connexion fermée. Reconnexion: ${shouldReconnect}`);
-            currentStatus = 'Connexion interrompue. Reconnexion...';
+            const statusCode = (lastDisconnect.error instanceof Boom) ? lastDisconnect.error.output.statusCode : 0;
+            const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+            console.log(`[Neox Liaison] Connexion fermée (Code: ${statusCode}). Reconnexion: ${shouldReconnect}`);
+            currentStatus = shouldReconnect ? 'Liaison instable. Reconnexion automatique...' : 'Déconnexion manuelle effectuée.';
             io.emit('statusUpdate', currentStatus);
-            if (shouldReconnect) connectToWhatsApp();
+            if (shouldReconnect) {
+                setTimeout(connectToWhatsApp, 5000);
+            }
         } else if (connection === 'open') {
             console.log('✅ [Neox Liaison] Liaison Neoverse établie avec succès !');
             lastQR = null;
@@ -254,7 +257,16 @@ async function connectToWhatsApp() {
         const player = getPlayer(senderId);
         if (!player.name) player.name = msg.pushName || 'Inconnu';
 
-        const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+        const messageContent = msg.message.conversation ||
+                               msg.message.extendedTextMessage?.text ||
+                               msg.message.imageMessage?.caption ||
+                               msg.message.videoMessage?.caption ||
+                               '';
+
+        if (messageContent.toLowerCase() === 'ping') {
+            await sock.sendMessage(chatId, { text: 'PONG ! Neox est en ligne.' });
+            return;
+        }
 
         if (player.lastDeath) {
             const timeSinceDeath = Date.now() - player.lastDeath;
@@ -267,7 +279,11 @@ async function connectToWhatsApp() {
         const args = messageContent.slice(1).trim().split(/ +/);
         const command = args.shift().toLowerCase();
 
-        if (!messageContent.startsWith('/') && (isGroup ? (messageContent.toLowerCase().includes('neox') || messageContent.toLowerCase().includes('makima')) : true)) {
+        const isMentioned = messageContent.toLowerCase().includes('neox') ||
+                            messageContent.toLowerCase().includes('makima') ||
+                            msg.message.extendedTextMessage?.contextInfo?.mentionedJid?.includes(sock.user.id);
+
+        if (!messageContent.startsWith('/') && (isGroup ? isMentioned : true) && messageContent.length > 0) {
             const prompt = messageContent;
 
             if (!chatHistory[chatId]) chatHistory[chatId] = [];
@@ -283,10 +299,10 @@ async function connectToWhatsApp() {
                         ...chatHistory[chatId]
                     ],
                     model: "claude-fast"
-                });
+                }, { timeout: 30000 });
 
-                if (!response.data || !response.data.choices) {
-                    throw new Error("Réponse invalide de l'API AI");
+                if (!response.data || !response.data.choices || response.data.choices.length === 0) {
+                    throw new Error("Réponse vide de l'API AI");
                 }
 
                 let aiReply = response.data.choices[0].message.content;
