@@ -21,6 +21,7 @@
   "homepage": "https://github.com/Eoza-cell/Wazone#readme",
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.2",
+    "axios": "^1.7.2",
     "express": "^4.19.2",
     "qrcode": "^1.5.4",
     "sharp": "^0.33.4",

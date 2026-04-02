@@ -7,52 +7,57 @@ document.addEventListener('DOMContentLoaded', () => {
         randomizationFactor: 0.5
     });
 
-    const pairingCodeContainer = document.getElementById('pairing-code-container');
-    const pairingCodeElement = document.getElementById('pairing-code');
+    const qrCodeImage = document.getElementById('qr-code');
+    const qrPlaceholder = document.getElementById('qr-placeholder');
     const statusText = document.querySelector('.status-text');
 
-    statusText.textContent = 'Connexion au serveur...';
+    statusText.textContent = 'INITIALISATION DES PROTOCOLES...';
 
     socket.on('connect', () => {
-        console.log('Connecté au serveur !');
-        statusText.textContent = 'En attente du code de jumelage...';
+        console.log('Connecté au serveur Neoverse !');
+        statusText.textContent = 'RECHERCHE DE FLUX...';
     });
 
     socket.on('disconnect', (reason) => {
         console.log(`Déconnecté : ${reason}`);
-        statusText.textContent = '❌ Déconnecté. Tentative de reconnexion...';
+        statusText.textContent = '❌ FLUX INTERROMPU. RECONNEXION...';
     });
 
-    socket.on('reconnecting', (attemptNumber) => {
-        console.log(`Tentative de reconnexion n°${attemptNumber}...`);
-        statusText.textContent = `⏳ Tentative de reconnexion (${attemptNumber})...`;
-    });
-
-    socket.on('reconnect_failed', () => {
-        console.error('La reconnexion a échoué définitivement.');
-        statusText.textContent = '❌ Impossible de se reconnecter. Veuillez vérifier votre connexion et rafraîchir la page.';
-    });
-
-    socket.on('pairingCode', (data) => {
-        if (data && data.code) {
-            console.log(`Code de jumelage reçu: ${data.code}`);
-            pairingCodeElement.textContent = data.code;
-            statusText.textContent = 'Utilisez ce code sur WhatsApp pour vous connecter.';
-        } else {
-             console.error("Données du code de jumelage invalides reçues.");
-             statusText.textContent = "Erreur: Données du code invalides."
+    socket.on('qrCode', (data) => {
+        if (data && data.url) {
+            console.log('Nouveau QR Code reçu.');
+            qrCodeImage.src = data.url;
+            qrCodeImage.style.display = 'block';
+            qrPlaceholder.style.display = 'none';
+            statusText.textContent = 'PROTOCOLE QR PRÊT';
         }
     });
 
+    socket.on('statusUpdate', (status) => {
+        statusText.textContent = status.toUpperCase();
+    });
+
     socket.on('connectionSuccess', () => {
-        console.log('Connexion du bot réussie !');
-        pairingCodeContainer.style.display = 'none';
-        statusText.textContent = '✅ Bot connecté avec succès !';
+        console.log('Liaison Neoverse établie !');
+        document.getElementById('connection-container').innerHTML = `
+            <div class="logo-container">
+                <span class="glitch" data-text="LIAISON ÉTABLIE">LIAISON ÉTABLIE</span>
+            </div>
+            <p>Neox est maintenant opérationnel dans le Neoverse.</p>
+            <p class="status-text">VOUS POUVEZ FERMER CETTE FENÊTRE</p>
+        `;
     });
 
     socket.on('error', (errorMessage) => {
-        console.error(`Erreur du serveur: ${errorMessage}`);
-        pairingCodeElement.textContent = "ERREUR";
-        statusText.textContent = errorMessage;
+        console.error(`Erreur critique: ${errorMessage}`);
+        qrPlaceholder.textContent = "ÉCHEC";
+        statusText.textContent = errorMessage.toUpperCase();
+    });
+
+    document.getElementById('clear-session-btn').addEventListener('click', () => {
+        if (confirm('Voulez-vous vraiment réinitialiser la session ? Cela redémarrera le bot.')) {
+            socket.emit('clearSession');
+            statusText.textContent = 'RÉINITIALISATION... VEUILLEZ PATIENTER.';
+        }
     });
 });

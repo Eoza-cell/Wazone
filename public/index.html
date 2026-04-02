@@ -3,17 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion Wazone Bot</title>
+    <title>NEOX // Interface de Liaison</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="connection-container">
-        <h1>Wazone Bot</h1>
-        <p>Entrez ce code de jumelage sur votre téléphone :</p>
-        <div id="pairing-code-container">
-            <p id="pairing-code">En attente du code...</p>
+        <div class="logo-container">
+            <span class="glitch" data-text="NEOX">NEOX</span>
+        </div>
+        <p class="subtitle">LIAISON NEOVERSE EN COURS</p>
+        <p>Scannez ce QR Code avec WhatsApp sur votre mobile :</p>
+        <div id="qr-container">
+            <img id="qr-code" src="" alt="Scan Me">
+            <p id="qr-placeholder">GÉNÉRATION DU FLUX...</p>
         </div>
         <p class="status-text">Demande d'un code de jumelage au serveur...</p>
+        <button id="clear-session-btn">RÉINITIALISER LA SESSION</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
