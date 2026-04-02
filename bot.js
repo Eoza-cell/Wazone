@@ -293,19 +293,27 @@ async function connectToWhatsApp() {
             if (chatHistory[chatId].length > 10) chatHistory[chatId].shift();
 
             try {
-                const response = await axios.post('https://gen.pollinations.ai/v1/chat/completions', {
+                const response = await axios.post('https://text.pollinations.ai/', {
                     messages: [
                         { role: "system", content: "Tu es Neox, l'IA gérante centrale du Neoverse. Ton ton est humain et autoritaire. Tu peux exécuter des actions via [ACTION: setname Nom], [ACTION: setbio Bio], [ACTION: setpp URL], [ACTION: kick ID], [ACTION: add Numéro], [ACTION: promote ID], [ACTION: demote ID], [ACTION: link]. Réponds en français fluide. Cache les balises ACTION." },
                         ...chatHistory[chatId]
                     ],
-                    model: "claude-fast"
-                }, { timeout: 30000 });
+                    model: "openai"
+                }, {
+                    timeout: 45000,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Referer': 'https://pollinations.ai/'
+                    }
+                });
 
-                if (!response.data || !response.data.choices || response.data.choices.length === 0) {
+                if (!response.data) {
                     throw new Error("Réponse vide de l'API AI");
                 }
 
-                let aiReply = response.data.choices[0].message.content;
+                let aiReply = typeof response.data === 'string' ? response.data : response.data.choices?.[0]?.message?.content;
+                if (!aiReply) throw new Error("Format de réponse inconnu ou vide");
 
                 // --- Logique d'Exécution d'Actions par l'IA ---
                 const actionRegex = /\[ACTION:\s*(\w+)\s*(.*?)\]/g;
@@ -366,11 +374,18 @@ async function connectToWhatsApp() {
                 case 'testai':
                     await sock.sendMessage(chatId, { text: "⏳ Test de l'IA en cours..." });
                     try {
-                        const res = await axios.post('https://gen.pollinations.ai/v1/chat/completions', {
+                        const res = await axios.post('https://text.pollinations.ai/', {
                             messages: [{ role: "user", content: "Dis 'LIA FONCTIONNE'" }],
                             model: "openai"
+                        }, {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                                'Referer': 'https://pollinations.ai/'
+                            }
                         });
-                        await sock.sendMessage(chatId, { text: `✅ Réponse IA: ${res.data.choices[0].message.content}` });
+                        const reply = typeof res.data === 'string' ? res.data : res.data.choices?.[0]?.message?.content;
+                        await sock.sendMessage(chatId, { text: `✅ Réponse IA: ${reply}` });
                     } catch (e) {
                         await sock.sendMessage(chatId, { text: `❌ Erreur IA: ${e.message}` });
                     }
